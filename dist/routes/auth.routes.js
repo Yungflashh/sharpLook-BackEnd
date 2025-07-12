@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_controller_1 = require("../controllers/auth.controller");
+const auth_controller_2 = require("../controllers/auth.controller");
+const vendorOnboarding_controller_1 = require("../controllers/vendorOnboarding.controller");
+const multer_1 = require("../utils/multer");
+const router = (0, express_1.Router)();
+router.post("/register", auth_controller_1.register);
+router.post("/login", auth_controller_1.login);
+router.post("/send-otp", auth_controller_2.sendOtp);
+router.post("/verify-otp", auth_controller_2.verifyOtp);
+router.post("/request-password-reset", auth_controller_1.requestReset);
+router.post("/reset-password", auth_controller_1.reset);
+router.post("/register-vendor", multer_1.upload.single("identityImage"), vendorOnboarding_controller_1.registerVendor);
+exports.default = router;

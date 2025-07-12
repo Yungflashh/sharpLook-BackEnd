@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String            @id @default(auto()) @map("_id") @db.ObjectId
+  email                String            @unique
+  phone                String?          
+  password             String
+  role                 Role
+  vendorOnboarding     VendorOnboarding?
+  isEmailVerified      Boolean           @default(false)
+  isOtpVerified        Boolean           @default(false)
+  otp                  String?           @db.String
+  otpExpires           DateTime?
+  acceptedPersonalData Boolean           @default(false)
+  name                 String?           @db.String
+  avatar               String?           @db.String
+  bio                  String?           @db.String
+  resetToken           String?           @db.String
+  resetTokenExp        DateTime?
+   clientBookings       Booking[]         @relation("ClientBooking")
+  vendorBookings       Booking[]         @relation("VendorBooking")
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+}
+
+model VendorOnboarding {
+  id                  String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String      @unique @db.ObjectId
+  user                User        @relation(fields: [userId], references: [id])
+  serviceType         ServiceType
+  identityImage       String
+  registerationNumber String
+  businessName        String?
+  bio                 String?
+  location            String?
+  servicesOffered     String?
+  portfolioLink       String?
+  profileImage        String?
+  portfolioImages      String[]  @default([])
+  createdAt           DateTime    @default(now())
+}
+
+model Booking {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  clientId    String
+  vendorId    String
+  date        DateTime
+  time        String
+  status      BookingStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client      User     @relation("ClientBooking", fields: [clientId], references: [id])
+  vendor      User     @relation("VendorBooking", fields: [vendorId], references: [id])
+}
+
+
+
+enum ServiceType {
+  IN_SHOP
+  HOME_SERVICE
+}
+
+enum Role {
+  CLIENT
+  VENDOR
+  ADMIN
+  SUPERADMIN
+}
+
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
