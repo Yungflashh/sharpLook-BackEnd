@@ -26,6 +26,7 @@ app.use("/api/v1/bookings", bookingRoutes)
 app.use("/api/v1/products", productRoutes)
 app.use("/api/v1/earnings", earningsRoutes)
 app.use("/api/v1/notifications", notificationsRoutes)
+app.use("/api/v1/reviews", reviewRoutes)
 
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"))
 
