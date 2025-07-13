@@ -8,26 +8,32 @@ datasource db {
 }
 
 model User {
-  id                   String            @id @default(auto()) @map("_id") @db.ObjectId
-  email                String            @unique
-  phone                String?          
+  id                   String               @id @default(auto()) @map("_id") @db.ObjectId
+  email                String               @unique
+  phone                String?
   password             String
   role                 Role
   vendorOnboarding     VendorOnboarding?
-  isEmailVerified      Boolean           @default(false)
-  isOtpVerified        Boolean           @default(false)
-  otp                  String?           @db.String
+  isEmailVerified      Boolean              @default(false)
+  isOtpVerified        Boolean              @default(false)
+  otp                  String?              @db.String
   otpExpires           DateTime?
-  acceptedPersonalData Boolean           @default(false)
-  name                 String?           @db.String
-  avatar               String?           @db.String
-  bio                  String?           @db.String
-  resetToken           String?           @db.String
+  acceptedPersonalData Boolean              @default(false)
+  name                 String?              @db.String
+  avatar               String?              @db.String
+  bio                  String?              @db.String
+  resetToken           String?              @db.String
   resetTokenExp        DateTime?
-   clientBookings       Booking[]         @relation("ClientBooking")
-  vendorBookings       Booking[]         @relation("VendorBooking")
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  notes                String?
+  clientBookings       Booking[]            @relation("ClientBooking")
+  vendorBookings       Booking[]            @relation("VendorBooking")
+  products             Product[]            @relation("UserProducts")
+  notifications        Notification[]       @relation("UserNotifications") 
+  vendorReviews        Review[]             @relation("VendorReview")  
+  clientReviews        Review[]             @relation("ClientReview")
+  vendorAvailabilities VendorAvailability[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 }
 
 model VendorOnboarding {
@@ -43,22 +49,80 @@ model VendorOnboarding {
   servicesOffered     String?
   portfolioLink       String?
   profileImage        String?
-  portfolioImages      String[]  @default([])
+  pricing             Json? // 
+  service             String? // e.g. "braids", "nails", etc.
+  specialties         String[]
+  portfolioImages     String[]    @default([])
   createdAt           DateTime    @default(now())
 }
 
-model Booking {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  clientId    String
-  vendorId    String
-  date        DateTime
-  time        String
-  status      BookingStatus @default(PENDING)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model VendorAvailability {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  vendorId  String   @unique
+  days      String[] // e.g., ["Monday", "Wednesday", "Friday"]
+  fromTime  String // e.g., "09:00"
+  toTime    String // e.g., "17:00"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  client      User     @relation("ClientBooking", fields: [clientId], references: [id])
-  vendor      User     @relation("VendorBooking", fields: [vendorId], references: [id])
+  vendor User @relation(fields: [vendorId], references: [id])
+}
+
+model Booking {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  clientId   String     @db.ObjectId
+  vendorId   String     @db.ObjectId
+  serviceName String
+  date       DateTime
+  time       String
+  price      Float
+  status     BookingStatus
+  review     Review?    @relation("BookingToReview") // ✅ only define relation name here
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  client     User       @relation("ClientBooking", fields: [clientId], references: [id])
+  vendor     User       @relation("VendorBooking", fields: [vendorId], references: [id])
+}
+
+
+model Product {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  vendorId      String   @db.ObjectId
+  vendor        User      @relation("UserProducts", fields: [vendorId], references: [id])
+  productName   String
+  price         Float
+  qtyAvailable  Int
+  status        String   @default("in stock")
+  picture       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  message   String
+  type      String   // e.g., "BOOKING"
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation("UserNotifications", fields: [userId], references: [id])
+}
+
+
+model Review {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId  String   @unique @db.ObjectId // ✅ must be unique for 1-to-1
+  vendorId   String   @db.ObjectId
+  clientId   String   @db.ObjectId
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  booking    Booking? @relation("BookingToReview", fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction) // ✅ Only set fields and references here
+  vendor     User     @relation("VendorReview", fields: [vendorId], references: [id])
+  client     User     @relation("ClientReview", fields: [clientId], references: [id])
 }
 
 
@@ -75,10 +139,10 @@ enum Role {
   SUPERADMIN
 }
 
-
 enum BookingStatus {
   PENDING
-  CONFIRMED
+  ACCEPTED
+  REJECTED
   CANCELLED
   COMPLETED
 }

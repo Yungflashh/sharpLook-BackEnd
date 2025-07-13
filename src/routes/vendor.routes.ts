@@ -2,9 +2,15 @@
 import { Router } from "express"
 import { verifyToken, requireRole } from "../middlewares/auth.middleware"
 import { completeVendorProfile } from "../controllers/vendor.controller"
-import { uploadPortfolioImages, fetchPortfolioImages } from "../controllers/vendor.controller"
-
+import { uploadPortfolioImages,
+         fetchPortfolioImages, 
+         setVendorSpecialties, 
+         fetchVendorSpecialties, 
+         fetchAvailability, 
+         updateAvailability  } from "../controllers/vendor.controller"
 import { uploadMultiple } from "../middlewares/upload.middleware"
+import { setVendorPricing, fetchVendorPricing } from "../controllers/vendorPricing.controller"
+
 
 
 
@@ -15,8 +21,14 @@ res.json({ message: "Welcome, Vendor!" })
   }
 )
 router.put("/complete-profile", verifyToken, requireRole(["VENDOR"]), completeVendorProfile)
-router.post("/upload", verifyToken, uploadMultiple, uploadPortfolioImages)
-router.get("/", verifyToken, fetchPortfolioImages)
+router.post("/upload", verifyToken, requireRole(["VENDOR"]), uploadMultiple,  uploadPortfolioImages)
+router.get("/fetchPortfolioImage", verifyToken, requireRole(["VENDOR"]), fetchPortfolioImages)
+router.get("/getVendorPricing", verifyToken, requireRole(["VENDOR"]), fetchVendorPricing)
+router.post("/setVendorPricing", verifyToken, requireRole(["VENDOR"]), setVendorPricing)
+router.post("/setVendorSpecialities", verifyToken, requireRole(["VENDOR"]), setVendorSpecialties)
+router.get("/getVendorSpecialities", verifyToken, requireRole(["VENDOR"]), fetchVendorSpecialties )
+router.post("/setVendorAvailability", verifyToken, requireRole(["VENDOR"]), updateAvailability)
+router.get("/getVendorAvailability", verifyToken, requireRole(["VENDOR"]),  fetchAvailability)
 
 
 export default router

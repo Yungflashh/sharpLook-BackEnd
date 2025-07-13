@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { updateVendorProfile } from "../services/vendorOnboarding.service"
-import { addPortfolioImages, getPortfolioImages } from "../services/vendor.services"
+import { addPortfolioImages, getPortfolioImages, getVendorSpecialties, updateVendorSpecialties,setVendorAvailability, getVendorAvailability } from "../services/vendor.services"
 import uploadToCloudinary from "../utils/cloudinary"
 
 
@@ -43,3 +43,51 @@ export const fetchPortfolioImages = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to fetch portfolio images" })
   }
 }
+
+
+export const setVendorSpecialties = async (req: Request, res: Response) => {
+  try {
+    const { specialties } = req.body
+    if (!Array.isArray(specialties)) {
+      return res.status(400).json({ error: "Specialties must be an array of strings" })
+    }
+
+    const updated = await updateVendorSpecialties(req.user!.id, specialties)
+    res.json({ success: true, message: "Specialties updated", data: updated })
+  } catch (err: any) {
+    res.status(400).json({ error: err.message })
+  }
+}
+
+export const fetchVendorSpecialties = async (req: Request, res: Response) => {
+  try {
+    const data = await getVendorSpecialties(req.user!.id)
+    res.json({ success: true, data })
+  } catch (err: any) {
+    res.status(400).json({ error: err.message })
+  }
+}
+
+
+
+export const updateAvailability = async (req: Request, res: Response) => {
+  const { days, fromTime, toTime } = req.body
+
+  try {
+    const availability = await setVendorAvailability(req.user!.id, days, fromTime, toTime)
+    res.json({ success: true, message: "Availability updated", data: availability })
+  } catch (err: any) {
+    res.status(400).json({ error: err.message })
+  }
+}
+
+export const fetchAvailability = async (req: Request, res: Response) => {
+  try {
+    const availability = await getVendorAvailability(req.user!.id)
+    res.json({ success: true, data: availability })
+  } catch (err: any) {
+    res.status(400).json({ error: err.message })
+  }
+}
+
+

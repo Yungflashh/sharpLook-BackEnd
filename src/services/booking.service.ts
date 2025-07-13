@@ -1,71 +1,47 @@
-// src/services/booking.service.ts
 import prisma from "../config/prisma"
-import { BookingStatus, Prisma } from "@prisma/client"
+import { BookingStatus } from "@prisma/client"
 
 export const createBooking = async (
   clientId: string,
   vendorId: string,
   date: Date,
-  time: string
+  time: string,
+  price: number,
+  serviceName: string
 ) => {
-  try {
-    return await prisma.booking.create({
-      data: {
-        clientId,
-        vendorId,
-        date,
-        time,
-        status: BookingStatus.PENDING,
-      },
-    })
-  } catch (error: any) {
-    throw new Error("Failed to create booking: " + error.message)
-  }
+  return await prisma.booking.create({
+    data: {
+      clientId,
+      vendorId,
+      date,
+      time,
+      price,
+      serviceName,
+      status: BookingStatus.PENDING,
+    },
+  })
 }
 
-export const getBookingsByUser = async (
-  userId: string,
-  role: "CLIENT" | "VENDOR",
-  page = 1,
-  limit = 10
-) => {
-  const skip = (page - 1) * limit
-  try {
-    const whereClause = role === "CLIENT" ? { clientId: userId } : { vendorId: userId }
-    const includeClause = role === "CLIENT" ? { vendor: true } : { client: true }
+export const getUserBookings = async (userId: string, role: "CLIENT" | "VENDOR") => {
+  const condition = role === "CLIENT" ? { clientId: userId } : { vendorId: userId }
+  const include = role === "CLIENT" ? { vendor: true } : { client: true }
 
-    const [bookings, total] = await Promise.all([
-      prisma.booking.findMany({
-        where: whereClause,
-        include: includeClause,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.booking.count({ where: whereClause }),
-    ])
-
-    return {
-      bookings,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
-      },
-    }
-  } catch (error: any) {
-    throw new Error("Failed to fetch bookings: " + error.message)
-  }
+  return await prisma.booking.findMany({
+    where: condition,
+    include,
+    orderBy: { createdAt: "desc" },
+  })
 }
 
 export const updateBookingStatus = async (bookingId: string, status: BookingStatus) => {
-  try {
-    return await prisma.booking.update({
-      where: { id: bookingId },
-      data: { status },
-    })
-  } catch (error: any) {
-    throw new Error("Failed to update booking status: " + error.message)
-  }
+  return await prisma.booking.update({
+    where: { id: bookingId },
+    data: { status },
+  })
+}
+
+export const getBookingById = async (bookingId: string) => {
+  return await prisma.booking.findUnique({
+    where: { id: bookingId },
+  })
 }

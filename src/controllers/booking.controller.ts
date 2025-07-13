@@ -1,44 +1,78 @@
-// src/controllers/booking.controller.ts
 import { Request, Response } from "express"
-import {
-  createBooking,
-  getBookingsByUser,
-  updateBookingStatus,
-} from "../services/booking.service"
+import * as BookingService from "../services/booking.service"
+import { BookingStatus } from "@prisma/client"
+import { createNotification } from "../services/notification.service"
 
-export const create = async (req: Request, res: Response) => {
+
+export const bookVendor = async (req: Request, res: Response) => {
+  const { vendorId, date, time, price, serviceName } = req.body
+
+  if (!vendorId || !date || !time || !price || !serviceName) {
+    return res.status(400).json({ error: "Missing required booking details" })
+  }
+
+  const clientId = req.user?.id!
+
   try {
-    const { vendorId, date, time } = req.body
-    const booking = await createBooking(req.user!.id, vendorId, new Date(date), time)
+    const booking = await BookingService.createBooking(
+      clientId,
+      vendorId,
+      new Date(date),
+      time,
+      price,
+      serviceName
+    )
+
+    await createNotification(
+      vendorId,
+      `You received a new booking request for ${serviceName} on ${date} at ${time}.`
+    )
+
+    await createNotification(
+      clientId,
+      `Your booking for ${serviceName} has been placed successfully.`
+    )
+
     res.status(201).json({ success: true, data: booking })
   } catch (err: any) {
     res.status(400).json({ error: err.message })
   }
 }
 
-export const getByUser = async (req: Request, res: Response) => {
+
+export const getMyBookings = async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 1
-    const limit = parseInt(req.query.limit as string) || 10
-    const role = req.user!.role
-    if (role !== "CLIENT" && role !== "VENDOR") {
-    return res.status(403).json({ error: "Unauthorized role for booking access" })
-    }
-
-    const result = await getBookingsByUser(req.user!.id, role, page, limit)
-
-
-    res.json({ success: true, ...result })
+    const role = req.user!.role as "CLIENT" | "VENDOR"
+    const bookings = await BookingService.getUserBookings(req.user!.id, role)
+    res.json({ success: true, data: bookings })
   } catch (err: any) {
     res.status(400).json({ error: err.message })
   }
 }
 
-export const updateStatus = async (req: Request, res: Response) => {
+export const changeBookingStatus = async (req: Request, res: Response) => {
+  const { bookingId } = req.params
+  const { status } = req.body
+
   try {
-    const { status } = req.body
-    const booking = await updateBookingStatus(req.params.id, status)
-    res.json({ success: true, message: "Booking status updated", data: booking })
+    const updated = await BookingService.updateBookingStatus(bookingId, status as BookingStatus)
+    const booking = await BookingService.getBookingById(bookingId)
+
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" })
+    }
+
+    await createNotification(
+      booking.clientId,
+      `Your booking for ${booking.serviceName} was ${status.toLowerCase()}.`
+    )
+
+    await createNotification(
+      booking.vendorId,
+      `You ${status.toLowerCase()} a booking for ${booking.serviceName}.`
+    )
+
+    res.json({ success: true, message: "Booking status updated", data: updated })
   } catch (err: any) {
     res.status(400).json({ error: err.message })
   }
