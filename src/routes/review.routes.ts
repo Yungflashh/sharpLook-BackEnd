@@ -9,3 +9,5 @@ router.post("/postReview", verifyToken, postReview)
 router.get("/:vendorId", fetchVendorReviews)
 
 export default router
+
+
