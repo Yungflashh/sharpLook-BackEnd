@@ -9,6 +9,8 @@ import bookingRoutes from "./routes/booking.routes"
 import productRoutes from "./routes/product.routes"
 import earningsRoutes from "./routes/earnings.routes"
 import notificationsRoutes from "./routes/notification.routes"
+import reviewRoutes from "./routes/review.routes"
+
 
 
 dotenv.config()
