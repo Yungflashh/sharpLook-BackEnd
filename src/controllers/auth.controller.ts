@@ -8,7 +8,7 @@ export const register = async (req: Request, res: Response) => {
       const user = await registerUser(email, password, firstName, lastName, role, acceptedPersonalData, phone)
       res.status(201).json({
       success: true,
-       message: "User registered successfully. OTP sent to email.",
+       message: "User registered successfully.",
        data: user
       })
 
