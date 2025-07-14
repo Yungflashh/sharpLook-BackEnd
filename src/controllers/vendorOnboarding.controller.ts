@@ -15,6 +15,9 @@ export const registerVendor = async (req: Request, res: Response) => {
     if (acceptedPersonalData == "True" || acceptedPersonalData == true || acceptedPersonalData == "true"){
           acceptedPersonalData = true
     }
+
+
+    
     if (!req.file) {
       return res.status(400).json({ error: "No identity image uploaded" });
     }
