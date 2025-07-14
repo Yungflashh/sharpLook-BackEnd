@@ -7,11 +7,14 @@ import uploadToCloudinary from "../utils/cloudinary"
 
 
 export const registerVendor = async (req: Request, res: Response) => {
+   console.log("🔥 registerVendor hit"); // ← add this
   try {
-    const {firstName, lastName, email, password, role,  } = req.body;
+    const {firstName, lastName, email, password, role, phone } = req.body;
     let {acceptedPersonalData} = req.body
    
-    
+    if (acceptedPersonalData == "True" || acceptedPersonalData == true || acceptedPersonalData == "true"){
+          acceptedPersonalData = true
+    }
     if (!req.file) {
       return res.status(400).json({ error: "No identity image uploaded" });
     }
@@ -20,25 +23,30 @@ export const registerVendor = async (req: Request, res: Response) => {
     const fileBuffer = req.file.buffer;
     const mimeType = req.file.mimetype;
 
-    // Upload to Cloudinary
+    console.log("🖼️ Multer file info:", {
+  originalname: req.file.originalname,
+  size: req.file.size,
+  mimetype: req.file.mimetype
+});
+
+
+   console.log("📦 Uploading to Cloudinary...");
     const { secure_url } = await uploadToCloudinary(fileBuffer, mimeType);
+    console.log("✅ Uploaded to Cloudinary:", secure_url);
 
-   if(acceptedPersonalData == "True"){
-      acceptedPersonalData = true
-    }
-    const user = await registerUser(firstName, lastName, email, password, role, acceptedPersonalData!);
-
+    const user = await registerUser( email, password,firstName, lastName, role, acceptedPersonalData!, phone);
+    console.log("👤 User registered:", user.email);
     // Create vendor onboarding with Cloudinary image URL
     await createVendorOnboarding(
   user.id,
   req.body.serviceType,
   secure_url,
-  req.body.registerationNumber
+ 
+  
 );
+console.log("🚀 Vendor onboarding created");
 
 
-    // Send OTP
-    await sendOtpService(user.email);
 
     res.status(201).json({
       success: true,

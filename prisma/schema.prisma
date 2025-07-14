@@ -44,7 +44,7 @@ model VendorOnboarding {
   user                User        @relation(fields: [userId], references: [id])
   serviceType         ServiceType
   identityImage       String
-  registerationNumber String
+  registerationNumber String?
   businessName        String?
   bio                 String?
   location            String?

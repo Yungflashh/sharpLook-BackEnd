@@ -6,14 +6,14 @@ export const createVendorOnboarding = async (
   userId: string,
   serviceType: ServiceType,
   identityImageUrl: string, // Cloudinary secure_url
-  registerationNumber: string
+ 
 ) => {
   return await prisma.vendorOnboarding.create({
     data: {
       userId,
       serviceType,
       identityImage: identityImageUrl, // Maps to your schema's identityImage
-      registerationNumber,
+     
     },
   })
 }

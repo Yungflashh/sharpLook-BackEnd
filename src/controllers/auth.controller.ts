@@ -3,9 +3,9 @@ import { loginUser, registerUser, resetPassword ,requestPasswordReset} from "../
 import { sendOtpService, verifyOtpService} from "../services/otp.service"
 
 export const register = async (req: Request, res: Response) => {
-  const {firstName, lastName, email, password, role, acceptedPersonalData,  } = req.body
+  const {firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body
   try {
-      const user = await registerUser(email, password, firstName, lastName, role, acceptedPersonalData)
+      const user = await registerUser(email, password, firstName, lastName, role, acceptedPersonalData, phone)
       res.status(201).json({
       success: true,
        message: "User registered successfully. OTP sent to email.",

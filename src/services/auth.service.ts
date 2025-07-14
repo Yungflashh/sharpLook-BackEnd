@@ -12,7 +12,8 @@ export const registerUser = async (
   firstName: string,
   lastName: string,
   role: Role,
-  acceptedPersonalData: boolean
+  acceptedPersonalData: boolean,
+  phone: string,
 ) => {
   const existing = await prisma.user.findUnique({ where: { email } })
   if (existing) throw new Error("Email already in use")
@@ -25,7 +26,8 @@ export const registerUser = async (
       email,
       password: hash,
       role,
-      acceptedPersonalData
+      acceptedPersonalData,
+      phone
     }
   })
 
