@@ -9,6 +9,8 @@ datasource db {
 
 model User {
   id                   String               @id @default(auto()) @map("_id") @db.ObjectId
+  firstName            String
+  lastName             String
   email                String               @unique
   phone                String?
   password             String
@@ -53,6 +55,9 @@ model VendorOnboarding {
   service             String? // e.g. "braids", "nails", etc.
   specialties         String[]
   portfolioImages     String[]    @default([])
+  serviceRadiusKm     Int?        // NEW: Radius in kilometers
+  latitude            Float?      // NEW: Latitude coordinate
+  longitude           Float?      // NEW: Longitude coordinate
   createdAt           DateTime    @default(now())
 }
 

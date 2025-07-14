@@ -1,4 +1,6 @@
 import prisma from "../config/prisma"
+import { haversineDistanceKm } from "../utils/distance"
+
 
 export const addPortfolioImages = async (userId: string, imageUrls: string[]) => {
   return await prisma.vendorOnboarding.update({
@@ -48,4 +50,45 @@ export const setVendorAvailability = async (
 
 export const getVendorAvailability = async (vendorId: string) => {
   return await prisma.vendorAvailability.findUnique({ where: { vendorId } })
+}
+
+export const updateServiceRadiusAndLocation = async (
+  userId: string,
+  radiusKm: number,
+  latitude: number,
+  longitude: number
+) => {
+  return await prisma.vendorOnboarding.update({
+    where: { userId },
+    data: {
+      serviceRadiusKm: radiusKm,
+      latitude,
+      longitude,
+    },
+  })
+}
+
+export const findNearbyVendors = async (
+  clientLat: number,
+  clientLon: number
+) => {
+  const allVendors = await prisma.vendorOnboarding.findMany({
+    where: {
+      latitude: { not: null },
+      longitude: { not: null },
+      serviceRadiusKm: { not: null },
+    },
+    include: { user: true },
+  })
+
+  return allVendors.filter((vendor) => {
+    const { latitude, longitude, serviceRadiusKm } = vendor
+    const distance = haversineDistanceKm(
+      clientLat,
+      clientLon,
+      latitude!,
+      longitude!
+    )
+    return distance <= serviceRadiusKm!
+  })
 }

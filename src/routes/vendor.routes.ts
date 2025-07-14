@@ -7,7 +7,9 @@ import { uploadPortfolioImages,
          setVendorSpecialties, 
          fetchVendorSpecialties, 
          fetchAvailability, 
-         updateAvailability  } from "../controllers/vendor.controller"
+         updateAvailability,
+        updateServiceRadius,
+      getNearbyVendors  } from "../controllers/vendor.controller"
 import { uploadMultiple } from "../middlewares/upload.middleware"
 import { setVendorPricing, fetchVendorPricing } from "../controllers/vendorPricing.controller"
 
@@ -29,6 +31,9 @@ router.post("/setVendorSpecialities", verifyToken, requireRole(["VENDOR"]), setV
 router.get("/getVendorSpecialities", verifyToken, requireRole(["VENDOR"]), fetchVendorSpecialties )
 router.post("/setVendorAvailability", verifyToken, requireRole(["VENDOR"]), updateAvailability)
 router.get("/getVendorAvailability", verifyToken, requireRole(["VENDOR"]),  fetchAvailability)
+router.put("/update-service-radius",verifyToken,requireRole(["VENDOR"]),updateServiceRadius)
+router.get("/nearby-vendors", getNearbyVendors)
+
 
 
 export default router

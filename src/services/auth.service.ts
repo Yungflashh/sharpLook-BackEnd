@@ -9,6 +9,8 @@ import { sendMail } from "../helpers/email.helper"
 export const registerUser = async (
   email: string,
   password: string,
+  firstName: string,
+  lastName: string,
   role: Role,
   acceptedPersonalData: boolean
 ) => {
@@ -18,6 +20,8 @@ export const registerUser = async (
   const hash = await bcrypt.hash(password, 10)
   const user = await prisma.user.create({
     data: {
+      firstName,
+      lastName,
       email,
       password: hash,
       role,

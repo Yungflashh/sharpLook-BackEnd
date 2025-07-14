@@ -8,7 +8,7 @@ import uploadToCloudinary from "../utils/cloudinary"
 
 export const registerVendor = async (req: Request, res: Response) => {
   try {
-    const { email, password, role,  } = req.body;
+    const {firstName, lastName, email, password, role,  } = req.body;
     let {acceptedPersonalData} = req.body
    
     
@@ -26,7 +26,7 @@ export const registerVendor = async (req: Request, res: Response) => {
    if(acceptedPersonalData == "True"){
       acceptedPersonalData = true
     }
-    const user = await registerUser(email, password, role, acceptedPersonalData!);
+    const user = await registerUser(firstName, lastName, email, password, role, acceptedPersonalData!);
 
     // Create vendor onboarding with Cloudinary image URL
     await createVendorOnboarding(
