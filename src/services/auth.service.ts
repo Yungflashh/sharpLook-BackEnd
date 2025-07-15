@@ -69,12 +69,12 @@ export const loginWithVendorCheck = async (email: string, password: string) => {
     if (!vendorProfile) {
       message = "Vendor profile not found. Please complete onboarding.";
     } else if (!vendorProfile.registerationNumber) {
-      message = "Please complete your vendor profile (missing registration number).";
+      message = "No Profile.";
     } else if (
       vendorProfile.latitude === null || vendorProfile.latitude === undefined ||
       vendorProfile.longitude === null || vendorProfile.longitude === undefined
     ) {
-      message = "Please complete your vendor profile (missing location coordinates).";
+      message = "No Location";
     }
   }
 
