@@ -18,7 +18,7 @@ export const sendOtpService = async (identifier: string) => {
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { fourDigitotp, otpExpires },
+    data: { otp: fourDigitotp, otpExpires },
   })
 
   if (user.email === identifier) {
