@@ -9,11 +9,7 @@ const vendor_services_1 = require("../services/vendor.services");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const completeVendorProfile = async (req, res) => {
     try {
-        const { userId, ...profileData } = req.body;
-        if (!userId) {
-            return res.status(400).json({ error: "Missing userId in request body" });
-        }
-        const updated = await (0, vendorOnboarding_service_1.updateVendorProfile)(userId, profileData);
+        const updated = await (0, vendorOnboarding_service_1.updateVendorProfile)(req.user.id, req.body);
         res.json({ success: true, message: "Profile updated", data: updated });
     }
     catch (err) {

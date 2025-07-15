@@ -55,7 +55,7 @@ export const loginWithVendorCheck = async (email: string, password: string) => {
   // Send OTP if email not verified
   if (!user.isEmailVerified) {
     await sendOtpService(email);
-    return { token, user }; // return early; message handled in controller
+    return { token, user };
   }
 
   let vendorProfile = null;
@@ -69,12 +69,15 @@ export const loginWithVendorCheck = async (email: string, password: string) => {
     if (!vendorProfile) {
       message = "Vendor profile not found. Please complete onboarding.";
     } else if (!vendorProfile.registerationNumber) {
-      message = "Please complete your vendor profile to continue.";
+      message = "Please complete your vendor profile (missing registration number).";
+    } else if (!vendorProfile.location) {
+      message = "Please complete your vendor profile (missing location).";
     }
   }
 
   return { token, user, vendorProfile, message };
 };
+
 export const resetPassword = async (email: string, token: string, newPassword: string) => {
   const user = await prisma.user.findUnique({ where: { email } })
   if (!user || user.resetToken !== token || user.resetTokenExp! < new Date()) {

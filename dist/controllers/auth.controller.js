@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyOtp = exports.sendOtp = exports.reset = exports.requestReset = exports.login = exports.register = void 0;
 const auth_service_1 = require("../services/auth.service");
+const auth_service_2 = require("../services/auth.service");
 const otp_service_1 = require("../services/otp.service");
 const register = async (req, res) => {
     const { firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body;
@@ -31,14 +32,18 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     console.log("➡️ Login attempt:", email);
     try {
-        const { token, user } = await (0, auth_service_1.loginUser)(email, password);
-        console.log("✅ Login successful for:", email);
+        const { token, user, vendorProfile, message } = await (0, auth_service_2.loginWithVendorCheck)(email, password);
         if (!user.isEmailVerified) {
-            console.log("⚠️ Email not verified. Sending OTP...");
-            await (0, otp_service_1.sendOtpService)(email);
             return res.status(403).json({
                 success: false,
                 message: "Email not verified. An OTP has been sent to your email.",
+            });
+        }
+        if (message) {
+            return res.status(403).json({
+                success: false,
+                token,
+                message,
             });
         }
         return res.status(200).json({
@@ -46,6 +51,7 @@ const login = async (req, res) => {
             message: "Login successful",
             token,
             user,
+            vendorProfile,
         });
     }
     catch (err) {

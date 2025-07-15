@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requestPasswordReset = exports.resetPassword = exports.loginUser = exports.registerUser = void 0;
+exports.requestPasswordReset = exports.resetPassword = exports.loginWithVendorCheck = exports.loginUser = exports.registerUser = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
+const otp_service_1 = require("../services/otp.service");
 const crypto_1 = __importDefault(require("crypto"));
 const email_helper_1 = require("../helpers/email.helper");
 const registerUser = async (email, password, firstName, lastName, role, acceptedPersonalData, phone) => {
@@ -36,11 +37,37 @@ const loginUser = async (email, password) => {
     if (!match)
         throw new Error("Invalid credentials");
     const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
-        expiresIn: "7d"
+        expiresIn: "7d",
     });
     return { token, user };
 };
 exports.loginUser = loginUser;
+const loginWithVendorCheck = async (email, password) => {
+    const { token, user } = await (0, exports.loginUser)(email, password);
+    // Send OTP if email not verified
+    if (!user.isEmailVerified) {
+        await (0, otp_service_1.sendOtpService)(email);
+        return { token, user };
+    }
+    let vendorProfile = null;
+    let message = undefined;
+    if (user.role === "VENDOR") {
+        vendorProfile = await prisma_1.default.vendorOnboarding.findUnique({
+            where: { userId: user.id },
+        });
+        if (!vendorProfile) {
+            message = "Vendor profile not found. Please complete onboarding.";
+        }
+        else if (!vendorProfile.registerationNumber) {
+            message = "Please complete your vendor profile (missing registration number).";
+        }
+        else if (!vendorProfile.location) {
+            message = "Please complete your vendor profile (missing location).";
+        }
+    }
+    return { token, user, vendorProfile, message };
+};
+exports.loginWithVendorCheck = loginWithVendorCheck;
 const resetPassword = async (email, token, newPassword) => {
     const user = await prisma_1.default.user.findUnique({ where: { email } });
     if (!user || user.resetToken !== token || user.resetTokenExp < new Date()) {

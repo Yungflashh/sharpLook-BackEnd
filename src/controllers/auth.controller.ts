@@ -46,6 +46,7 @@ export const login = async (req: Request, res: Response) => {
     if (!user.isEmailVerified) {
       return res.status(403).json({
         success: false,
+        
         message: "Email not verified. An OTP has been sent to your email.",
       });
     }
@@ -53,6 +54,7 @@ export const login = async (req: Request, res: Response) => {
     if (message) {
       return res.status(403).json({
         success: false,
+        token,
         message,
       });
     }
