@@ -81,8 +81,11 @@ export const loginWithVendorCheck = async (email: string, password: string) => {
     });
 
     // Check if profile is incomplete
-    if (!vendorProfile.registerationNumber || vendorProfile.latitude == null || vendorProfile.longitude == null) {
+    if (!vendorProfile.registerationNumber ) {
       message = "Please complete your vendor profile (registration number and location required).";
+    }
+    else if ( vendorProfile.latitude == null || vendorProfile.longitude == null){
+        message = "No location";
     }
   }
 
