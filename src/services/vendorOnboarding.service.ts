@@ -30,10 +30,18 @@ export const updateVendorProfile = async (
   userId: string,
   data: Prisma.VendorOnboardingUpdateInput
 ) => {
+  const existing = await prisma.vendorOnboarding.findUnique({
+    where: { userId }
+  });
+
+  if (!existing) {
+    throw new Error("Vendor profile not found. Please complete onboarding first.");
+  }
+
   return await prisma.vendorOnboarding.update({
     where: { userId },
-    data,
-  })
-}
+    data
+  });
+};
 
 

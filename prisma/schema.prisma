@@ -55,8 +55,8 @@ model VendorOnboarding {
   servicesOffered     String?
   profileImage        String?
   pricing             Json? // 
-  service             String? // e.g. "braids", "nails", etc.
-  specialties         String[]
+  service             String? 
+  specialties         String[]    @default([])
   portfolioImages     String[]    @default([])
   serviceRadiusKm     Int?        // NEW: Radius in kilometers
   latitude            Float?      // NEW: Latitude coordinate
