@@ -9,17 +9,20 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const crypto_1 = __importDefault(require("crypto"));
 const email_helper_1 = require("../helpers/email.helper");
-const registerUser = async (email, password, role, acceptedPersonalData) => {
+const registerUser = async (email, password, firstName, lastName, role, acceptedPersonalData, phone) => {
     const existing = await prisma_1.default.user.findUnique({ where: { email } });
     if (existing)
         throw new Error("Email already in use");
     const hash = await bcryptjs_1.default.hash(password, 10);
     const user = await prisma_1.default.user.create({
         data: {
+            firstName,
+            lastName,
             email,
             password: hash,
             role,
-            acceptedPersonalData
+            acceptedPersonalData,
+            phone
         }
     });
     return user;

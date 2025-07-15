@@ -11,24 +11,25 @@ export const sendOtpService = async (identifier: string) => {
   })
   if (!user) throw new Error("User not found")
 
-  const otp = Math.floor(1000 + Math.random() * 9000).toString(); 
+  const fourDigitotp = Math.floor(1000 + Math.random() * 9000).toString(); 
+  console.log(`✅ OTP Generated: ${fourDigitotp} | Length: ${fourDigitotp.length}`);
 
   const otpExpires = new Date(Date.now() + 10 * 60 * 1000)
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { otp, otpExpires },
+    data: { fourDigitotp, otpExpires },
   })
 
   if (user.email === identifier) {
     await sendMail(
       user.email,
       "Your OTP Code",
-      `<p>Your OTP code is: <b>${otp}</b>. It expires in 10 minutes.</p>`
+      `<p>Your OTP code is: <b>${fourDigitotp}</b>. It expires in 10 minutes.</p>`
     )
   }
 
-  console.log(`✅ OTP sent to ${identifier}: ${otp}`)
+  console.log(`✅ OTP sent to ${identifier}: ${fourDigitotp}`)
 }
 
 

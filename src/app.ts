@@ -10,6 +10,8 @@ import productRoutes from "./routes/product.routes"
 import earningsRoutes from "./routes/earnings.routes"
 import notificationsRoutes from "./routes/notification.routes"
 import reviewRoutes from "./routes/review.routes"
+import promotionRoutes from "./routes/promotion.routes"
+
 
 
 
@@ -28,6 +30,8 @@ app.use("/api/v1/products", productRoutes)
 app.use("/api/v1/earnings", earningsRoutes)
 app.use("/api/v1/notifications", notificationsRoutes)
 app.use("/api/v1/reviews", reviewRoutes)
+app.use("/api/v1/promotions", promotionRoutes)
+
 
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"))
 

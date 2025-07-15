@@ -32,15 +32,32 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const auth_middleware_1 = require("../middlewares/auth.middleware");
-const BookingController = __importStar(require("../controllers/booking.controller"));
-const router = express_1.default.Router();
-router.post("/bookVendor", auth_middleware_1.verifyToken, BookingController.bookVendor);
-router.get("/getBookings", auth_middleware_1.verifyToken, BookingController.getMyBookings);
-router.patch("/:bookingId/status", auth_middleware_1.verifyToken, BookingController.changeBookingStatus);
-exports.default = router;
+exports.fetchVendorReviews = exports.postReview = void 0;
+const ReviewService = __importStar(require("../services/review.service"));
+const postReview = async (req, res) => {
+    const { bookingId, vendorId, rating, comment } = req.body;
+    const clientId = req.user?.id;
+    if (!bookingId || !vendorId || !rating) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+    try {
+        const review = await ReviewService.createReview(vendorId, clientId, bookingId, rating, comment);
+        res.status(201).json({ success: true, message: "Review posted", data: review });
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.postReview = postReview;
+const fetchVendorReviews = async (req, res) => {
+    const vendorId = req.params.vendorId;
+    try {
+        const reviews = await ReviewService.getVendorReviews(vendorId);
+        res.status(200).json({ success: true, data: reviews });
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.fetchVendorReviews = fetchVendorReviews;

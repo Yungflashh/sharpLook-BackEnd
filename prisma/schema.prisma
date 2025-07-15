@@ -34,6 +34,8 @@ model User {
   vendorReviews        Review[]             @relation("VendorReview")  
   clientReviews        Review[]             @relation("ClientReview")
   vendorAvailabilities VendorAvailability[]
+  promotions           Promotion[]          @relation("UserPromotions")
+  isBanned             Boolean           @default(false)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 }
@@ -130,6 +132,20 @@ model Review {
   client     User     @relation("ClientReview", fields: [clientId], references: [id])
 }
 
+model Promotion {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  vendorId           String   @db.ObjectId
+  title              String
+  description        String?
+  discountPercentage Float
+  startDate          DateTime
+  endDate            DateTime
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+   vendor             User     @relation("UserPromotions", fields: [vendorId], references: [id])
+}
 
 
 enum ServiceType {

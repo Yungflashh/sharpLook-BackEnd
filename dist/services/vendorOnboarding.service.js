@@ -6,14 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateVendorProfile = exports.getVendorOnboarding = exports.createVendorOnboarding = void 0;
 // src/services/vendorOnboarding.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
-const createVendorOnboarding = async (userId, serviceType, identityImageUrl, // Cloudinary secure_url
-registerationNumber) => {
+const createVendorOnboarding = async (userId, serviceType, identityImageUrl) => {
     return await prisma_1.default.vendorOnboarding.create({
         data: {
             userId,
             serviceType,
             identityImage: identityImageUrl, // Maps to your schema's identityImage
-            registerationNumber,
         },
     });
 };

@@ -32,15 +32,16 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
+// src/routes/admin.routes.ts
+const express_1 = require("express");
+const AdminController = __importStar(require("../controllers/admin.controller"));
 const auth_middleware_1 = require("../middlewares/auth.middleware");
-const BookingController = __importStar(require("../controllers/booking.controller"));
-const router = express_1.default.Router();
-router.post("/bookVendor", auth_middleware_1.verifyToken, BookingController.bookVendor);
-router.get("/getBookings", auth_middleware_1.verifyToken, BookingController.getMyBookings);
-router.patch("/:bookingId/status", auth_middleware_1.verifyToken, BookingController.changeBookingStatus);
+const admin_middleware_1 = require("../middlewares/admin.middleware");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.verifyToken, admin_middleware_1.requireAdmin);
+router.get("/users", AdminController.getAllUsers);
+router.get("/bookings", AdminController.getAllBookings);
+router.put("/users/:userId/ban", AdminController.banUser);
+router.put("/users/:userId/promote", AdminController.promoteToAdmin);
 exports.default = router;

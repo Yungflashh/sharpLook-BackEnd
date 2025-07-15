@@ -4,12 +4,12 @@ exports.verifyOtp = exports.sendOtp = exports.reset = exports.requestReset = exp
 const auth_service_1 = require("../services/auth.service");
 const otp_service_1 = require("../services/otp.service");
 const register = async (req, res) => {
-    const { email, password, role, acceptedPersonalData } = req.body;
+    const { firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body;
     try {
-        const user = await (0, auth_service_1.registerUser)(email, password, role, acceptedPersonalData);
+        const user = await (0, auth_service_1.registerUser)(email, password, firstName, lastName, role, acceptedPersonalData, phone);
         res.status(201).json({
             success: true,
-            message: "User registered successfully. OTP sent to email.",
+            message: "User registered successfully.",
             data: user
         });
     }
@@ -46,7 +46,8 @@ const requestReset = async (req, res) => {
 };
 exports.requestReset = requestReset;
 const reset = async (req, res) => {
-    const { email, token, newPassword } = req.body;
+    const { email, newPassword } = req.body;
+    const { token } = req.params;
     try {
         await (0, auth_service_1.resetPassword)(email, token, newPassword);
         res.json({ message: "Password reset successful" });

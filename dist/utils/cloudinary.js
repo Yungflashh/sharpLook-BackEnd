@@ -8,13 +8,32 @@ cloudinary_1.v2.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 const uploadToCloudinary = async (fileBuffer, mimeType) => {
+    console.log("📦 Starting Cloudinary upload...");
     return new Promise((resolve, reject) => {
-        const stream = cloudinary_1.v2.uploader.upload_stream({ resource_type: "auto" }, (error, result) => {
-            if (error)
+        let finished = false; // Prevent multiple calls
+        const timeout = setTimeout(() => {
+            if (!finished) {
+                finished = true;
+                console.error("❌ Cloudinary upload timed out");
+                reject(new Error("Cloudinary upload timed out"));
+            }
+        }, 50000); // ⬅️ You can increase to 20s safely
+        const uploadStream = cloudinary_1.v2.uploader.upload_stream({
+            resource_type: "image",
+            folder: "hairdesign/vendors",
+        }, (error, result) => {
+            if (finished)
+                return; // Prevent multiple responses
+            finished = true;
+            clearTimeout(timeout);
+            if (error) {
+                console.error("❌ Cloudinary upload error:", error);
                 return reject(error);
-            resolve(result); // ✅ cast result to expected shape
+            }
+            console.log("✅ Cloudinary upload success:", result?.secure_url);
+            resolve(result);
         });
-        stream.end(fileBuffer);
+        uploadStream.end(fileBuffer);
     });
 };
 exports.default = uploadToCloudinary;

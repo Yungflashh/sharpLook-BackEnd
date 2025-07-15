@@ -47,7 +47,8 @@ export const requestReset = async (req: Request, res: Response) => {
 }
 
 export const reset = async (req: Request, res: Response) => {
-  const { email, token, newPassword } = req.body
+  const { email, newPassword } = req.body
+  const {token} = req.params
   try {
     await resetPassword(email, token, newPassword)
     res.json({ message: "Password reset successful" })

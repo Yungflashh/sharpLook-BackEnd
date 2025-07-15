@@ -15,7 +15,7 @@ const sendOtpService = async (identifier) => {
     });
     if (!user)
         throw new Error("User not found");
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await prisma_1.default.user.update({
         where: { id: user.id },
