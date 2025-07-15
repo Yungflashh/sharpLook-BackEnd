@@ -4,7 +4,8 @@ import { verifyToken } from "../middlewares/auth.middleware"
 import {
   fetchMessages,
   markAsRead,
-  likeMessage
+  likeMessage,
+  getUnreadMessageCount
 } from "../controllers/message.controller"
 
 const router = Router()
@@ -14,5 +15,7 @@ router.use(verifyToken)
 router.get("/:roomId", fetchMessages)
 router.patch("/:roomId/read", markAsRead)
 router.patch("/:messageId/like", likeMessage)
+router.get("/messages/unread/count", verifyToken, getUnreadMessageCount)
+
 
 export default router

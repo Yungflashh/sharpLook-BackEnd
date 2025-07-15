@@ -9,4 +9,5 @@ router.use(auth_middleware_1.verifyToken);
 router.get("/:roomId", message_controller_1.fetchMessages);
 router.patch("/:roomId/read", message_controller_1.markAsRead);
 router.patch("/:messageId/like", message_controller_1.likeMessage);
+router.get("/messages/unread/count", auth_middleware_1.verifyToken, message_controller_1.getUnreadMessageCount);
 exports.default = router;

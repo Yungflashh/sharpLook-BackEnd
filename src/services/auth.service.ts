@@ -143,7 +143,7 @@ export const getUserById = async (userId: string) => {
       vendorBookings: true,
       products: true,
       vendorAvailabilities: true,
-      promotions: true,
+      // promotions: true,
       vendorReviews: true,
       clientReviews: true,
       notifications: true,

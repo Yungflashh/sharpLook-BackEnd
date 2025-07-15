@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toggleMessageLike = exports.markMessagesAsRead = exports.getMessagesByRoomId = exports.saveMessage = void 0;
+exports.countUnreadMessages = exports.toggleMessageLike = exports.markMessagesAsRead = exports.getMessagesByRoomId = exports.saveMessage = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 // Save a new message
 const saveMessage = async (senderId, receiverId, roomId, message) => {
@@ -61,3 +61,12 @@ const toggleMessageLike = async (messageId, userId) => {
     return updated;
 };
 exports.toggleMessageLike = toggleMessageLike;
+const countUnreadMessages = async (userId) => {
+    return await prisma_1.default.message.count({
+        where: {
+            receiverId: userId,
+            read: false,
+        },
+    });
+};
+exports.countUnreadMessages = countUnreadMessages;

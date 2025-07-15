@@ -3,7 +3,8 @@ import { Request, Response } from "express"
 import {
   getMessagesByRoomId,
   markMessagesAsRead,
-  toggleMessageLike
+  toggleMessageLike,
+  countUnreadMessages
 } from "../services/message.service"
 
 export const fetchMessages = async (req: Request, res: Response) => {
@@ -36,6 +37,18 @@ export const likeMessage = async (req: Request, res: Response) => {
   try {
     const message = await toggleMessageLike(messageId, userId)
     res.json({ success: true, data: message })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+
+
+// Add to `message.controller.ts`
+export const getUnreadMessageCount = async (req: Request, res: Response) => {
+  try {
+    const count = await countUnreadMessages(req.user!.id)
+    res.json({ success: true, data: count })
   } catch (err: any) {
     res.status(500).json({ error: err.message })
   }

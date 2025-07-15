@@ -27,6 +27,16 @@ const registerSocketHandlers = (io) => {
                 timestamp: saved.createdAt,
             });
         });
+        socket.on("typing", ({ roomId, senderId }) => {
+            socket.to(roomId).emit("userTyping", { roomId, senderId });
+        });
+        socket.on("stopTyping", ({ roomId, senderId }) => {
+            socket.to(roomId).emit("userStoppedTyping", { roomId, senderId });
+        });
+        socket.on("markAsRead", async ({ roomId, userId }) => {
+            await (0, message_service_1.markMessagesAsRead)(roomId, userId);
+            io.to(roomId).emit("messagesRead", { roomId, userId });
+        });
         socket.on("disconnect", () => {
             console.log("🔴 Socket disconnected:", socket.id);
         });

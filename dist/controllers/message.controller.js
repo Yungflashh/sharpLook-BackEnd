@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.likeMessage = exports.markAsRead = exports.fetchMessages = void 0;
+exports.getUnreadMessageCount = exports.likeMessage = exports.markAsRead = exports.fetchMessages = void 0;
 const message_service_1 = require("../services/message.service");
 const fetchMessages = async (req, res) => {
     const { roomId } = req.params;
@@ -37,3 +37,14 @@ const likeMessage = async (req, res) => {
     }
 };
 exports.likeMessage = likeMessage;
+// Add to `message.controller.ts`
+const getUnreadMessageCount = async (req, res) => {
+    try {
+        const count = await (0, message_service_1.countUnreadMessages)(req.user.id);
+        res.json({ success: true, data: count });
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+exports.getUnreadMessageCount = getUnreadMessageCount;

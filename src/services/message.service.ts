@@ -67,3 +67,13 @@ export const toggleMessageLike = async (messageId: string, userId: string) => {
   return updated;
 };
 
+
+
+export const countUnreadMessages = async (userId: string) => {
+  return await prisma.message.count({
+    where: {
+      receiverId: userId,
+      read: false,
+    },
+  })
+}
