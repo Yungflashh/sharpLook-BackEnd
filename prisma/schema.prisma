@@ -53,7 +53,6 @@ model VendorOnboarding {
   bio                 String?
   location            String?
   servicesOffered     String?
-  portfolioLink       String?
   profileImage        String?
   pricing             Json? // 
   service             String? // e.g. "braids", "nails", etc.

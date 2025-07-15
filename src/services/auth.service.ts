@@ -52,7 +52,7 @@ export const loginUser = async (email: string, password: string) => {
 export const loginWithVendorCheck = async (email: string, password: string) => {
   const { token, user } = await loginUser(email, password);
 
-  // Send OTP if email not verified
+  // Check if email is verified
   if (!user.isEmailVerified) {
     await sendOtpService(email);
     return { token, user };
@@ -70,13 +70,17 @@ export const loginWithVendorCheck = async (email: string, password: string) => {
       message = "Vendor profile not found. Please complete onboarding.";
     } else if (!vendorProfile.registerationNumber) {
       message = "Please complete your vendor profile (missing registration number).";
-    } else if (!vendorProfile.location) {
-      message = "Please complete your vendor profile (missing location).";
+    } else if (
+      vendorProfile.latitude === null || vendorProfile.latitude === undefined ||
+      vendorProfile.longitude === null || vendorProfile.longitude === undefined
+    ) {
+      message = "Please complete your vendor profile (missing location coordinates).";
     }
   }
 
   return { token, user, vendorProfile, message };
 };
+
 
 export const resetPassword = async (email: string, token: string, newPassword: string) => {
   const user = await prisma.user.findUnique({ where: { email } })
