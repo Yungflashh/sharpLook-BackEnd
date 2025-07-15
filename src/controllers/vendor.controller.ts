@@ -6,19 +6,12 @@ import uploadToCloudinary from "../utils/cloudinary"
 
 export const completeVendorProfile = async (req: Request, res: Response) => {
   try {
-    const { userId, ...profileData } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ error: "Missing userId in request body" });
-    }
-
-    const updated = await updateVendorProfile(userId, profileData);
-    res.json({ success: true, message: "Profile updated", data: updated });
+    const updated = await updateVendorProfile(req.user!.id, req.body)
+    res.json({ success: true, message: "Profile updated", data: updated })
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ error: err.message })
   }
-};
-
+}
 
 export const uploadPortfolioImages = async (req: Request, res: Response) => {
   try {

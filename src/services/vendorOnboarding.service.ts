@@ -24,6 +24,8 @@ export const getVendorOnboarding = async (userId: string) => {
   })
 }
 
+
+
 export const updateVendorProfile = async (
   userId: string,
   data: Prisma.VendorOnboardingUpdateInput

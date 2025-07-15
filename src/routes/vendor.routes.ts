@@ -22,7 +22,7 @@ router.get("/dashboard", verifyToken, requireRole(["VENDOR"]),(req, res) => {
 res.json({ message: "Welcome, Vendor!" })
   }
 )
-router.put("/complete-profile", completeVendorProfile)
+router.put("/complete-profile", verifyToken, requireRole(["VENDOR"]), completeVendorProfile)
 router.post("/upload", verifyToken, requireRole(["VENDOR"]), uploadMultiple,  uploadPortfolioImages)
 router.get("/fetchPortfolioImage", verifyToken, requireRole(["VENDOR"]), fetchPortfolioImages)
 router.get("/getVendorPricing", verifyToken, requireRole(["VENDOR"]), fetchVendorPricing)

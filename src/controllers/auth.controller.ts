@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import {
-  loginUser,
+
   registerUser,
   resetPassword,
   requestPasswordReset,
 } from "../services/auth.service";
+import { loginWithVendorCheck } from "../services/auth.service";
 import { sendOtpService, verifyOtpService } from "../services/otp.service";
 
 export const register = async (req: Request, res: Response) => {
@@ -33,21 +34,26 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
+
+
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   console.log("➡️ Login attempt:", email);
 
   try {
-    const { token, user } = await loginUser(email, password);
-    console.log("✅ Login successful for:", email);
+    const { token, user, vendorProfile, message } = await loginWithVendorCheck(email, password);
 
     if (!user.isEmailVerified) {
-      console.log("⚠️ Email not verified. Sending OTP...");
-      await sendOtpService(email);
-
       return res.status(403).json({
         success: false,
         message: "Email not verified. An OTP has been sent to your email.",
+      });
+    }
+
+    if (message) {
+      return res.status(403).json({
+        success: false,
+        message,
       });
     }
 
@@ -56,6 +62,7 @@ export const login = async (req: Request, res: Response) => {
       message: "Login successful",
       token,
       user,
+      vendorProfile,
     });
   } catch (err: any) {
     console.error("❌ Login failed:", err.message);

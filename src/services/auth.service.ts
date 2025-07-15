@@ -34,19 +34,47 @@ export const registerUser = async (
   return user
 }
 
-export const loginUser = async (email: string, password: string) => {
-  const user = await prisma.user.findUnique({ where: { email } })
-  if (!user) throw new Error("Invalid credentials")
 
-  const match = await bcrypt.compare(password, user.password)
-  if (!match) throw new Error("Invalid credentials")
+export const loginUser = async (email: string, password: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error("Invalid credentials");
+
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) throw new Error("Invalid credentials");
 
   const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!, {
-    expiresIn: "7d"
-  })
+    expiresIn: "7d",
+  });
 
-  return { token, user }
-}
+  return { token, user };
+};
+
+export const loginWithVendorCheck = async (email: string, password: string) => {
+  const { token, user } = await loginUser(email, password);
+
+  // Send OTP if email not verified
+  if (!user.isEmailVerified) {
+    await sendOtpService(email);
+    return { token, user }; // return early; message handled in controller
+  }
+
+  let vendorProfile = null;
+  let message: string | undefined = undefined;
+
+  if (user.role === "VENDOR") {
+    vendorProfile = await prisma.vendorOnboarding.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!vendorProfile) {
+      message = "Vendor profile not found. Please complete onboarding.";
+    } else if (!vendorProfile.registerationNumber) {
+      message = "Please complete your vendor profile to continue.";
+    }
+  }
+
+  return { token, user, vendorProfile, message };
+};
 export const resetPassword = async (email: string, token: string, newPassword: string) => {
   const user = await prisma.user.findUnique({ where: { email } })
   if (!user || user.resetToken !== token || user.resetTokenExp! < new Date()) {
