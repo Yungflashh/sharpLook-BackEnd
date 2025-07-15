@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyOtp = exports.sendOtp = exports.reset = exports.requestReset = exports.login = exports.register = void 0;
+exports.getCurrentUser = exports.verifyOtp = exports.sendOtp = exports.reset = exports.requestReset = exports.login = exports.register = void 0;
 const auth_service_1 = require("../services/auth.service");
 const auth_service_2 = require("../services/auth.service");
 const otp_service_1 = require("../services/otp.service");
+const auth_service_3 = require("../services/auth.service");
 const register = async (req, res) => {
     const { firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body;
     console.log("➡️ Register attempt:", { email, role });
@@ -149,3 +150,20 @@ const verifyOtp = async (req, res) => {
     }
 };
 exports.verifyOtp = verifyOtp;
+const getCurrentUser = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const user = await (0, auth_service_3.getUserById)(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json({ success: true, user });
+    }
+    catch (err) {
+        return res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+exports.getCurrentUser = getCurrentUser;

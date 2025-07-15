@@ -7,6 +7,7 @@ import {
 } from "../services/auth.service";
 import { loginWithVendorCheck } from "../services/auth.service";
 import { sendOtpService, verifyOtpService } from "../services/otp.service";
+import { getUserById } from "../services/auth.service";
 
 export const register = async (req: Request, res: Response) => {
   const { firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body;
@@ -162,5 +163,27 @@ export const verifyOtp = async (req: Request, res: Response) => {
       message: "Invalid or expired OTP",
       error: err.message,
     });
+  }
+};
+
+
+
+
+
+export const getCurrentUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ success: true, user });
+  } catch (err: any) {
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 };

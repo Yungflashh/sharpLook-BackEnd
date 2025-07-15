@@ -1,11 +1,14 @@
 import { Router } from "express"
-import { register, login, requestReset, reset } from "../controllers/auth.controller"
+import { authenticate } from "../middlewares/authenticate";
+import {getCurrentUser, register, login, requestReset, reset } from "../controllers/auth.controller"
 import { sendOtp, verifyOtp } from "../controllers/auth.controller"
 import { registerVendor } from "../controllers/vendorOnboarding.controller"
 import { uploadSingle } from "../middlewares/upload.middleware"
 
 const router = Router()
 
+
+router.get("/me", authenticate, getCurrentUser);
 router.post("/register", register)
 router.post("/login", login)
 router.post("/send-otp", sendOtp)

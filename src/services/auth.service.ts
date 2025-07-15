@@ -120,3 +120,23 @@ export const requestPasswordReset = async (email: string) => {
     `<p>Use this token to reset your password: <b>${token}</b></p>`
   )
 }
+
+
+
+
+export const getUserById = async (userId: string) => {
+  return await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      vendorOnboarding: true,
+      clientBookings: true,
+      vendorBookings: true,
+      products: true,
+      vendorAvailabilities: true,
+      promotions: true,
+      vendorReviews: true,
+      clientReviews: true,
+      notifications: true,
+    },
+  });
+};
