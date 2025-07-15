@@ -35,7 +35,9 @@ model User {
   clientReviews        Review[]             @relation("ClientReview")
   vendorAvailabilities VendorAvailability[]
   promotions           Promotion[]          @relation("UserPromotions")
-  isBanned             Boolean           @default(false)
+  isBanned             Boolean              @default(false)
+  sentMessages        Message[]             @relation("SentMessages")
+  receivedMessages     Message[]            @relation("ReceivedMessages")
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 }
@@ -147,6 +149,21 @@ model Promotion {
    vendor             User     @relation("UserPromotions", fields: [vendorId], references: [id])
 }
 
+
+
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  senderId  String   @db.ObjectId
+  receiverId String  @db.ObjectId
+  message   String
+  createdAt DateTime @default(now())
+  roomId     String?
+  read       Boolean @default(false)
+
+  likedBy  String[] @default([])
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
 
 enum ServiceType {
   IN_SHOP

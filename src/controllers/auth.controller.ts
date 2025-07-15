@@ -11,7 +11,7 @@ export const register = async (req: Request, res: Response) => {
        message: "User registered successfully.",
        data: user
       })
-
+      await sendOtpService(email)
   } catch (err: any) {
     res.status(400).json({ error: err.message })
   }

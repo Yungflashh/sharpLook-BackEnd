@@ -1,5 +1,8 @@
 // src/services/admin.service.ts
 import prisma from "../config/prisma"
+import { Role } from "@prisma/client"
+import { subDays, subWeeks, subMonths, subYears } from "date-fns";
+
 
 export const getAllUsers = async () => {
   return await prisma.user.findMany({
@@ -34,3 +37,62 @@ export const promoteUserToAdmin = async (userId: string) => {
     data: { role: "ADMIN" },
   })
 }
+
+export const getUsersByRole = async (role: Role) => {
+  return await prisma.user.findMany({
+    where: { role },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+
+
+export const getNewUsersByRange = async (range: string) => {
+  let date: Date;
+
+  switch (range) {
+    case "days":
+      date = subDays(new Date(), 7);
+      break;
+    case "weeks":
+      date = subWeeks(new Date(), 4);
+      break;
+    case "months":
+      date = subMonths(new Date(), 6);
+      break;
+    case "years":
+      date = subYears(new Date(), 1);
+      break;
+    default:
+      throw new Error("Invalid range");
+  }
+
+  return await prisma.user.findMany({
+    where: { createdAt: { gte: date } },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+
+export const getDailyActiveUsers = async () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return await prisma.user.findMany({
+    where: { updatedAt: { gte: today } }
+  });
+};
+
+
+export const getAllProducts = async () => {
+  return await prisma.product.findMany({
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+export const getSoldProducts = async () => {
+  return await prisma.product.findMany({
+    where: { qtyAvailable: 0 },
+    orderBy: { createdAt: "desc" }
+  });
+};

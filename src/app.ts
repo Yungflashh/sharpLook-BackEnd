@@ -11,6 +11,8 @@ import earningsRoutes from "./routes/earnings.routes"
 import notificationsRoutes from "./routes/notification.routes"
 import reviewRoutes from "./routes/review.routes"
 import promotionRoutes from "./routes/promotion.routes"
+import messageRoutes from "./routes/message.routes"
+
 
 
 
@@ -31,6 +33,8 @@ app.use("/api/v1/earnings", earningsRoutes)
 app.use("/api/v1/notifications", notificationsRoutes)
 app.use("/api/v1/reviews", reviewRoutes)
 app.use("/api/v1/promotions", promotionRoutes)
+app.use("/api/v1/messages", messageRoutes)
+
 
 
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"))
@@ -41,3 +45,4 @@ app.listen(PORT, () => {
 })
 
 
+export default app

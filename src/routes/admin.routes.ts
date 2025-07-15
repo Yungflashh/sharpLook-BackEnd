@@ -8,9 +8,14 @@ const router = Router()
 
 router.use(verifyToken, requireAdmin)
 
-router.get("/users", AdminController.getAllUsers)
+router.get("/users",verifyToken,  AdminController.getAllUsers)
 router.get("/bookings", AdminController.getAllBookings)
 router.put("/users/:userId/ban", AdminController.banUser)
 router.put("/users/:userId/promote", AdminController.promoteToAdmin)
+router.get("/users", AdminController.getAllUsersByRole);
+router.get("/users/new", AdminController.getNewUsersByRange);
+router.get("/users/active", AdminController.getDailyActiveUsers);
+router.get("/products", AdminController.getAllProducts);
+router.get("/products/sold", AdminController.getSoldProducts);
 
 export default router
