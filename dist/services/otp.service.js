@@ -23,7 +23,20 @@ const sendOtpService = async (identifier) => {
         data: { otp: fourDigitotp, otpExpires },
     });
     if (user.email === identifier) {
-        await (0, email_helper_1.sendMail)(user.email, "Your OTP Code", `<p>Your OTP code is: <b>${fourDigitotp}</b>. It expires in 10 minutes.</p>`);
+        await (0, email_helper_1.sendMail)(user.email, "🧾 Your Sharplook OTP Code", `
+      <div style="font-family: 'Helvetica Neue', sans-serif; background-color: #f4f4f5; padding: 24px; border-radius: 12px; color: #111827;">
+        <h2 style="color: #0f172a; font-size: 22px; margin-bottom: 8px;">Welcome to <span style="color: #3b82f6;">Sharplook</span> 👔</h2>
+        <p style="font-size: 16px; line-height: 1.5;">Your one-time passcode is:</p>
+        <p style="font-size: 30px; font-weight: 700; color: #1e40af; margin: 16px 0; letter-spacing: 4px;">
+          ${fourDigitotp}
+        </p>
+        <p style="font-size: 14px; color: #4b5563;">This code will expire in <strong>10 minutes</strong>.</p>
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #d1d5db;" />
+        <p style="font-size: 13px; color: #6b7280;">
+          Stay sharp. Stay styled. Reach out if you need anything – we’ve got your back. 💬
+        </p>
+      </div>
+    `);
     }
     console.log(`✅ OTP sent to ${identifier}: ${fourDigitotp}`);
 };

@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promoteToAdmin = exports.banUser = exports.getAllBookings = exports.getAllUsers = void 0;
+exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.banUser = exports.getAllBookings = exports.getAllUsers = void 0;
 const AdminService = __importStar(require("../services/admin.service"));
 const getAllUsers = async (req, res) => {
     const users = await AdminService.getAllUsers();
@@ -57,3 +57,55 @@ const promoteToAdmin = async (req, res) => {
     res.json({ success: true, message: "User promoted to ADMIN" });
 };
 exports.promoteToAdmin = promoteToAdmin;
+const getAllUsersByRole = async (req, res) => {
+    const { role } = req.query;
+    try {
+        const users = await AdminService.getUsersByRole(role);
+        res.json({ success: true, data: users });
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.getAllUsersByRole = getAllUsersByRole;
+const getNewUsersByRange = async (req, res) => {
+    const { range } = req.query; // e.g. "days", "weeks", "months", "years"
+    try {
+        const users = await AdminService.getNewUsersByRange(range);
+        res.json({ success: true, data: users });
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.getNewUsersByRange = getNewUsersByRange;
+const getDailyActiveUsers = async (_req, res) => {
+    try {
+        const users = await AdminService.getDailyActiveUsers();
+        res.json({ success: true, data: users });
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.getDailyActiveUsers = getDailyActiveUsers;
+const getAllProducts = async (_req, res) => {
+    try {
+        const products = await AdminService.getAllProducts();
+        res.json({ success: true, data: products });
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.getAllProducts = getAllProducts;
+const getSoldProducts = async (_req, res) => {
+    try {
+        const products = await AdminService.getSoldProducts();
+        res.json({ success: true, data: products });
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.getSoldProducts = getSoldProducts;
