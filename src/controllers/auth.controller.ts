@@ -1,87 +1,157 @@
-import { Request, Response } from "express"
-import { loginUser, registerUser, resetPassword ,requestPasswordReset} from "../services/auth.service"
-import { sendOtpService, verifyOtpService} from "../services/otp.service"
+import { Request, Response } from "express";
+import {
+  loginUser,
+  registerUser,
+  resetPassword,
+  requestPasswordReset,
+} from "../services/auth.service";
+import { sendOtpService, verifyOtpService } from "../services/otp.service";
 
 export const register = async (req: Request, res: Response) => {
-  const {firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body
+  const { firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body;
+  console.log("➡️ Register attempt:", { email, role });
+
   try {
-      const user = await registerUser(email, password, firstName, lastName, role, acceptedPersonalData, phone)
-      res.status(201).json({
+    const user = await registerUser(email, password, firstName, lastName, role, acceptedPersonalData, phone);
+    console.log("✅ User registered:", user.id);
+
+    await sendOtpService(email);
+    console.log("📨 OTP sent to email after registration");
+
+    return res.status(201).json({
       success: true,
-       message: "User registered successfully.",
-       data: user
-      })
-      await sendOtpService(email)
+      message: "User registered successfully. OTP sent to email.",
+      data: user,
+    });
   } catch (err: any) {
-    res.status(400).json({ error: err.message })
-  }
-}
-
-export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  try {
-    const { token, user } = await loginUser(email, password);
-
-    
-    if (!user.isEmailVerified) {
-      await sendOtpService(email);
-      return res.status(403).json({
-        error: "Email not verified. An Otp Code has been sent to Your email.",
-      });
-    }
-    res.status(200).json({ token, user });
-  } catch (err: any) {
-    res.status(401).json({ error: err.message });
+    console.error("❌ Registration failed:", err.message);
+    return res.status(400).json({
+      success: false,
+      message: "Registration failed",
+      error: err.message,
+    });
   }
 };
 
+export const login = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  console.log("➡️ Login attempt:", email);
 
+  try {
+    const { token, user } = await loginUser(email, password);
+    console.log("✅ Login successful for:", email);
+
+    if (!user.isEmailVerified) {
+      console.log("⚠️ Email not verified. Sending OTP...");
+      await sendOtpService(email);
+
+      return res.status(403).json({
+        success: false,
+        message: "Email not verified. An OTP has been sent to your email.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user,
+    });
+  } catch (err: any) {
+    console.error("❌ Login failed:", err.message);
+    return res.status(401).json({
+      success: false,
+      message: "Invalid login credentials",
+      error: err.message,
+    });
+  }
+};
 
 export const requestReset = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  console.log("➡️ Password reset requested for:", email);
+
   try {
-    await requestPasswordReset(req.body.email)
-    res.json({ message: "Reset token sent to your email" })
+    await requestPasswordReset(email);
+    console.log("📨 Reset token sent to:", email);
+
+    return res.status(200).json({
+      success: true,
+      message: "Reset token sent to your email",
+    });
   } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    console.error("❌ Password reset request failed:", err.message);
+    return res.status(400).json({
+      success: false,
+      message: "Failed to send reset token",
+      error: err.message,
+    });
   }
-}
+};
 
 export const reset = async (req: Request, res: Response) => {
-  const { email, newPassword } = req.body
-  const {token} = req.params
+  const { email, newPassword } = req.body;
+  const { token } = req.params;
+  console.log("➡️ Password reset attempt:", { email, token });
+
   try {
-    await resetPassword(email, token, newPassword)
-    res.json({ message: "Password reset successful" })
+    await resetPassword(email, token, newPassword);
+    console.log("✅ Password reset successful");
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successful",
+    });
   } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    console.error("❌ Password reset failed:", err.message);
+    return res.status(400).json({
+      success: false,
+      message: "Password reset failed",
+      error: err.message,
+    });
   }
-}
-
-
-
-
-
-
+};
 
 export const sendOtp = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  console.log("➡️ Sending OTP to:", email);
+
   try {
-    const { email } = req.body
-    await sendOtpService(email)
-    res.json({ message: "OTP sent to email (simulated)" })
+    await sendOtpService(email);
+    console.log("✅ OTP sent successfully");
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent to email",
+    });
   } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    console.error("❌ Failed to send OTP:", err.message);
+    return res.status(400).json({
+      success: false,
+      message: "Failed to send OTP",
+      error: err.message,
+    });
   }
-}
+};
 
 export const verifyOtp = async (req: Request, res: Response) => {
+  const { email, otp } = req.body;
+  console.log("➡️ Verifying OTP:", { email, otp });
+
   try {
-    const { email, otp } = req.body
-    await verifyOtpService(email, otp)
-    res.json({ message: "OTP verified successfully" })
+    await verifyOtpService(email, otp);
+    console.log("✅ OTP verified successfully");
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+    });
   } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    console.error("❌ OTP verification failed:", err.message);
+    return res.status(400).json({
+      success: false,
+      message: "Invalid or expired OTP",
+      error: err.message,
+    });
   }
-}
-
-
-
+};
