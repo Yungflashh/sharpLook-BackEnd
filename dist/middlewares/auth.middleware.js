@@ -14,6 +14,7 @@ const verifyToken = (req, res, next) => {
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
+        console.log(req.user);
         next();
     }
     catch (err) {
