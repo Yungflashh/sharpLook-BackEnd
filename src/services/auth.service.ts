@@ -50,37 +50,44 @@ export const loginUser = async (email: string, password: string) => {
 };
 
 export const loginWithVendorCheck = async (email: string, password: string) => {
-  const { token, user } = await loginUser(email, password);
+  const user = await prisma.user.findUnique({ where: { email } });
 
-  // Check if email is verified
-  if (!user.isEmailVerified) {
-    await sendOtpService(email);
-    return { token, user };
-  }
+  if (!user) throw new Error("Invalid credentials");
+
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) throw new Error("Invalid credentials");
+
+  const token = jwt.sign(
+    { id: user.id, role: user.role },
+    process.env.JWT_SECRET!,
+    { expiresIn: "7d" }
+  );
 
   let vendorProfile = null;
-  let message: string | undefined = undefined;
+  let message: string | undefined;
 
   if (user.role === "VENDOR") {
-    vendorProfile = await prisma.vendorOnboarding.findUnique({
+    // Ensure onboarding record exists
+    vendorProfile = await prisma.vendorOnboarding.upsert({
       where: { userId: user.id },
+      update: {},
+      create: {
+        userId: user.id,
+        identityImage: "",
+        serviceType: "IN_SHOP", 
+        specialties: [],
+        portfolioImages: []
+      }
     });
 
-    if (!vendorProfile) {
-      message = "Vendor profile not found. Please complete onboarding.";
-    } else if (!vendorProfile.registerationNumber) {
-      message = "No Profile.";
-    } else if (
-      vendorProfile.latitude === null || vendorProfile.latitude === undefined ||
-      vendorProfile.longitude === null || vendorProfile.longitude === undefined
-    ) {
-      message = "No Location";
+    // Check if profile is incomplete
+    if (!vendorProfile.registerationNumber || vendorProfile.latitude == null || vendorProfile.longitude == null) {
+      message = "Please complete your vendor profile (registration number and location required).";
     }
   }
 
   return { token, user, vendorProfile, message };
 };
-
 
 export const resetPassword = async (email: string, token: string, newPassword: string) => {
   const user = await prisma.user.findUnique({ where: { email } })

@@ -7,7 +7,6 @@ exports.getUserById = exports.requestPasswordReset = exports.resetPassword = exp
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
-const otp_service_1 = require("../services/otp.service");
 const crypto_1 = __importDefault(require("crypto"));
 const email_helper_1 = require("../helpers/email.helper");
 const registerUser = async (email, password, firstName, lastName, role, acceptedPersonalData, phone) => {
@@ -43,27 +42,31 @@ const loginUser = async (email, password) => {
 };
 exports.loginUser = loginUser;
 const loginWithVendorCheck = async (email, password) => {
-    const { token, user } = await (0, exports.loginUser)(email, password);
-    // Check if email is verified
-    if (!user.isEmailVerified) {
-        await (0, otp_service_1.sendOtpService)(email);
-        return { token, user };
-    }
+    const user = await prisma_1.default.user.findUnique({ where: { email } });
+    if (!user)
+        throw new Error("Invalid credentials");
+    const match = await bcryptjs_1.default.compare(password, user.password);
+    if (!match)
+        throw new Error("Invalid credentials");
+    const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
     let vendorProfile = null;
-    let message = undefined;
+    let message;
     if (user.role === "VENDOR") {
-        vendorProfile = await prisma_1.default.vendorOnboarding.findUnique({
+        // Ensure onboarding record exists
+        vendorProfile = await prisma_1.default.vendorOnboarding.upsert({
             where: { userId: user.id },
+            update: {},
+            create: {
+                userId: user.id,
+                identityImage: "",
+                serviceType: "IN_SHOP",
+                specialties: [],
+                portfolioImages: []
+            }
         });
-        if (!vendorProfile) {
-            message = "Vendor profile not found. Please complete onboarding.";
-        }
-        else if (!vendorProfile.registerationNumber) {
-            message = "No Profile.";
-        }
-        else if (vendorProfile.latitude === null || vendorProfile.latitude === undefined ||
-            vendorProfile.longitude === null || vendorProfile.longitude === undefined) {
-            message = "No Location";
+        // Check if profile is incomplete
+        if (!vendorProfile.registerationNumber || vendorProfile.latitude == null || vendorProfile.longitude == null) {
+            message = "Please complete your vendor profile (registration number and location required).";
         }
     }
     return { token, user, vendorProfile, message };
