@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { createProduct } from "../services/product.service"
 import uploadToCloudinary from "../utils/cloudinary"
-import { getVendorProducts, getAllProducts } from "../services/product.service"
+import { getVendorProducts, getAllProducts, getTopSellingProducts } from "../services/product.service"
 
 
 export const addProduct = async (req: Request, res: Response) => {
@@ -49,6 +49,18 @@ export const fetchVendorProducts = async (req: Request, res: Response) => {
 export const fetchAllProducts = async (_req: Request, res: Response) => {
   try {
     const products = await getAllProducts()
+    res.json({ success: true, data: products })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+
+export const fetchTopSellingProducts = async (req: Request, res: Response) => {
+  const limit = parseInt(req.query.limit as string) || 10
+
+  try {
+    const products = await getTopSellingProducts(limit)
     res.json({ success: true, data: products })
   } catch (err: any) {
     res.status(500).json({ error: err.message })

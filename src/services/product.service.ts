@@ -37,3 +37,27 @@ export const getAllProducts = async () => {
     orderBy: { createdAt: "desc" },
   })
 }
+
+
+export const getTopSellingProducts = async (limit = 10) => {
+  return await prisma.product.findMany({
+    where: {
+      unitsSold: {
+        gt: 0,
+      },
+    },
+    orderBy: {
+      unitsSold: "desc",
+    },
+    include: {
+      vendor: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+    take: limit,
+  })
+}

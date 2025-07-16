@@ -1,7 +1,8 @@
 import { Router } from "express"
-import { getMyProfile, updateMyProfile, setClientLocationPreferences  } from "../controllers/user.controller"
+import { getMyProfile, updateMyProfile, setClientLocationPreferences, fetchTopVendors  } from "../controllers/user.controller"
 import { verifyToken , requireRole} from "../middlewares/auth.middleware"
 import {getNearbyVendors} from "../controllers/vendor.controller"
+import {fetchTopSellingProducts} from "../controllers/product.controller"
 
 const router = Router()
 
@@ -14,5 +15,9 @@ router.put(
   setClientLocationPreferences
 )
 router.get("/nearby-vendors", getNearbyVendors)
+router.get("/topVendors", fetchTopVendors)
+router.get("/products/top-selling", fetchTopSellingProducts)
+
+
 
 export default router

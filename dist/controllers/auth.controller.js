@@ -1,10 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCurrentUser = exports.verifyOtp = exports.sendOtp = exports.reset = exports.requestReset = exports.login = exports.register = void 0;
 const auth_service_1 = require("../services/auth.service");
 const auth_service_2 = require("../services/auth.service");
 const otp_service_1 = require("../services/otp.service");
 const auth_service_3 = require("../services/auth.service");
+const prisma_1 = __importDefault(require("../config/prisma"));
 const register = async (req, res) => {
     const { firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body;
     console.log("➡️ Register attempt:", { email, role });
@@ -33,8 +37,27 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     console.log("➡️ Login attempt:", email);
     try {
-        const { token, user, vendorProfile, message } = await (0, auth_service_2.loginWithVendorCheck)(email, password);
+        const userCheck = await prisma_1.default.user.findUnique({ where: { email } });
+        if (!userCheck) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid login credentials",
+            });
+        }
+        let responseData;
+        if (userCheck.role === "VENDOR") {
+            responseData = await (0, auth_service_2.loginWithVendorCheck)(email, password);
+        }
+        else if (userCheck.role === "CLIENT") {
+            responseData = await (0, auth_service_2.loginWithClientCheck)(email, password);
+        }
+        else {
+            responseData = await (0, auth_service_2.loginUser)(email, password);
+        }
+        const { token, user, vendorProfile = null, // optional chaining support
+        message, } = responseData;
         if (!user.isEmailVerified) {
+            await (0, otp_service_1.sendOtpService)(email);
             return res.status(403).json({
                 success: false,
                 message: "Email not verified. An OTP has been sent to your email.",
@@ -52,14 +75,14 @@ const login = async (req, res) => {
             message: "Login successful",
             token,
             user,
-            vendorProfile,
+            ...(vendorProfile && { vendorProfile }),
         });
     }
     catch (err) {
         console.error("❌ Login failed:", err.message);
         return res.status(401).json({
             success: false,
-            message: "Invalid login credentials",
+            message: "Login failed",
             error: err.message,
         });
     }

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
+exports.fetchTopVendors = exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
 const user_services_1 = require("../services/user.services");
 const getMyProfile = async (req, res) => {
     try {
@@ -37,3 +37,14 @@ const setClientLocationPreferences = async (req, res) => {
     }
 };
 exports.setClientLocationPreferences = setClientLocationPreferences;
+const fetchTopVendors = async (req, res) => {
+    const limit = parseInt(req.query.limit) || 10;
+    try {
+        const topVendors = await (0, user_services_1.getTopRatedVendors)(limit);
+        res.json({ success: true, data: topVendors });
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+exports.fetchTopVendors = fetchTopVendors;

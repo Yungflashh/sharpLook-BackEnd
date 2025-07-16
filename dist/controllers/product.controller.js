@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchAllProducts = exports.fetchVendorProducts = exports.addProduct = void 0;
+exports.fetchTopSellingProducts = exports.fetchAllProducts = exports.fetchVendorProducts = exports.addProduct = void 0;
 const product_service_1 = require("../services/product.service");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const product_service_2 = require("../services/product.service");
@@ -49,3 +49,14 @@ const fetchAllProducts = async (_req, res) => {
     }
 };
 exports.fetchAllProducts = fetchAllProducts;
+const fetchTopSellingProducts = async (req, res) => {
+    const limit = parseInt(req.query.limit) || 10;
+    try {
+        const products = await (0, product_service_2.getTopSellingProducts)(limit);
+        res.json({ success: true, data: products });
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+exports.fetchTopSellingProducts = fetchTopSellingProducts;

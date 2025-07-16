@@ -105,6 +105,7 @@ model Product {
   productName   String
   price         Float
   qtyAvailable  Int
+  unitsSold     Int      @default(0) 
   status        String   @default("in stock")
   picture       String
   createdAt     DateTime @default(now())

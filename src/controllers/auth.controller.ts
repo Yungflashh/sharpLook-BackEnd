@@ -5,9 +5,14 @@ import {
   resetPassword,
   requestPasswordReset,
 } from "../services/auth.service";
-import { loginWithVendorCheck } from "../services/auth.service";
+import { loginWithVendorCheck , loginWithClientCheck , loginUser} from "../services/auth.service";
 import { sendOtpService, verifyOtpService } from "../services/otp.service";
 import { getUserById } from "../services/auth.service";
+import { GenericLoginResponse } from "../types/auth.types";
+import prisma from "../config/prisma"
+
+
+
 
 export const register = async (req: Request, res: Response) => {
   const { firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body;
@@ -36,18 +41,40 @@ export const register = async (req: Request, res: Response) => {
 };
 
 
-
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   console.log("➡️ Login attempt:", email);
 
   try {
-    const { token, user, vendorProfile, message } = await loginWithVendorCheck(email, password);
+    const userCheck = await prisma.user.findUnique({ where: { email } });
+    if (!userCheck) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid login credentials",
+      });
+    }
+
+    let responseData: GenericLoginResponse;
+
+    if (userCheck.role === "VENDOR") {
+      responseData = await loginWithVendorCheck(email, password);
+    } else if (userCheck.role === "CLIENT") {
+      responseData = await loginWithClientCheck(email, password);
+    } else {
+      responseData = await loginUser(email, password);
+    }
+
+    const {
+      token,
+      user,
+      vendorProfile = null, // optional chaining support
+      message,
+    } = responseData as any;
 
     if (!user.isEmailVerified) {
+      await sendOtpService(email);
       return res.status(403).json({
         success: false,
-        
         message: "Email not verified. An OTP has been sent to your email.",
       });
     }
@@ -65,18 +92,17 @@ export const login = async (req: Request, res: Response) => {
       message: "Login successful",
       token,
       user,
-      vendorProfile,
+      ...(vendorProfile && { vendorProfile }),
     });
   } catch (err: any) {
     console.error("❌ Login failed:", err.message);
     return res.status(401).json({
       success: false,
-      message: "Invalid login credentials",
+      message: "Login failed",
       error: err.message,
     });
   }
 };
-
 export const requestReset = async (req: Request, res: Response) => {
   const { email } = req.body;
   console.log("➡️ Password reset requested for:", email);

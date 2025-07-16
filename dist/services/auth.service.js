@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserById = exports.requestPasswordReset = exports.resetPassword = exports.loginWithVendorCheck = exports.loginUser = exports.registerUser = void 0;
+exports.getUserById = exports.requestPasswordReset = exports.resetPassword = exports.loginWithVendorCheck = exports.loginWithClientCheck = exports.loginUser = exports.registerUser = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
@@ -41,7 +41,7 @@ const loginUser = async (email, password) => {
     return { token, user };
 };
 exports.loginUser = loginUser;
-const loginWithVendorCheck = async (email, password) => {
+const loginWithClientCheck = async (email, password) => {
     const user = await prisma_1.default.user.findUnique({ where: { email } });
     if (!user)
         throw new Error("Invalid credentials");
@@ -49,28 +49,42 @@ const loginWithVendorCheck = async (email, password) => {
     if (!match)
         throw new Error("Invalid credentials");
     const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    let vendorProfile = null;
     let message;
-    if (user.role === "VENDOR") {
-        // Ensure onboarding record exists
-        vendorProfile = await prisma_1.default.vendorOnboarding.upsert({
-            where: { userId: user.id },
-            update: {},
-            create: {
-                userId: user.id,
-                identityImage: "",
-                serviceType: "IN_SHOP",
-                specialties: [],
-                portfolioImages: []
-            }
-        });
-        // Check if profile is incomplete
-        if (!vendorProfile.registerationNumber) {
-            message = "Please complete your vendor profile (registration number and location required).";
+    if (user.role === "CLIENT") {
+        if (user.preferredLatitude == null || user.preferredLongitude == null) {
+            message = "Please set your location preference to continue.";
         }
-        else if (vendorProfile.latitude == null || vendorProfile.longitude == null) {
-            message = "No location";
-        }
+    }
+    return { token, user, message };
+};
+exports.loginWithClientCheck = loginWithClientCheck;
+const loginWithVendorCheck = async (email, password) => {
+    const user = await prisma_1.default.user.findUnique({ where: { email } });
+    if (!user)
+        throw new Error("Invalid credentials");
+    const match = await bcryptjs_1.default.compare(password, user.password);
+    if (!match)
+        throw new Error("Invalid credentials");
+    const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+    });
+    let vendorProfile = await prisma_1.default.vendorOnboarding.upsert({
+        where: { userId: user.id },
+        update: {},
+        create: {
+            userId: user.id,
+            identityImage: "",
+            serviceType: "IN_SHOP",
+            specialties: [],
+            portfolioImages: [],
+        },
+    });
+    let message;
+    if (!vendorProfile.registerationNumber) {
+        message = "Please complete your vendor profile (registration number and location required).";
+    }
+    else if (vendorProfile.latitude == null || vendorProfile.longitude == null) {
+        message = "No Location";
     }
     return { token, user, vendorProfile, message };
 };

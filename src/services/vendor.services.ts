@@ -81,7 +81,7 @@ export const findNearbyVendors = async (
     include: { user: true },
   })
 
-  return allVendors.filter((vendor) => {
+  return allVendors.filter((vendor: any) => {
     const { latitude, longitude, serviceRadiusKm } = vendor
     const distance = haversineDistanceKm(
       clientLat,
@@ -93,6 +93,8 @@ export const findNearbyVendors = async (
   })
 }
 export const getAllVendorServices = async () => {
+
+ 
   const vendors = await prisma.vendorOnboarding.findMany({
     select: { servicesOffered: true },
   })
