@@ -1,6 +1,6 @@
+"use strict";
 // import prisma from "../config/prisma"
 // import { Role, BookingStatus } from "@prisma/client"
-
 // export const getPastBookings = async (userId: string, role: Role) => {
 //   const query = {
 //     where: {
@@ -9,10 +9,8 @@
 //     },
 //     orderBy: { date: "desc" },
 //   }
-
 //   return await prisma.booking.findMany(query)
 // }
-
 // export const getUpcomingBookings = async (userId: string, role: Role) => {
 //   const query = {
 //     where: {
@@ -21,6 +19,5 @@
 //     },
 //     orderBy: { date: "asc" },
 //   }
-
 //   return await prisma.booking.findMany(query)
 // }

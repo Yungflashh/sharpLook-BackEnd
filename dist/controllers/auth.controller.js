@@ -48,9 +48,9 @@ const login = async (req, res) => {
         if (userCheck.role === "VENDOR") {
             responseData = await (0, auth_service_2.loginWithVendorCheck)(email, password);
         }
-        else if (userCheck.role === "CLIENT") {
-            responseData = await (0, auth_service_2.loginWithClientCheck)(email, password);
-        }
+        //  else if (userCheck.role === "CLIENT") {
+        //   responseData = await loginWithClientCheck(email, password);
+        // } 
         else {
             responseData = await (0, auth_service_2.loginUser)(email, password);
         }

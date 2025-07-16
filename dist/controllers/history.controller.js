@@ -1,6 +1,6 @@
+"use strict";
 // import { Request, Response } from "express"
 // import { getPastBookings, getUpcomingBookings } from "../services/history.service"
-
 // export const fetchPastHistory = async (req: Request, res: Response) => {
 //   try {
 //     const role = req.user!.role
@@ -11,7 +11,6 @@
 //     res.status(500).json({ error: err.message })
 //   }
 // }
-
 // export const fetchUpcomingHistory = async (req: Request, res: Response) => {
 //   try {
 //     const role = req.user!.role
