@@ -58,9 +58,11 @@ export const login = async (req: Request, res: Response) => {
 
     if (userCheck.role === "VENDOR") {
       responseData = await loginWithVendorCheck(email, password);
-    } else if (userCheck.role === "CLIENT") {
-      responseData = await loginWithClientCheck(email, password);
-    } else {
+    }
+    //  else if (userCheck.role === "CLIENT") {
+    //   responseData = await loginWithClientCheck(email, password);
+    // } 
+    else {
       responseData = await loginUser(email, password);
     }
 
