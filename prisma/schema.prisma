@@ -39,6 +39,8 @@ model User {
   isBanned             Boolean              @default(false)
   sentMessages        Message[]             @relation("SentMessages")
   receivedMessages     Message[]            @relation("ReceivedMessages")
+  cartItems       CartItem[]     @relation("UserCartItems")
+  wishlistItems   WishlistItem[] @relation("UserWishlistItems")
   preferredLatitude     Float?
   preferredLongitude    Float?
   preferredRadiusKm     Int?
@@ -108,6 +110,8 @@ model Product {
   unitsSold     Int      @default(0) 
   status        String   @default("in stock")
   picture       String
+  cartItems       CartItem[]     @relation("ProductCartItems")
+  wishlistItems   WishlistItem[] @relation("ProductWishlistItems")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -187,6 +191,28 @@ enum ServiceType {
   IN_SHOP
   HOME_SERVICE
 }
+
+model CartItem {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  productId  String   @db.ObjectId
+  quantity   Int      @default(1)
+  createdAt  DateTime @default(now())
+
+  user     User     @relation("UserCartItems", fields: [userId], references: [id])
+  product  Product  @relation("ProductCartItems", fields: [productId], references: [id])
+}
+
+model WishlistItem {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  productId  String   @db.ObjectId
+  createdAt  DateTime @default(now())
+ user     User     @relation("UserWishlistItems", fields: [userId], references: [id])
+  product  Product  @relation("ProductWishlistItems", fields: [productId], references: [id])
+}
+
+
 
 enum Role {
   CLIENT

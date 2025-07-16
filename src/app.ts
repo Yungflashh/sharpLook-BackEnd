@@ -19,6 +19,7 @@ import vendorServiceRoutes from "./routes/vendorService.routes"
 
 
 import clientServiceRoutes from "./routes/clientService.routes"
+import cartRoutes from "./routes/cart.routes"
 
 
 
@@ -49,6 +50,7 @@ app.use("/api/v1/vendorServices", vendorServiceRoutes)
 // For clients 
 
 app.use("/api/v1/client", clientServiceRoutes)
+app.use("/api/v1/client", cartRoutes)
 
 
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"))
