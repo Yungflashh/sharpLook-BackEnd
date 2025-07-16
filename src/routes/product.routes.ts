@@ -1,27 +1,22 @@
 import express from "express"
-import { addProduct, fetchVendorProducts,fetchAllProducts,} from "../controllers/product.controller"
+import { addProduct, fetchVendorProducts,fetchAllProducts, editProduct, removeProduct} from "../controllers/product.controller"
 import { verifyToken, requireRole } from "../middlewares/auth.middleware"
-import multer from "multer"
+import { uploadSingle2 } from "../middlewares/upload.middleware"
 
 const router = express.Router()
-const upload = multer({ storage: multer.memoryStorage() })
+
 
 router.post(
   "/vendor/addProducts",
   verifyToken,
   requireRole(["VENDOR"]),
-  upload.single("picture"),
+  uploadSingle2,
   addProduct
 )
 
-router.get(
-  "/getVendorProducts",
-  verifyToken,
-  requireRole(["VENDOR"]),
-  fetchVendorProducts
-)
-
-
+router.get("/getVendorProducts",verifyToken,requireRole(["VENDOR"]),fetchVendorProducts)
 router.get("/getAllProducts", fetchAllProducts)
+router.put("/:productId", verifyToken, uploadSingle2, requireRole(["VENDOR"]), editProduct)
+router.delete("/:productId", verifyToken,requireRole(["VENDOR"]), removeProduct)
 
 export default router

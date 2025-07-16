@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { createProduct } from "../services/product.service"
 import uploadToCloudinary from "../utils/cloudinary"
-import { getVendorProducts, getAllProducts, getTopSellingProducts } from "../services/product.service"
+import { getVendorProducts, getAllProducts, getTopSellingProducts, deleteProduct, updateProduct  } from "../services/product.service"
 
 
 export const addProduct = async (req: Request, res: Response) => {
@@ -64,5 +64,56 @@ export const fetchTopSellingProducts = async (req: Request, res: Response) => {
     res.json({ success: true, data: products })
   } catch (err: any) {
     res.status(500).json({ error: err.message })
+  }
+}
+
+
+
+
+export const editProduct = async (req: Request, res: Response) => {
+  try {
+    const vendorId = req.user?.id
+    const { productId } = req.params
+    const { productName, price, qtyAvailable } = req.body
+
+    if (!productName || !price || qtyAvailable === undefined) {
+      return res.status(400).json({ message: "Missing required fields" })
+    }
+
+    let pictureUrl: string | undefined = undefined
+
+    if (req.file) {
+      const cloudinaryRes = await uploadToCloudinary(req.file.buffer, req.file.mimetype)
+
+      pictureUrl = cloudinaryRes.secure_url
+    }
+
+    const updatedProduct = await updateProduct(
+      productId,
+      vendorId!,
+      productName,
+      Number(price),
+      Number(qtyAvailable),
+      pictureUrl
+    )
+
+    res.status(200).json({
+      message: "Product updated successfully",
+      product: updatedProduct,
+    })
+  } catch (error) {
+    console.error("Error editing product:", error)
+    res.status(500).json({ message: "Failed to update product" })
+  }
+}
+
+export const removeProduct = async (req: Request, res: Response) => {
+  const { productId } = req.params
+
+  try {
+    await deleteProduct(productId)
+    res.json({ success: true, message: "Product deleted" })
+  } catch (err: any) {
+    res.status(400).json({ error: err.message })
   }
 }

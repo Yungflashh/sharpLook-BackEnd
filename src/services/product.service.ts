@@ -1,4 +1,6 @@
 import prisma from "../config/prisma"
+import uploadToCloudinary  from "../utils/cloudinary"
+
 
 export const createProduct = async (
   vendorId: string,
@@ -59,5 +61,43 @@ export const getTopSellingProducts = async (limit = 10) => {
       },
     },
     take: limit,
+  })
+}
+
+
+
+
+
+
+export const updateProduct = async (
+  productId: string,
+  vendorId: string,
+  productName: string,
+  price: number,
+  qtyAvailable: number,
+  picture?: string
+) => {
+  const status = qtyAvailable === 0 ? "not in stock" : "in stock"
+
+  return await prisma.product.update({
+    where: {
+      id: productId,
+      vendorId: vendorId, // ensures vendor can only edit their own product
+    },
+    data: {
+      productName,
+      price,
+      qtyAvailable,
+      status,
+      ...(picture && { picture }), // only update if a new picture was uploaded
+    },
+  })
+}
+
+
+
+export const deleteProduct = async (productId: string) => {
+  return await prisma.product.delete({
+    where: { id: productId },
   })
 }

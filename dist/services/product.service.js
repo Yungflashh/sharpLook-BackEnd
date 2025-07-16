@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTopSellingProducts = exports.getAllProducts = exports.getVendorProducts = exports.createProduct = void 0;
+exports.deleteProduct = exports.updateProduct = exports.getTopSellingProducts = exports.getAllProducts = exports.getVendorProducts = exports.createProduct = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const createProduct = async (vendorId, productName, price, qtyAvailable, picture) => {
     const status = qtyAvailable === 0 ? "not in stock" : "in stock";
@@ -57,3 +57,26 @@ const getTopSellingProducts = async (limit = 10) => {
     });
 };
 exports.getTopSellingProducts = getTopSellingProducts;
+const updateProduct = async (productId, vendorId, productName, price, qtyAvailable, picture) => {
+    const status = qtyAvailable === 0 ? "not in stock" : "in stock";
+    return await prisma_1.default.product.update({
+        where: {
+            id: productId,
+            vendorId: vendorId, // ensures vendor can only edit their own product
+        },
+        data: {
+            productName,
+            price,
+            qtyAvailable,
+            status,
+            ...(picture && { picture }), // only update if a new picture was uploaded
+        },
+    });
+};
+exports.updateProduct = updateProduct;
+const deleteProduct = async (productId) => {
+    return await prisma_1.default.product.delete({
+        where: { id: productId },
+    });
+};
+exports.deleteProduct = deleteProduct;

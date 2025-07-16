@@ -1,10 +1,10 @@
 // src/middlewares/multer.ts
-import multer from "multer"
+import multer from "multer";
 
-const storage = multer.memoryStorage()
+const storage = multer.memoryStorage();
 
-const upload = multer({ storage })
+const upload = multer({ storage });
 
-export const uploadSingle = upload.single("identityImage")
-export const uploadSingle2 = upload.single("serviceImage")
-export const uploadMultiple = upload.array("portfolioImages", 10) 
+export const uploadSingle = upload.single("identityImage");
+export const uploadSingle2 = upload.single("serviceImage");
+export const uploadMultiple = upload.array("portfolioImages", 10);

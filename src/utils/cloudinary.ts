@@ -29,7 +29,7 @@ const uploadToCloudinary = async (
         resource_type: "image",
         folder: "hairdesign/vendors",
       },
-      (error, result) => {
+      (error: any, result: any) => {
         if (finished) return; // Prevent multiple responses
         finished = true;
         clearTimeout(timeout);

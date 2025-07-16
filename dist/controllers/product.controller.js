@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchTopSellingProducts = exports.fetchAllProducts = exports.fetchVendorProducts = exports.addProduct = void 0;
+exports.removeProduct = exports.editProduct = exports.fetchTopSellingProducts = exports.fetchAllProducts = exports.fetchVendorProducts = exports.addProduct = void 0;
 const product_service_1 = require("../services/product.service");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const product_service_2 = require("../services/product.service");
@@ -60,3 +60,39 @@ const fetchTopSellingProducts = async (req, res) => {
     }
 };
 exports.fetchTopSellingProducts = fetchTopSellingProducts;
+const editProduct = async (req, res) => {
+    try {
+        const vendorId = req.user?.id;
+        const { productId } = req.params;
+        const { productName, price, qtyAvailable } = req.body;
+        if (!productName || !price || qtyAvailable === undefined) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+        let pictureUrl = undefined;
+        if (req.file) {
+            const cloudinaryRes = await (0, cloudinary_1.default)(req.file.buffer, req.file.mimetype);
+            pictureUrl = cloudinaryRes.secure_url;
+        }
+        const updatedProduct = await (0, product_service_2.updateProduct)(productId, vendorId, productName, Number(price), Number(qtyAvailable), pictureUrl);
+        res.status(200).json({
+            message: "Product updated successfully",
+            product: updatedProduct,
+        });
+    }
+    catch (error) {
+        console.error("Error editing product:", error);
+        res.status(500).json({ message: "Failed to update product" });
+    }
+};
+exports.editProduct = editProduct;
+const removeProduct = async (req, res) => {
+    const { productId } = req.params;
+    try {
+        await (0, product_service_2.deleteProduct)(productId);
+        res.json({ success: true, message: "Product deleted" });
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.removeProduct = removeProduct;
