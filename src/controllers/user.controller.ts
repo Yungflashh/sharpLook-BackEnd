@@ -40,15 +40,21 @@ export const setClientLocationPreferences = async (req: Request, res: Response) 
   }
 }
 
-
-
 export const fetchTopVendors = async (req: Request, res: Response) => {
-  const limit = parseInt(req.query.limit as string) || 10
+  console.log("🔍 Received request to fetch top vendors");
+
+  const limit = parseInt(req.query.limit as string) || 10;
+  console.log(`📌 Parsed limit from query: ${limit}`);
 
   try {
-    const topVendors = await getTopRatedVendors(limit)
-    res.json({ success: true, data: topVendors })
+    console.log("🚀 Fetching top rated vendors...");
+    const topVendors = await getTopRatedVendors(limit);
+    console.log("✅ Top vendors fetched successfully");
+
+    res.json({ success: true, data: topVendors });
+    console.log("📤 Response sent to client");
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    console.error("❌ Error occurred while fetching top vendors:", err);
+    res.status(500).json({ error: err.message });
   }
-}
+};
