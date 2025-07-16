@@ -2,22 +2,54 @@ import { Request, Response } from "express"
 import { addVendorService, getVendorServices } from "../services/vendorService.service"
 import  uploadToCloudinary  from "../utils/cloudinary"
 
-export const createVendorService = async (req: Request, res: Response) => {
-  const { serviceName, servicePrice } = req.body
-  const file = req.file
-  const vendorId = req.user?.id!
 
-  if (!file || !serviceName || !servicePrice)
-    return res.status(400).json({ error: "All fields are required" })
+export const createVendorService = async (req: Request, res: Response) => {
+  console.log("➡️ [VendorService] Incoming request to create vendor service");
+
+  const { serviceName, servicePrice } = req.body;
+  const file = req.file;
+  const vendorId = req.user?.id!;
+
+  console.log("📥 [VendorService] Request body:", { serviceName, servicePrice });
+  console.log("📥 [VendorService] File received:", !!file);
+  console.log("📥 [VendorService] Vendor ID:", vendorId);
+
+  if (!file || !serviceName || !servicePrice) {
+    console.warn("⚠️ [VendorService] Missing required fields");
+    return res.status(400).json({ error: "All fields are required" });
+  }
 
   try {
-    const upload = await uploadToCloudinary(file.buffer, "vendor_services")
-    const service = await addVendorService(vendorId, serviceName, parseFloat(servicePrice), upload.secure_url)
-    res.status(201).json({ success: true, data: service })
+    console.log("☁️ [VendorService] Uploading file to Cloudinary...");
+    const upload = await uploadToCloudinary(file.buffer, "vendor_services");
+
+    console.log("✅ [VendorService] File uploaded successfully:", upload.secure_url);
+
+    console.log("🛠️ [VendorService] Creating service record in database...");
+    const service = await addVendorService(
+      vendorId,
+      serviceName,
+      parseFloat(servicePrice),
+      upload.secure_url
+    );
+
+    console.log("✅ [VendorService] Service created successfully:", service.id);
+
+    return res.status(201).json({
+      success: true,
+      message: "Vendor service created successfully",
+      data: service,
+    });
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    console.error("❌ [VendorService] Error creating vendor service:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create vendor service",
+      error: err.message,
+    });
   }
-}
+};
+
 
 export const fetchVendorServices = async (req: Request, res: Response) => {
   const vendorId = req.user?.id!

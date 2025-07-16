@@ -53,7 +53,7 @@ app.use("/api/v1/vendorServices", vendorServiceRoutes)
 
 app.use("/api/v1/client", clientServiceRoutes)
 app.use("/api/v1/client", cartRoutes)
-app.use("/api/history", historyRoutes)
+app.use("/api/v1/history", historyRoutes)
 
 
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"))
