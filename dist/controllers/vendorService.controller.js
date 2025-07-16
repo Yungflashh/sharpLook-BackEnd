@@ -9,19 +9,19 @@ const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const createVendorService = async (req, res) => {
     console.log("➡️ [VendorService] Incoming request to create vendor service");
     const { serviceName, servicePrice } = req.body;
-    const file = req.file;
+    const serviceImage = req.file;
     const vendorId = req.user?.id;
     console.log("📥 [VendorService] Request body:", { serviceName, servicePrice });
-    console.log("📥 [VendorService] File received:", !!file);
+    console.log("📥 [VendorService] serviceImage received:", !!serviceImage);
     console.log("📥 [VendorService] Vendor ID:", vendorId);
-    if (!file || !serviceName || !servicePrice) {
+    if (!serviceImage || !serviceName || !servicePrice) {
         console.warn("⚠️ [VendorService] Missing required fields");
         return res.status(400).json({ error: "All fields are required" });
     }
     try {
-        console.log("☁️ [VendorService] Uploading file to Cloudinary...");
-        const upload = await (0, cloudinary_1.default)(file.buffer, "vendor_services");
-        console.log("✅ [VendorService] File uploaded successfully:", upload.secure_url);
+        console.log("☁️ [VendorService] Uploading serviceImage to Cloudinary...");
+        const upload = await (0, cloudinary_1.default)(serviceImage.buffer, "vendor_services");
+        console.log("✅ [VendorService] serviceImage uploaded successfully:", upload.secure_url);
         console.log("🛠️ [VendorService] Creating service record in database...");
         const service = await (0, vendorService_service_1.addVendorService)(vendorId, serviceName, parseFloat(servicePrice), upload.secure_url);
         console.log("✅ [VendorService] Service created successfully:", service.id);
