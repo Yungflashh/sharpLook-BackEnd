@@ -1,23 +1,36 @@
 "use strict";
-// import { Request, Response } from "express"
-// import { getPastBookings, getUpcomingBookings } from "../services/history.service"
-// export const fetchPastHistory = async (req: Request, res: Response) => {
-//   try {
-//     const role = req.user!.role
-//     const userId = req.user!.id
-//     const history = await getPastBookings(userId, role)
-//     res.json({ success: true, data: history })
-//   } catch (err: any) {
-//     res.status(500).json({ error: err.message })
-//   }
-// }
-// export const fetchUpcomingHistory = async (req: Request, res: Response) => {
-//   try {
-//     const role = req.user!.role
-//     const userId = req.user!.id
-//     const history = await getUpcomingBookings(userId, role)
-//     res.json({ success: true, data: history })
-//   } catch (err: any) {
-//     res.status(500).json({ error: err.message })
-//   }
-// }
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.fetchUpcomingHistory = exports.fetchPastHistory = void 0;
+const history_service_1 = require("../services/history.service");
+const fetchPastHistory = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const rawRole = req.user.role;
+        if (!["CLIENT", "VENDOR"].includes(rawRole)) {
+            return res.status(400).json({ error: "Invalid user role" });
+        }
+        const role = rawRole;
+        const history = await (0, history_service_1.getPastBookings)(userId, role);
+        res.json({ success: true, data: history });
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+exports.fetchPastHistory = fetchPastHistory;
+const fetchUpcomingHistory = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const rawRole = req.user.role;
+        if (!["CLIENT", "VENDOR"].includes(rawRole)) {
+            return res.status(400).json({ error: "Invalid user role" });
+        }
+        const role = rawRole;
+        const history = await (0, history_service_1.getUpcomingBookings)(userId, role);
+        res.json({ success: true, data: history });
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+exports.fetchUpcomingHistory = fetchUpcomingHistory;

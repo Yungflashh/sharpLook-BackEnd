@@ -17,6 +17,7 @@ const review_routes_1 = __importDefault(require("./routes/review.routes"));
 const promotion_routes_1 = __importDefault(require("./routes/promotion.routes"));
 const message_routes_1 = __importDefault(require("./routes/message.routes"));
 const vendorService_routes_1 = __importDefault(require("./routes/vendorService.routes"));
+const history_routes_1 = __importDefault(require("./routes/history.routes"));
 // For clients
 const clientService_routes_1 = __importDefault(require("./routes/clientService.routes"));
 const cart_routes_1 = __importDefault(require("./routes/cart.routes"));
@@ -38,6 +39,7 @@ app.use("/api/v1/vendorServices", vendorService_routes_1.default);
 // For clients 
 app.use("/api/v1/client", clientService_routes_1.default);
 app.use("/api/v1/client", cart_routes_1.default);
+app.use("/api/history", history_routes_1.default);
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"));
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
