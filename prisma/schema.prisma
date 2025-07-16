@@ -34,10 +34,14 @@ model User {
   vendorReviews        Review[]             @relation("VendorReview")  
   clientReviews        Review[]             @relation("ClientReview")
   vendorAvailabilities VendorAvailability[]
+  vendorServices       VendorService[]
   promotions           Promotion[]          @relation("UserPromotions")
   isBanned             Boolean              @default(false)
   sentMessages        Message[]             @relation("SentMessages")
   receivedMessages     Message[]            @relation("ReceivedMessages")
+  preferredLatitude     Float?
+  preferredLongitude    Float?
+  preferredRadiusKm     Int?
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 }
@@ -52,7 +56,7 @@ model VendorOnboarding {
   businessName        String?
   bio                 String?
   location            String?
-  servicesOffered     String?
+  servicesOffered     String[]    @default([]) 
   profileImage        String?
   pricing             Json? // 
   service             String? 
@@ -163,6 +167,20 @@ model Message {
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
 }
+
+model VendorService {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  vendorId     String   @db.ObjectId
+  serviceName  String
+  servicePrice Float
+  serviceImage String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vendor       User     @relation(fields: [vendorId], references: [id])
+}
+
+
 
 enum ServiceType {
   IN_SHOP

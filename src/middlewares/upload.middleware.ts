@@ -6,4 +6,5 @@ const storage = multer.memoryStorage()
 const upload = multer({ storage })
 
 export const uploadSingle = upload.single("identityImage")
+export const uploadSingle2 = upload.single("serviceImage")
 export const uploadMultiple = upload.array("portfolioImages", 10) 

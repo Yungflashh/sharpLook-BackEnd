@@ -16,6 +16,9 @@ const notification_routes_1 = __importDefault(require("./routes/notification.rou
 const review_routes_1 = __importDefault(require("./routes/review.routes"));
 const promotion_routes_1 = __importDefault(require("./routes/promotion.routes"));
 const message_routes_1 = __importDefault(require("./routes/message.routes"));
+const vendorService_routes_1 = __importDefault(require("./routes/vendorService.routes"));
+// For clients
+const clientService_routes_1 = __importDefault(require("./routes/clientService.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
@@ -30,6 +33,9 @@ app.use("/api/v1/notifications", notification_routes_1.default);
 app.use("/api/v1/reviews", review_routes_1.default);
 app.use("/api/v1/promotions", promotion_routes_1.default);
 app.use("/api/v1/messages", message_routes_1.default);
+app.use("/api/v1/vendorServices", vendorService_routes_1.default);
+// For clients 
+app.use("/api/v1/client", clientService_routes_1.default);
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"));
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

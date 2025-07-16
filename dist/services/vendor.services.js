@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findNearbyVendors = exports.updateServiceRadiusAndLocation = exports.getVendorAvailability = exports.setVendorAvailability = exports.getVendorSpecialties = exports.updateVendorSpecialties = exports.getPortfolioImages = exports.addPortfolioImages = void 0;
+exports.getVendorsByService = exports.getAllVendorServices = exports.findNearbyVendors = exports.updateServiceRadiusAndLocation = exports.getVendorAvailability = exports.setVendorAvailability = exports.getVendorSpecialties = exports.updateVendorSpecialties = exports.getPortfolioImages = exports.addPortfolioImages = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const distance_1 = require("../utils/distance");
 const addPortfolioImages = async (userId, imageUrls) => {
@@ -75,3 +75,28 @@ const findNearbyVendors = async (clientLat, clientLon) => {
     });
 };
 exports.findNearbyVendors = findNearbyVendors;
+const getAllVendorServices = async () => {
+    const vendors = await prisma_1.default.vendorOnboarding.findMany({
+        select: { servicesOffered: true },
+    });
+    const allServices = vendors.flatMap(v => v.servicesOffered);
+    const uniqueServices = Array.from(new Set(allServices));
+    return uniqueServices;
+};
+exports.getAllVendorServices = getAllVendorServices;
+const getVendorsByService = async (service) => {
+    if (!service) {
+        return await prisma_1.default.vendorOnboarding.findMany({
+            include: { user: true },
+        });
+    }
+    return await prisma_1.default.vendorOnboarding.findMany({
+        where: {
+            servicesOffered: {
+                has: service,
+            },
+        },
+        include: { user: true },
+    });
+};
+exports.getVendorsByService = getVendorsByService;

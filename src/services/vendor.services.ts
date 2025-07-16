@@ -92,3 +92,31 @@ export const findNearbyVendors = async (
     return distance <= serviceRadiusKm!
   })
 }
+export const getAllVendorServices = async () => {
+  const vendors = await prisma.vendorOnboarding.findMany({
+    select: { servicesOffered: true },
+  })
+
+  const allServices = vendors.flatMap(v => v.servicesOffered)
+  const uniqueServices = Array.from(new Set(allServices))
+
+  return uniqueServices
+}
+
+
+export const getVendorsByService = async (service?: string) => {
+  if (!service) {
+    return await prisma.vendorOnboarding.findMany({
+      include: { user: true },
+    })
+  }
+
+  return await prisma.vendorOnboarding.findMany({
+    where: {
+      servicesOffered: {
+        has: service, 
+      },
+    },
+    include: { user: true },
+  })
+}

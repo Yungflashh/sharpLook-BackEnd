@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getNearbyVendors = exports.updateServiceRadius = exports.fetchAvailability = exports.updateAvailability = exports.fetchVendorSpecialties = exports.setVendorSpecialties = exports.fetchPortfolioImages = exports.uploadPortfolioImages = exports.completeVendorProfile = void 0;
+exports.filterVendorsByService = exports.fetchAllServiceCategories = exports.getNearbyVendors = exports.updateServiceRadius = exports.fetchAvailability = exports.updateAvailability = exports.fetchPortfolioImages = exports.uploadPortfolioImages = exports.completeVendorProfile = void 0;
 const vendorOnboarding_service_1 = require("../services/vendorOnboarding.service");
 const vendor_services_1 = require("../services/vendor.services");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
@@ -43,30 +43,6 @@ const fetchPortfolioImages = async (req, res) => {
     }
 };
 exports.fetchPortfolioImages = fetchPortfolioImages;
-const setVendorSpecialties = async (req, res) => {
-    try {
-        const { specialties } = req.body;
-        if (!Array.isArray(specialties)) {
-            return res.status(400).json({ error: "Specialties must be an array of strings" });
-        }
-        const updated = await (0, vendor_services_1.updateVendorSpecialties)(req.user.id, specialties);
-        res.json({ success: true, message: "Specialties updated", data: updated });
-    }
-    catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-};
-exports.setVendorSpecialties = setVendorSpecialties;
-const fetchVendorSpecialties = async (req, res) => {
-    try {
-        const data = await (0, vendor_services_1.getVendorSpecialties)(req.user.id);
-        res.json({ success: true, data });
-    }
-    catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-};
-exports.fetchVendorSpecialties = fetchVendorSpecialties;
 const updateAvailability = async (req, res) => {
     const { days, fromTime, toTime } = req.body;
     try {
@@ -122,3 +98,24 @@ const getNearbyVendors = async (req, res) => {
     }
 };
 exports.getNearbyVendors = getNearbyVendors;
+const fetchAllServiceCategories = async (req, res) => {
+    try {
+        const services = await (0, vendor_services_1.getAllVendorServices)();
+        res.json({ success: true, data: services });
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+exports.fetchAllServiceCategories = fetchAllServiceCategories;
+const filterVendorsByService = async (req, res) => {
+    const { service } = req.query;
+    try {
+        const vendors = await (0, vendor_services_1.getVendorsByService)(service);
+        res.json({ success: true, data: vendors });
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+exports.filterVendorsByService = filterVendorsByService;

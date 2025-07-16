@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateMyProfile = exports.getMyProfile = void 0;
+exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
 const user_services_1 = require("../services/user.services");
 const getMyProfile = async (req, res) => {
     try {
@@ -22,3 +22,18 @@ const updateMyProfile = async (req, res) => {
     }
 };
 exports.updateMyProfile = updateMyProfile;
+const setClientLocationPreferences = async (req, res) => {
+    const { latitude, longitude, radiusKm } = req.body;
+    const userId = req.user?.id;
+    if (!latitude || !longitude || !radiusKm) {
+        return res.status(400).json({ error: "Missing location or radius" });
+    }
+    try {
+        const updatedUser = await (0, user_services_1.updateClientLocationPreferences)(userId, latitude, longitude, radiusKm);
+        res.status(200).json({ success: true, data: updatedUser });
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.setClientLocationPreferences = setClientLocationPreferences;

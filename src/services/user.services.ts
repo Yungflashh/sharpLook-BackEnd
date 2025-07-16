@@ -10,3 +10,21 @@ export const updateUserProfile = async (id: string, data: Partial<any>) => {
     data
   })
 }
+
+
+
+export const updateClientLocationPreferences = async (
+  userId: string,
+  latitude: number,
+  longitude: number,
+  radiusKm: number
+) => {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: {
+      preferredLatitude: latitude,
+      preferredLongitude: longitude,
+      preferredRadiusKm: radiusKm,
+    },
+  });
+};

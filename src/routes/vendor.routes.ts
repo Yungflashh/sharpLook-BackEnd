@@ -4,12 +4,12 @@ import { verifyToken, requireRole } from "../middlewares/auth.middleware"
 import { completeVendorProfile } from "../controllers/vendor.controller"
 import { uploadPortfolioImages,
          fetchPortfolioImages, 
-         setVendorSpecialties, 
-         fetchVendorSpecialties, 
          fetchAvailability, 
          updateAvailability,
         updateServiceRadius,
-      getNearbyVendors  } from "../controllers/vendor.controller"
+     
+    fetchAllServiceCategories,
+  filterVendorsByService } from "../controllers/vendor.controller"
 import { uploadMultiple } from "../middlewares/upload.middleware"
 import { setVendorPricing, fetchVendorPricing } from "../controllers/vendorPricing.controller"
 
@@ -27,12 +27,12 @@ router.post("/upload", verifyToken, requireRole(["VENDOR"]), uploadMultiple,  up
 router.get("/fetchPortfolioImage", verifyToken, requireRole(["VENDOR"]), fetchPortfolioImages)
 router.get("/getVendorPricing", verifyToken, requireRole(["VENDOR"]), fetchVendorPricing)
 router.post("/setVendorPricing", verifyToken, requireRole(["VENDOR"]), setVendorPricing)
-router.post("/setVendorSpecialities", verifyToken, requireRole(["VENDOR"]), setVendorSpecialties)
-router.get("/getVendorSpecialities", verifyToken, requireRole(["VENDOR"]), fetchVendorSpecialties )
+router.get("/services", verifyToken, fetchAllServiceCategories)
+router.get("/filter-by-service", filterVendorsByService)
 router.post("/setVendorAvailability", verifyToken, requireRole(["VENDOR"]), updateAvailability)
 router.get("/getVendorAvailability", verifyToken, requireRole(["VENDOR"]),  fetchAvailability)
 router.put("/update-service-radius",verifyToken,requireRole(["VENDOR"]),updateServiceRadius)
-router.get("/nearby-vendors", getNearbyVendors)
+
 
 
 

@@ -16,10 +16,9 @@ router.post("/upload", auth_middleware_1.verifyToken, (0, auth_middleware_1.requ
 router.get("/fetchPortfolioImage", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.fetchPortfolioImages);
 router.get("/getVendorPricing", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorPricing_controller_1.fetchVendorPricing);
 router.post("/setVendorPricing", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorPricing_controller_1.setVendorPricing);
-router.post("/setVendorSpecialities", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.setVendorSpecialties);
-router.get("/getVendorSpecialities", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.fetchVendorSpecialties);
+router.get("/services", auth_middleware_1.verifyToken, vendor_controller_2.fetchAllServiceCategories);
+router.get("/filter-by-service", vendor_controller_2.filterVendorsByService);
 router.post("/setVendorAvailability", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.updateAvailability);
 router.get("/getVendorAvailability", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.fetchAvailability);
 router.put("/update-service-radius", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.updateServiceRadius);
-router.get("/nearby-vendors", vendor_controller_2.getNearbyVendors);
 exports.default = router;
