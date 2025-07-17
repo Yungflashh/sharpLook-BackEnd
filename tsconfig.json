@@ -11,5 +11,6 @@
     "types": ["node", "express"],  // 👈 Add this line to fix process/Buffer/etc.
     "moduleResolution": "node"     // 👈 Ensures modules like express are resolved properly
   },
+  
   "include": ["src"]
 }
