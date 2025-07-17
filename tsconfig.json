@@ -7,7 +7,9 @@
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
-     "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node", "express"],  // 👈 Add this line to fix process/Buffer/etc.
+    "moduleResolution": "node"     // 👈 Ensures modules like express are resolved properly
   },
-  "include": ["src", "src/types/express"]
+  "include": ["src"]
 }
