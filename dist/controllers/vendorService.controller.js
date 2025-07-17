@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchVendorServices = exports.createVendorService = void 0;
+exports.deleteAVendorService = exports.updateVendorService = exports.fetchAllVendorServices = exports.fetchVendorServices = exports.createVendorService = void 0;
 const vendorService_service_1 = require("../services/vendorService.service");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const createVendorService = async (req, res) => {
@@ -61,3 +61,54 @@ const fetchVendorServices = async (req, res) => {
     }
 };
 exports.fetchVendorServices = fetchVendorServices;
+// ✅ Fetch all services (admin/global view)
+const fetchAllVendorServices = async (_req, res) => {
+    try {
+        const services = await (0, vendorService_service_1.getAllServices)();
+        res.status(200).json({ success: true, data: services });
+    }
+    catch (err) {
+        res.status(500).json({ success: false, message: "Failed to fetch all services", error: err.message });
+    }
+};
+exports.fetchAllVendorServices = fetchAllVendorServices;
+// ✅ Update vendor service
+const updateVendorService = async (req, res) => {
+    const { serviceId } = req.params;
+    const updateData = req.body;
+    try {
+        const updated = await (0, vendorService_service_1.editVendorService)(serviceId, updateData);
+        res.status(200).json({
+            success: true,
+            message: "Service updated successfully",
+            data: updated,
+        });
+    }
+    catch (err) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to update service",
+            error: err.message,
+        });
+    }
+};
+exports.updateVendorService = updateVendorService;
+// ✅ Delete vendor service
+const deleteAVendorService = async (req, res) => {
+    const { serviceId } = req.params;
+    try {
+        await (0, vendorService_service_1.deleteVendorService)(serviceId);
+        res.status(200).json({
+            success: true,
+            message: "Service deleted successfully",
+        });
+    }
+    catch (err) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete service",
+            error: err.message,
+        });
+    }
+};
+exports.deleteAVendorService = deleteAVendorService;

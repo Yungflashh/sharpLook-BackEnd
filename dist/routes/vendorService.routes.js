@@ -10,4 +10,10 @@ const vendorService_controller_1 = require("../controllers/vendorService.control
 const router = express_1.default.Router();
 router.post("/addService", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), upload_middleware_1.uploadSingle2, vendorService_controller_1.createVendorService);
 router.get("/my-services", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorService_controller_1.fetchVendorServices);
+// ✅ Admin or Public: Get all vendor services
+router.get("/allServices", vendorService_controller_1.fetchAllVendorServices);
+// ✅ Vendor: Update service (can also restrict to only vendor who owns the service later)
+router.put("/edit/:serviceId", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorService_controller_1.updateVendorService);
+// ✅ Vendor: Delete service
+router.delete("/delete/:serviceId", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorService_controller_1.deleteAVendorService);
 exports.default = router;

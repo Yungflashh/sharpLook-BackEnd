@@ -1,7 +1,11 @@
-import { Request, Response } from "express"
-import { addVendorService, getVendorServices } from "../services/vendorService.service"
-import  uploadToCloudinary  from "../utils/cloudinary"
-
+import { Request, Response } from "express";
+import {
+  addVendorService,
+  getVendorServices,
+  getAllServices,
+  editVendorService,
+deleteVendorService} from "../services/vendorService.service";
+import uploadToCloudinary from "../utils/cloudinary";
 
 export const createVendorService = async (req: Request, res: Response) => {
   console.log("➡️ [VendorService] Incoming request to create vendor service");
@@ -24,7 +28,10 @@ export const createVendorService = async (req: Request, res: Response) => {
   try {
     // 3. Upload image to Cloudinary
     console.log("☁️ Uploading image...");
-    const upload = await uploadToCloudinary(serviceImage.buffer, "vendor_services");
+    const upload = await uploadToCloudinary(
+      serviceImage.buffer,
+      "vendor_services"
+    );
 
     console.log("✅ Image uploaded:", upload.secure_url);
 
@@ -56,8 +63,6 @@ export const createVendorService = async (req: Request, res: Response) => {
   }
 };
 
-
-
 export const fetchVendorServices = async (req: Request, res: Response) => {
   const vendorId = req.user?.id!;
 
@@ -74,4 +79,52 @@ export const fetchVendorServices = async (req: Request, res: Response) => {
 };
 
 
+// ✅ Fetch all services (admin/global view)
+export const fetchAllVendorServices = async (_req: Request, res: Response) => {
+  try {
+    const services = await getAllServices();
+    res.status(200).json({ success: true, data: services });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: "Failed to fetch all services", error: err.message });
+  }
+};
 
+// ✅ Update vendor service
+export const updateVendorService = async (req: Request, res: Response) => {
+  const { serviceId } = req.params;
+  const updateData = req.body;
+
+  try {
+    const updated = await editVendorService(serviceId, updateData);
+    res.status(200).json({
+      success: true,
+      message: "Service updated successfully",
+      data: updated,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update service",
+      error: err.message,
+    });
+  }
+};
+
+// ✅ Delete vendor service
+export const deleteAVendorService = async (req: Request, res: Response) => {
+  const { serviceId } = req.params;
+
+  try {
+    await deleteVendorService(serviceId);
+    res.status(200).json({
+      success: true,
+      message: "Service deleted successfully",
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete service",
+      error: err.message,
+    });
+  }
+};
