@@ -48,11 +48,11 @@ const createVendorService = async (req, res) => {
 };
 exports.createVendorService = createVendorService;
 const fetchVendorServices = async (req, res) => {
-    const vendorId = req.user?.id;
+    const vendorId = req.user?.vendorId;
+    console.log("🔐 Fetched vendor ID:", req.user?.id);
     try {
         // 1. Get vendor services from DB
         // 1.2 Log the vendor Id for debugging 
-        console.log(vendorId);
         const services = await (0, vendorService_service_1.getVendorServices)(vendorId);
         // 2. Return response
         res.json({ success: true, data: services });
