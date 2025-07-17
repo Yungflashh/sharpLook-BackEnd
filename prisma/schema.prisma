@@ -221,7 +221,7 @@ model VendorService {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  vendor       User     @relation(fields: [vendorId], references: [id])
+  vendor       User?     @relation(fields: [vendorId], references: [id])
 }
 
 

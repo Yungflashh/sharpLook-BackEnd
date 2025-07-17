@@ -68,6 +68,10 @@ export const fetchVendorServices = async (req: Request, res: Response) => {
 
   try {
     // 1. Get vendor services from DB
+    // 1.2 Log the vendor Id for debugging 
+
+    console.log(vendorId);
+    
     const services = await getVendorServices(vendorId);
 
     // 2. Return response
