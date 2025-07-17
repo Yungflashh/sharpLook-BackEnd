@@ -6,10 +6,17 @@ const getNotifications = async (req, res) => {
     try {
         const userId = req.user.id;
         const notifications = await (0, notification_service_1.getUserNotifications)(userId);
-        res.json({ success: true, data: notifications });
+        return res.status(200).json({
+            success: true,
+            message: "Notifications fetched successfully",
+            data: notifications
+        });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
 };
 exports.getNotifications = getNotifications;

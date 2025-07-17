@@ -6,11 +6,18 @@ const getReferralHistory = async (req, res) => {
     try {
         const userId = req.user.id;
         const referrals = await (0, referral_service_1.getUserReferrals)(userId);
-        res.status(200).json(referrals);
+        return res.status(200).json({
+            success: true,
+            message: "Referral history fetched successfully",
+            data: referrals,
+        });
     }
     catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "An error occured" });
+        console.error("Error fetching referral history:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An error occurred while fetching referral history",
+        });
     }
 };
 exports.getReferralHistory = getReferralHistory;

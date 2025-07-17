@@ -1,22 +1,30 @@
 import { Request, Response } from "express"
 import { updateVendorProfile } from "../services/vendorOnboarding.service"
-import { addPortfolioImages, getPortfolioImages, setVendorAvailability, getVendorAvailability, updateServiceRadiusAndLocation, findNearbyVendors, getAllVendorServices , getVendorsByService   } from "../services/vendor.services"
+import {
+  addPortfolioImages,
+  getPortfolioImages,
+  setVendorAvailability,
+  getVendorAvailability,
+  updateServiceRadiusAndLocation,
+  findNearbyVendors,
+  getAllVendorServices,
+  getVendorsByService
+} from "../services/vendor.services"
 import uploadToCloudinary from "../utils/cloudinary"
-
 
 export const completeVendorProfile = async (req: Request, res: Response) => {
   try {
     const updated = await updateVendorProfile(req.user!.id, req.body)
     res.json({ success: true, message: "Profile updated", data: updated })
   } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    res.status(400).json({ success: false, message: "Failed to update profile", error: err.message })
   }
 }
 
 export const uploadPortfolioImages = async (req: Request, res: Response) => {
   try {
     if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
-      return res.status(400).json({ error: "No images uploaded" })
+      return res.status(400).json({ success: false, message: "No images uploaded", error: "No images provided" })
     }
 
     const uploadResults = await Promise.all(
@@ -30,20 +38,18 @@ export const uploadPortfolioImages = async (req: Request, res: Response) => {
 
     res.json({ success: true, message: "Portfolio images uploaded", data: updated })
   } catch (err: any) {
-    console.error(err)
-    res.status(500).json({ error: "Failed to upload portfolio images" })
+    res.status(500).json({ success: false, message: "Failed to upload portfolio images", error: err.message })
   }
 }
 
 export const fetchPortfolioImages = async (req: Request, res: Response) => {
   try {
     const portfolio = await getPortfolioImages(req.user!.id)
-    res.json({ success: true, data: portfolio })
+    res.json({ success: true, message: "Fetched portfolio images", data: portfolio })
   } catch (err: any) {
-    res.status(500).json({ error: "Failed to fetch portfolio images" })
+    res.status(500).json({ success: false, message: "Failed to fetch portfolio images", error: err.message })
   }
 }
-
 
 export const updateAvailability = async (req: Request, res: Response) => {
   const { days, fromTime, toTime } = req.body
@@ -52,19 +58,18 @@ export const updateAvailability = async (req: Request, res: Response) => {
     const availability = await setVendorAvailability(req.user!.id, days, fromTime, toTime)
     res.json({ success: true, message: "Availability updated", data: availability })
   } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    res.status(400).json({ success: false, message: "Failed to update availability", error: err.message })
   }
 }
 
 export const fetchAvailability = async (req: Request, res: Response) => {
   try {
     const availability = await getVendorAvailability(req.user!.id)
-    res.json({ success: true, data: availability })
+    res.json({ success: true, message: "Fetched availability", data: availability })
   } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    res.status(400).json({ success: false, message: "Failed to fetch availability", error: err.message })
   }
 }
-
 
 export const updateServiceRadius = async (req: Request, res: Response) => {
   const { serviceRadiusKm, latitude, longitude } = req.body
@@ -74,7 +79,11 @@ export const updateServiceRadius = async (req: Request, res: Response) => {
     latitude === undefined ||
     longitude === undefined
   ) {
-    return res.status(400).json({ error: "All fields are required" })
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields",
+      error: "All fields are required"
+    })
   }
 
   try {
@@ -91,17 +100,19 @@ export const updateServiceRadius = async (req: Request, res: Response) => {
       data: updated,
     })
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ success: false, message: "Failed to update service radius", error: err.message })
   }
 }
-
-
 
 export const getNearbyVendors = async (req: Request, res: Response) => {
   const { latitude, longitude } = req.query
 
   if (!latitude || !longitude) {
-    return res.status(400).json({ error: "Latitude and longitude are required" })
+    return res.status(400).json({
+      success: false,
+      message: "Missing coordinates",
+      error: "Latitude and longitude are required"
+    })
   }
 
   try {
@@ -110,23 +121,18 @@ export const getNearbyVendors = async (req: Request, res: Response) => {
       parseFloat(longitude as string)
     )
 
-    res.json({ success: true, data: vendors })
+    res.json({ success: true, message: "Nearby vendors fetched", data: vendors })
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ success: false, message: "Failed to fetch nearby vendors", error: err.message })
   }
 }
-
-
-
-
-
 
 export const fetchAllServiceCategories = async (req: Request, res: Response) => {
   try {
     const services = await getAllVendorServices()
-    res.json({ success: true, data: services })
+    res.json({ success: true, message: "Service categories fetched", data: services })
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ success: false, message: "Failed to fetch service categories", error: err.message })
   }
 }
 
@@ -135,8 +141,8 @@ export const filterVendorsByService = async (req: Request, res: Response) => {
 
   try {
     const vendors = await getVendorsByService(service as string | undefined)
-    res.json({ success: true, data: vendors })
+    res.json({ success: true, message: "Vendors filtered by service", data: vendors })
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ success: false, message: "Failed to filter vendors", error: err.message })
   }
 }

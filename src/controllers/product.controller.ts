@@ -5,87 +5,117 @@ import { getVendorProducts, getAllProducts, getTopSellingProducts, deleteProduct
 
 
 export const addProduct = async (req: Request, res: Response) => {
-        const { productName } = req.body
-        const price = parseFloat(req.body.price)
-        const qtyAvailable = parseInt(req.body.qtyAvailable)
+  const { productName } = req.body;
+  const price = parseFloat(req.body.price);
+  const qtyAvailable = parseInt(req.body.qtyAvailable);
 
-       console.log(typeof(price));
-        
-      console.log( typeof( qtyAvailable));
-       
-//         if (isNaN(price) || isNaN(qtyAvailable)) {
-//   return res.status(400).json({ error: "Price and quantity must be valid numbers" })
-// }
+  if (!productName || isNaN(price) || isNaN(qtyAvailable)) {
+    return res.status(400).json({
+      success: false,
+      message: "Product name, price, and quantity are required and must be valid"
+    });
+  }
 
   if (!req.file) {
-    return res.status(400).json({ error: "Product image is required" })
+    return res.status(400).json({
+      success: false,
+      message: "Product image is required"
+    });
   }
 
   try {
-    const cloudRes = await uploadToCloudinary(req.file.buffer, req.file.mimetype)
+    const cloudRes = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
     const product = await createProduct(
       req.user!.id,
       productName,
       price,
-     qtyAvailable,
+      qtyAvailable,
       cloudRes.secure_url
-    )
+    );
 
-    res.status(201).json({ success: true, message: "Product posted", data: product })
+    return res.status(201).json({
+      success: true,
+      message: "Product posted successfully",
+      data: product
+    });
   } catch (err: any) {
-    res.status(500).json({ error: err.message || "Failed to upload product" })
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Failed to upload product"
+    });
   }
-}
+};
+
 
 export const fetchVendorProducts = async (req: Request, res: Response) => {
   try {
-    const products = await getVendorProducts(req.user!.id)
-    res.json({ success: true, data: products })
+    const products = await getVendorProducts(req.user!.id);
+    return res.status(200).json({
+      success: true,
+      message: "Vendor products fetched successfully",
+      data: products
+    });
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    return res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
-}
+};
 
 export const fetchAllProducts = async (_req: Request, res: Response) => {
   try {
-    const products = await getAllProducts()
-    res.json({ success: true, data: products })
+    const products = await getAllProducts();
+    return res.status(200).json({
+      success: true,
+      message: "All products fetched successfully",
+      data: products
+    });
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    return res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
-}
-
+};
 
 export const fetchTopSellingProducts = async (req: Request, res: Response) => {
-  const limit = parseInt(req.query.limit as string) || 10
+  const limit = parseInt(req.query.limit as string) || 10;
 
   try {
-    const products = await getTopSellingProducts(limit)
-    res.json({ success: true, data: products })
+    const products = await getTopSellingProducts(limit);
+    return res.status(200).json({
+      success: true,
+      message: "Top selling products fetched successfully",
+      data: products
+    });
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    return res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
-}
-
-
+};
 
 
 export const editProduct = async (req: Request, res: Response) => {
   try {
-    const vendorId = req.user?.id
-    const { productId } = req.params
-    const { productName, price, qtyAvailable } = req.body
+    const vendorId = req.user?.id;
+    const { productId } = req.params;
+    const { productName, price, qtyAvailable } = req.body;
 
     if (!productName || !price || qtyAvailable === undefined) {
-      return res.status(400).json({ message: "Missing required fields" })
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields"
+      });
     }
 
-    let pictureUrl: string | undefined = undefined
+    let pictureUrl: string | undefined = undefined;
 
     if (req.file) {
-      const cloudinaryRes = await uploadToCloudinary(req.file.buffer, req.file.mimetype)
-
-      pictureUrl = cloudinaryRes.secure_url
+      const cloudinaryRes = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+      pictureUrl = cloudinaryRes.secure_url;
     }
 
     const updatedProduct = await updateProduct(
@@ -95,25 +125,36 @@ export const editProduct = async (req: Request, res: Response) => {
       Number(price),
       Number(qtyAvailable),
       pictureUrl
-    )
+    );
 
-    res.status(200).json({
+    return res.status(200).json({
+      success: true,
       message: "Product updated successfully",
-      product: updatedProduct,
-    })
-  } catch (error) {
-    console.error("Error editing product:", error)
-    res.status(500).json({ message: "Failed to update product" })
+      data: updatedProduct
+    });
+  } catch (err: any) {
+    console.error("Error editing product:", err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Failed to update product"
+    });
   }
-}
+};
+
 
 export const removeProduct = async (req: Request, res: Response) => {
-  const { productId } = req.params
+  const { productId } = req.params;
 
   try {
-    await deleteProduct(productId)
-    res.json({ success: true, message: "Product deleted" })
+    await deleteProduct(productId);
+    return res.status(200).json({
+      success: true,
+      message: "Product deleted successfully"
+    });
   } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    return res.status(400).json({
+      success: false,
+      message: err.message
+    });
   }
-}
+};

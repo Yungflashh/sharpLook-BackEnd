@@ -7,14 +7,24 @@ const fetchPastHistory = async (req, res) => {
         const userId = req.user.id;
         const rawRole = req.user.role;
         if (!["CLIENT", "VENDOR"].includes(rawRole)) {
-            return res.status(400).json({ error: "Invalid user role" });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user role"
+            });
         }
         const role = rawRole;
         const history = await (0, history_service_1.getPastBookings)(userId, role);
-        res.json({ success: true, data: history });
+        return res.status(200).json({
+            success: true,
+            message: "Past bookings fetched successfully",
+            data: history
+        });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
 };
 exports.fetchPastHistory = fetchPastHistory;
@@ -23,14 +33,24 @@ const fetchUpcomingHistory = async (req, res) => {
         const userId = req.user.id;
         const rawRole = req.user.role;
         if (!["CLIENT", "VENDOR"].includes(rawRole)) {
-            return res.status(400).json({ error: "Invalid user role" });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user role"
+            });
         }
         const role = rawRole;
         const history = await (0, history_service_1.getUpcomingBookings)(userId, role);
-        res.json({ success: true, data: history });
+        return res.status(200).json({
+            success: true,
+            message: "Upcoming bookings fetched successfully",
+            data: history
+        });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
 };
 exports.fetchUpcomingHistory = fetchUpcomingHistory;

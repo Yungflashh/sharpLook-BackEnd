@@ -10,10 +10,10 @@ const otp_service_1 = require("../services/otp.service");
 const auth_service_3 = require("../services/auth.service");
 const prisma_1 = __importDefault(require("../config/prisma"));
 const register = async (req, res) => {
-    const { firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body;
+    const { firstName, lastName, email, password, role, acceptedPersonalData, phone, referredByCode } = req.body;
     console.log("➡️ Register attempt:", { email, role });
     try {
-        const user = await (0, auth_service_1.registerUser)(email, password, firstName, lastName, role, acceptedPersonalData, phone);
+        const user = await (0, auth_service_1.registerUser)(email, password, firstName, lastName, role, acceptedPersonalData, phone, referredByCode);
         console.log("✅ User registered:", user.id);
         await (0, otp_service_1.sendOtpService)(email);
         console.log("📨 OTP sent to email after registration");

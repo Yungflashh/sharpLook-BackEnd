@@ -39,17 +39,27 @@ const notification_service_1 = require("../services/notification.service");
 const bookVendor = async (req, res) => {
     const { vendorId, date, time, price, serviceName, location, paymentMethod, notes, status, serviceId } = req.body;
     if (!vendorId || !date || !time || !price || !serviceName || !location || !paymentMethod || !status || !serviceId) {
-        return res.status(400).json({ error: "Missing required booking details" });
+        return res.status(400).json({
+            success: false,
+            message: "Missing required booking details"
+        });
     }
     const clientId = req.user?.id;
     try {
         const booking = await BookingService.createBooking(clientId, vendorId, date, time, price, serviceName, location, paymentMethod, notes || "", status, serviceId);
         await (0, notification_service_1.createNotification)(vendorId, `You received a new booking request for ${serviceName} on ${date} at ${time}.`);
         await (0, notification_service_1.createNotification)(clientId, `Your booking for ${serviceName} has been placed successfully.`);
-        res.status(201).json({ success: true, data: booking });
+        return res.status(201).json({
+            success: true,
+            message: "Booking created successfully",
+            data: booking
+        });
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
 };
 exports.bookVendor = bookVendor;
@@ -57,10 +67,17 @@ const getMyBookings = async (req, res) => {
     try {
         const role = req.user.role;
         const bookings = await BookingService.getUserBookings(req.user.id, role);
-        res.json({ success: true, data: bookings });
+        return res.status(200).json({
+            success: true,
+            message: "Bookings retrieved successfully",
+            data: bookings
+        });
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
 };
 exports.getMyBookings = getMyBookings;
@@ -68,17 +85,27 @@ const changeBookingStatus = async (req, res) => {
     const { bookingId } = req.params;
     const { status } = req.body;
     try {
-        const updated = await BookingService.updateBookingStatus(bookingId, status);
         const booking = await BookingService.getBookingById(bookingId);
         if (!booking) {
-            return res.status(404).json({ error: "Booking not found" });
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found"
+            });
         }
+        const updated = await BookingService.updateBookingStatus(bookingId, status);
         await (0, notification_service_1.createNotification)(booking.clientId, `Your booking for ${booking.serviceName} was ${status.toLowerCase()}.`);
         await (0, notification_service_1.createNotification)(booking.vendorId, `You ${status.toLowerCase()} a booking for ${booking.serviceName}.`);
-        res.json({ success: true, message: "Booking status updated", data: updated });
+        return res.status(200).json({
+            success: true,
+            message: "Booking status updated successfully",
+            data: updated
+        });
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
 };
 exports.changeBookingStatus = changeBookingStatus;

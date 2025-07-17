@@ -13,14 +13,14 @@ const completeVendorProfile = async (req, res) => {
         res.json({ success: true, message: "Profile updated", data: updated });
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(400).json({ success: false, message: "Failed to update profile", error: err.message });
     }
 };
 exports.completeVendorProfile = completeVendorProfile;
 const uploadPortfolioImages = async (req, res) => {
     try {
         if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
-            return res.status(400).json({ error: "No images uploaded" });
+            return res.status(400).json({ success: false, message: "No images uploaded", error: "No images provided" });
         }
         const uploadResults = await Promise.all(req.files.map((file) => (0, cloudinary_1.default)(file.buffer, file.mimetype)));
         const urls = uploadResults.map(result => result.secure_url);
@@ -28,18 +28,17 @@ const uploadPortfolioImages = async (req, res) => {
         res.json({ success: true, message: "Portfolio images uploaded", data: updated });
     }
     catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to upload portfolio images" });
+        res.status(500).json({ success: false, message: "Failed to upload portfolio images", error: err.message });
     }
 };
 exports.uploadPortfolioImages = uploadPortfolioImages;
 const fetchPortfolioImages = async (req, res) => {
     try {
         const portfolio = await (0, vendor_services_1.getPortfolioImages)(req.user.id);
-        res.json({ success: true, data: portfolio });
+        res.json({ success: true, message: "Fetched portfolio images", data: portfolio });
     }
     catch (err) {
-        res.status(500).json({ error: "Failed to fetch portfolio images" });
+        res.status(500).json({ success: false, message: "Failed to fetch portfolio images", error: err.message });
     }
 };
 exports.fetchPortfolioImages = fetchPortfolioImages;
@@ -50,17 +49,17 @@ const updateAvailability = async (req, res) => {
         res.json({ success: true, message: "Availability updated", data: availability });
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(400).json({ success: false, message: "Failed to update availability", error: err.message });
     }
 };
 exports.updateAvailability = updateAvailability;
 const fetchAvailability = async (req, res) => {
     try {
         const availability = await (0, vendor_services_1.getVendorAvailability)(req.user.id);
-        res.json({ success: true, data: availability });
+        res.json({ success: true, message: "Fetched availability", data: availability });
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(400).json({ success: false, message: "Failed to fetch availability", error: err.message });
     }
 };
 exports.fetchAvailability = fetchAvailability;
@@ -69,7 +68,11 @@ const updateServiceRadius = async (req, res) => {
     if (serviceRadiusKm === undefined ||
         latitude === undefined ||
         longitude === undefined) {
-        return res.status(400).json({ error: "All fields are required" });
+        return res.status(400).json({
+            success: false,
+            message: "Missing required fields",
+            error: "All fields are required"
+        });
     }
     try {
         const updated = await (0, vendor_services_1.updateServiceRadiusAndLocation)(req.user.id, serviceRadiusKm, latitude, longitude);
@@ -80,31 +83,35 @@ const updateServiceRadius = async (req, res) => {
         });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, message: "Failed to update service radius", error: err.message });
     }
 };
 exports.updateServiceRadius = updateServiceRadius;
 const getNearbyVendors = async (req, res) => {
     const { latitude, longitude } = req.query;
     if (!latitude || !longitude) {
-        return res.status(400).json({ error: "Latitude and longitude are required" });
+        return res.status(400).json({
+            success: false,
+            message: "Missing coordinates",
+            error: "Latitude and longitude are required"
+        });
     }
     try {
         const vendors = await (0, vendor_services_1.findNearbyVendors)(parseFloat(latitude), parseFloat(longitude));
-        res.json({ success: true, data: vendors });
+        res.json({ success: true, message: "Nearby vendors fetched", data: vendors });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, message: "Failed to fetch nearby vendors", error: err.message });
     }
 };
 exports.getNearbyVendors = getNearbyVendors;
 const fetchAllServiceCategories = async (req, res) => {
     try {
         const services = await (0, vendor_services_1.getAllVendorServices)();
-        res.json({ success: true, data: services });
+        res.json({ success: true, message: "Service categories fetched", data: services });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, message: "Failed to fetch service categories", error: err.message });
     }
 };
 exports.fetchAllServiceCategories = fetchAllServiceCategories;
@@ -112,10 +119,10 @@ const filterVendorsByService = async (req, res) => {
     const { service } = req.query;
     try {
         const vendors = await (0, vendor_services_1.getVendorsByService)(service);
-        res.json({ success: true, data: vendors });
+        res.json({ success: true, message: "Vendors filtered by service", data: vendors });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, message: "Failed to filter vendors", error: err.message });
     }
 };
 exports.filterVendorsByService = filterVendorsByService;

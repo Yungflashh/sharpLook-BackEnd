@@ -6,10 +6,17 @@ const getVendorEarnings = async (req, res) => {
     try {
         const vendorId = req.user.id;
         const earnings = await (0, earnings_service_1.calculateEarnings)(vendorId);
-        res.json({ success: true, data: earnings });
+        return res.status(200).json({
+            success: true,
+            message: "Vendor earnings fetched successfully",
+            data: earnings
+        });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
 };
 exports.getVendorEarnings = getVendorEarnings;

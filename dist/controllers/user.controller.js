@@ -2,41 +2,56 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchTopVendors = exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
 const user_services_1 = require("../services/user.services");
+// 🧑‍💼 Get Logged-in User Profile
 const getMyProfile = async (req, res) => {
     try {
         const user = await (0, user_services_1.getUserById)(req.user.id);
-        res.json(user);
+        res.status(200).json({ success: true, data: user });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 exports.getMyProfile = getMyProfile;
+// 🛠️ Update Logged-in User Profile
 const updateMyProfile = async (req, res) => {
     try {
         const updated = await (0, user_services_1.updateUserProfile)(req.user.id, req.body);
-        res.json({ message: "Profile updated", user: updated });
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: updated,
+        });
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 exports.updateMyProfile = updateMyProfile;
+// 📍 Set Location Preferences for Nearby Vendor Filtering
 const setClientLocationPreferences = async (req, res) => {
     const { latitude, longitude, radiusKm } = req.body;
     const userId = req.user?.id;
     if (!latitude || !longitude || !radiusKm) {
-        return res.status(400).json({ error: "Missing location or radius" });
+        return res.status(400).json({
+            success: false,
+            message: "Missing required location fields: latitude, longitude, radiusKm",
+        });
     }
     try {
         const updatedUser = await (0, user_services_1.updateClientLocationPreferences)(userId, latitude, longitude, radiusKm);
-        res.status(200).json({ success: true, data: updatedUser });
+        res.status(200).json({
+            success: true,
+            message: "Location preferences updated successfully",
+            data: updatedUser,
+        });
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(400).json({ success: false, message: err.message });
     }
 };
 exports.setClientLocationPreferences = setClientLocationPreferences;
+// ⭐ Get Top Rated Vendors (optional limit query param)
 const fetchTopVendors = async (req, res) => {
     console.log("🔍 Received request to fetch top vendors");
     const limit = parseInt(req.query.limit) || 10;
@@ -45,12 +60,16 @@ const fetchTopVendors = async (req, res) => {
         console.log("🚀 Fetching top rated vendors...");
         const topVendors = await (0, user_services_1.getTopRatedVendors)(limit);
         console.log("✅ Top vendors fetched successfully");
-        res.json({ success: true, data: topVendors });
+        res.status(200).json({
+            success: true,
+            message: "Top vendors fetched successfully",
+            data: topVendors,
+        });
         console.log("📤 Response sent to client");
     }
     catch (err) {
         console.error("❌ Error occurred while fetching top vendors:", err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 exports.fetchTopVendors = fetchTopVendors;

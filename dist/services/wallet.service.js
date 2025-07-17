@@ -5,13 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getWalletTransactions = exports.getUserWallet = exports.debitWallet = exports.creditWallet = exports.createWallet = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
-// Create a new wallet for a user (e.g. during registration)
+// Create a new wallet without needing userId
 const createWallet = async (userId) => {
     return await prisma_1.default.wallet.create({
         data: {
-            userId,
             balance: 0,
             status: "ACTIVE",
+            likes: {
+                create: [],
+            },
+            user: {
+                connect: { id: userId },
+            },
         },
     });
 };

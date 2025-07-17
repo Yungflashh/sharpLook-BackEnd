@@ -1,15 +1,21 @@
 import prisma from "../config/prisma"
 
-// Create a new wallet for a user (e.g. during registration)
+// Create a new wallet without needing userId
 export const createWallet = async (userId: string) => {
   return await prisma.wallet.create({
     data: {
-      userId,
       balance: 0,
       status: "ACTIVE",
+      likes: {
+        create: [],
+      },
+      user: {
+        connect: { id: userId },
+      },
     },
-  })
-}
+  });
+};
+
 
 // Credit (add money) to wallet, and log a CREDIT transaction
 export const creditWallet = async (

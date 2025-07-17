@@ -15,11 +15,11 @@ import prisma from "../config/prisma"
 
 
 export const register = async (req: Request, res: Response) => {
-  const { firstName, lastName, email, password, role, acceptedPersonalData, phone } = req.body;
+  const { firstName, lastName, email, password, role, acceptedPersonalData, phone, referredByCode } = req.body;
   console.log("➡️ Register attempt:", { email, role });
 
   try {
-    const user = await registerUser(email, password, firstName, lastName, role, acceptedPersonalData, phone);
+    const user = await registerUser(email, password, firstName, lastName, role, acceptedPersonalData, phone, referredByCode);
     console.log("✅ User registered:", user.id);
 
     await sendOtpService(email);

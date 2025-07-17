@@ -7,59 +7,57 @@ import uploadToCloudinary from "../utils/cloudinary"
 
 
 export const registerVendor = async (req: Request, res: Response) => {
-   console.log("🔥 registerVendor hit"); // ← add this
   try {
-    const {firstName, lastName, email, password, role, phone } = req.body;
-    let {acceptedPersonalData} = req.body
-   
-    if (acceptedPersonalData == "True" || acceptedPersonalData == true || acceptedPersonalData == "true"){
-          acceptedPersonalData = true
+    // 1. Extract required fields from request body
+    const { firstName, lastName, email, password, role, phone } = req.body;
+    let { acceptedPersonalData } = req.body;
+
+    // 2. Normalize boolean for acceptedPersonalData
+    if (acceptedPersonalData == "True" || acceptedPersonalData == true || acceptedPersonalData == "true") {
+      acceptedPersonalData = true;
     }
 
-
-    
+    // 3. Check if identity image is uploaded
     if (!req.file) {
       return res.status(400).json({ error: "No identity image uploaded" });
     }
 
-    // Get buffer and mimetype from multer file
+    // 4. Extract file buffer and mimetype from multer file
     const fileBuffer = req.file.buffer;
     const mimeType = req.file.mimetype;
 
-    console.log("🖼️ Multer file info:", {
-  originalname: req.file.originalname,
-  size: req.file.size,
-  mimetype: req.file.mimetype
-});
-
-
-   console.log("📦 Uploading to Cloudinary...");
+    // 5. Upload image to Cloudinary
     const { secure_url } = await uploadToCloudinary(fileBuffer, mimeType);
-    console.log("✅ Uploaded to Cloudinary:", secure_url);
 
-    const user = await registerUser( email, password,firstName, lastName, role, acceptedPersonalData!, phone);
-    console.log("👤 User registered:", user.email);
-    // Create vendor onboarding with Cloudinary image URL
+    // 6. Register the user (role: VENDOR)
+    const user = await registerUser(
+      email,
+      password,
+      firstName,
+      lastName,
+      role,
+      acceptedPersonalData!,
+      phone
+    );
+
+    // 7. Create vendor onboarding with Cloudinary image
     await createVendorOnboarding(
-  user.id,
-  req.body.serviceType,
-  secure_url,
- 
-  
-);
-console.log("🚀 Vendor onboarding created");
+      user.id,
+      req.body.serviceType,
+      secure_url
+    );
 
-
-
+    // 8. Return successful response
     res.status(201).json({
       success: true,
       message: "Vendor registered successfully",
       data: {
         user,
-        identityImage: secure_url, // ✅ Include URL in response
+        identityImage: secure_url
       }
     });
   } catch (err: any) {
+    // 9. Handle errors
     res.status(400).json({ error: err.message });
   }
 };

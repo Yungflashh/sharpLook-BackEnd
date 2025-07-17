@@ -39,14 +39,24 @@ const postReview = async (req, res) => {
     const { bookingId, vendorId, rating, comment } = req.body;
     const clientId = req.user?.id;
     if (!bookingId || !vendorId || !rating) {
-        return res.status(400).json({ error: "Missing required fields" });
+        return res.status(400).json({
+            success: false,
+            message: "Missing required fields: bookingId, vendorId, or rating",
+        });
     }
     try {
         const review = await ReviewService.createReview(vendorId, clientId, bookingId, rating, comment);
-        res.status(201).json({ success: true, message: "Review posted", data: review });
+        return res.status(201).json({
+            success: true,
+            message: "Review posted successfully",
+            data: review,
+        });
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(400).json({
+            success: false,
+            message: err.message || "Failed to post review",
+        });
     }
 };
 exports.postReview = postReview;
@@ -54,10 +64,17 @@ const fetchVendorReviews = async (req, res) => {
     const vendorId = req.params.vendorId;
     try {
         const reviews = await ReviewService.getVendorReviews(vendorId);
-        res.status(200).json({ success: true, data: reviews });
+        return res.status(200).json({
+            success: true,
+            message: "Vendor reviews fetched successfully",
+            data: reviews,
+        });
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(400).json({
+            success: false,
+            message: err.message || "Failed to fetch vendor reviews",
+        });
     }
 };
 exports.fetchVendorReviews = fetchVendorReviews;

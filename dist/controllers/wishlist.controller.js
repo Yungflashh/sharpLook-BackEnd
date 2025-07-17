@@ -36,15 +36,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.removeProductFromWishlist = exports.getMyWishlist = exports.addProductToWishlist = void 0;
 const WishlistService = __importStar(require("../services/wishlist.service"));
 const addProductToWishlist = async (req, res) => {
+    // 1. Get user ID and product ID from request
     const userId = req.user.id;
     const { productId } = req.body;
-    if (!productId)
+    // 2. Validate input
+    if (!productId) {
         return res.status(400).json({ error: "Product ID is required" });
+    }
     try {
+        // 3. Add to wishlist
         const item = await WishlistService.addToWishlist(userId, productId);
+        // 4. Return success response
         res.status(201).json({ success: true, data: item });
     }
     catch (err) {
+        // 5. Handle errors
         res.status(500).json({ error: err.message });
     }
 };
@@ -52,10 +58,13 @@ exports.addProductToWishlist = addProductToWishlist;
 const getMyWishlist = async (req, res) => {
     const userId = req.user.id;
     try {
+        // 1. Fetch wishlist
         const wishlist = await WishlistService.getUserWishlist(userId);
+        // 2. Return wishlist
         res.json({ success: true, data: wishlist });
     }
     catch (err) {
+        // 3. Handle errors
         res.status(500).json({ error: err.message });
     }
 };
@@ -64,10 +73,13 @@ const removeProductFromWishlist = async (req, res) => {
     const userId = req.user.id;
     const { productId } = req.params;
     try {
+        // 1. Remove from wishlist
         await WishlistService.removeFromWishlist(userId, productId);
+        // 2. Return confirmation
         res.json({ success: true, message: "Removed from wishlist" });
     }
     catch (err) {
+        // 3. Handle errors
         res.status(500).json({ error: err.message });
     }
 };

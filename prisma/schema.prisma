@@ -16,6 +16,7 @@ model User {
   password             String
   role                 Role
   vendorOnboarding     VendorOnboarding?
+
   isEmailVerified      Boolean              @default(false)
   isOtpVerified        Boolean              @default(false)
   otp                  String?              @db.String
@@ -27,33 +28,60 @@ model User {
   resetToken           String?              @db.String
   resetTokenExp        DateTime?
   notes                String?
-  referredBy           String?   
-  referralCode          String?   @unique // Each user gets a unique code they can share
-  walletId             String?   @db.ObjectId @unique
-  wallet               Wallet?  @relation("UserWallet")
+
+  // ✅ Self-relation for who referred the user
+  referredBy           User?                @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  referredById         String?              @db.ObjectId
+  referrals            User[]               @relation("UserReferrals")
+
+  // ✅ Referral code
+  referralCode         String?              @unique
+
+  // ✅ Wallet relation
+  walletId             String?              @unique
+  wallet               Wallet?              @relation(fields: [walletId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // ✅ Bookings & Reviews
   clientBookings       Booking[]            @relation("ClientBooking")
   vendorBookings       Booking[]            @relation("VendorBooking")
-  products             Product[]            @relation("UserProducts")
-  notifications        Notification[]       @relation("UserNotifications") 
-  vendorReviews        Review[]             @relation("VendorReview")  
   clientReviews        Review[]             @relation("ClientReview")
+  vendorReviews        Review[]             @relation("VendorReview")
+
+  // ✅ Vendor services, availability, etc.
   vendorAvailabilities VendorAvailability[]
   vendorServices       VendorService[]
-  promotions           Promotion[]          @relation("UserPromotions")
-  isBanned             Boolean              @default(false)
-  sentMessages        Message[]             @relation("SentMessages")
+
+  // ✅ Messages
+  sentMessages         Message[]            @relation("SentMessages")
   receivedMessages     Message[]            @relation("ReceivedMessages")
-  cartItems       CartItem[]     @relation("UserCartItems")
-  wishlistItems   WishlistItem[] @relation("UserWishlistItems")
+
+  // ✅ Promotions
+  promotions           Promotion[]          @relation("UserPromotions")
+
+  // ✅ Cart & Wishlist
+  cartItems            CartItem[]           @relation("UserCartItems")
+  wishlistItems        WishlistItem[]       @relation("UserWishlistItems")
+
+  // ✅ Product ownership
+  products             Product[]            @relation("UserProducts")
+
+  // ✅ Notifications
+  notifications        Notification[]       @relation("UserNotifications") 
+
+  // ✅ Referral record model (non-self-relational)
+  referralsMade        Referral[]           @relation("ReferredBy")
+  referralsGotten      Referral[]           @relation("ReferredUser")
+
+  // ✅ Optional location preference
   preferredLatitude     Float?
   preferredLongitude    Float?
   preferredRadiusKm     Int?
-  referralsMade     Referral[] @relation("ReferredBy")
-  referralsGotten   Referral[] @relation("ReferredUser")
 
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
+  isBanned              Boolean              @default(false)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
 }
+
 
 model VendorOnboarding {
   id                  String      @id @default(auto()) @map("_id") @db.ObjectId
@@ -229,8 +257,8 @@ model Wallet {
   status       WalletStatus   @default(ACTIVE)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  userId       String         @db.ObjectId @unique
-  user         User           @relation("UserWallet", fields: [userId], references: [id]) 
+ user      User?   
+  userId    String?  @unique
   likes        Like[]
   transactions Transaction[]
 }
