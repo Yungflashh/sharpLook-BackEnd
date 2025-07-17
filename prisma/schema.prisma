@@ -8,80 +8,79 @@ datasource db {
 }
 
 model User {
-  id                   String               @id @default(auto()) @map("_id") @db.ObjectId
-  firstName            String
-  lastName             String
-  email                String               @unique
-  phone                String?
-  password             String
-  role                 Role
-  vendorOnboarding     VendorOnboarding?
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  firstName        String
+  lastName         String
+  email            String            @unique
+  phone            String?
+  password         String
+  role             Role
+  vendorOnboarding VendorOnboarding?
 
-  isEmailVerified      Boolean              @default(false)
-  isOtpVerified        Boolean              @default(false)
-  otp                  String?              @db.String
+  isEmailVerified      Boolean   @default(false)
+  isOtpVerified        Boolean   @default(false)
+  otp                  String?   @db.String
   otpExpires           DateTime?
-  acceptedPersonalData Boolean              @default(false)
-  name                 String?              @db.String
-  avatar               String?              @db.String
-  bio                  String?              @db.String
-  resetToken           String?              @db.String
+  acceptedPersonalData Boolean   @default(false)
+  name                 String?   @db.String
+  avatar               String?   @db.String
+  bio                  String?   @db.String
+  resetToken           String?   @db.String
   resetTokenExp        DateTime?
   notes                String?
 
   // ✅ Self-relation for who referred the user
-  referredBy           User?                @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  referredById         String?              @db.ObjectId
-  referrals            User[]               @relation("UserReferrals")
+  referredBy   User?   @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  referredById String? @db.ObjectId
+  referrals    User[]  @relation("UserReferrals")
 
   // ✅ Referral code
-  referralCode         String              @unique
+  referralCode String @unique
 
   // ✅ Wallet relation
-  walletId             String?              @unique
-  wallet               Wallet?              @relation(fields: [walletId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  walletId String? @unique
+  wallet   Wallet? @relation(fields: [walletId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   // ✅ Bookings & Reviews
-  clientBookings       Booking[]            @relation("ClientBooking")
-  vendorBookings       Booking[]            @relation("VendorBooking")
-  clientReviews        Review[]             @relation("ClientReview")
-  vendorReviews        Review[]             @relation("VendorReview")
+  clientBookings Booking[] @relation("ClientBooking")
+  vendorBookings Booking[] @relation("VendorBooking")
+  clientReviews  Review[]  @relation("ClientReview")
+  vendorReviews  Review[]  @relation("VendorReview")
 
   // ✅ Vendor services, availability, etc.
   vendorAvailabilities VendorAvailability[]
   vendorServices       VendorService[]
 
   // ✅ Messages
-  sentMessages         Message[]            @relation("SentMessages")
-  receivedMessages     Message[]            @relation("ReceivedMessages")
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
 
   // ✅ Promotions
-  promotions           Promotion[]          @relation("UserPromotions")
+  promotions Promotion[] @relation("UserPromotions")
 
   // ✅ Cart & Wishlist
-  cartItems            CartItem[]           @relation("UserCartItems")
-  wishlistItems        WishlistItem[]       @relation("UserWishlistItems")
+  cartItems     CartItem[]     @relation("UserCartItems")
+  wishlistItems WishlistItem[] @relation("UserWishlistItems")
 
   // ✅ Product ownership
-  products             Product[]            @relation("UserProducts")
+  products Product[] @relation("UserProducts")
 
   // ✅ Notifications
-  notifications        Notification[]       @relation("UserNotifications") 
+  notifications Notification[] @relation("UserNotifications")
 
   // ✅ Referral record model (non-self-relational)
-  referralsMade        Referral[]           @relation("ReferredBy")
-  referralsGotten      Referral[]           @relation("ReferredUser")
+  referralsMade   Referral[] @relation("ReferredBy")
+  referralsGotten Referral[] @relation("ReferredUser")
 
   // ✅ Optional location preference
-  preferredLatitude     Float?
-  preferredLongitude    Float?
-  preferredRadiusKm     Int?
+  preferredLatitude  Float?
+  preferredLongitude Float?
+  preferredRadiusKm  Int?
 
-  isBanned              Boolean              @default(false)
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
+  isBanned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
 
 model VendorOnboarding {
   id                  String      @id @default(auto()) @map("_id") @db.ObjectId
@@ -93,15 +92,15 @@ model VendorOnboarding {
   businessName        String?
   bio                 String?
   location            String?
-  servicesOffered     String[]    @default([]) 
+  servicesOffered     String[]    @default([])
   profileImage        String?
   pricing             Json? // 
-  service             String? 
+  service             String?
   specialties         String[]    @default([])
   portfolioImages     String[]    @default([])
-  serviceRadiusKm     Int?        // NEW: Radius in kilometers
-  latitude            Float?      // NEW: Latitude coordinate
-  longitude           Float?      // NEW: Longitude coordinate
+  serviceRadiusKm     Int? // NEW: Radius in kilometers
+  latitude            Float? // NEW: Latitude coordinate
+  longitude           Float? // NEW: Longitude coordinate
   createdAt           DateTime    @default(now())
 }
 
@@ -118,67 +117,65 @@ model VendorAvailability {
 }
 
 model Booking {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  clientId   String     @db.ObjectId
-  vendorId   String     @db.ObjectId
-  serviceId  String   
-  serviceName String
-  date       DateTime
-  time       String
-  price      Float
-  status     BookingStatus
-  totalAmount  Float
-  paymentMethod  String   // "WALLET" | "CARD"
-  paymentStatus  String   // "PAID" | "PENDING"
-  review     Review?    @relation("BookingToReview") // ✅ only define relation name here
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  clientId      String        @db.ObjectId
+  vendorId      String        @db.ObjectId
+  serviceId     String
+  serviceName   String
+  date          DateTime
+  time          String
+  price         Float
+  status        BookingStatus
+  totalAmount   Float
+  paymentMethod String // "WALLET" | "CARD"
+  paymentStatus String // "PAID" | "PENDING"
+  review        Review?       @relation("BookingToReview") // ✅ only define relation name here
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  client     User       @relation("ClientBooking", fields: [clientId], references: [id])
-  vendor     User       @relation("VendorBooking", fields: [vendorId], references: [id])
+  client User @relation("ClientBooking", fields: [clientId], references: [id])
+  vendor User @relation("VendorBooking", fields: [vendorId], references: [id])
 }
 
-
 model Product {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  vendorId      String   @db.ObjectId
-  vendor        User      @relation("UserProducts", fields: [vendorId], references: [id])
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  vendorId      String         @db.ObjectId
+  vendor        User           @relation("UserProducts", fields: [vendorId], references: [id])
   productName   String
   price         Float
   qtyAvailable  Int
-  unitsSold     Int      @default(0) 
-  status        String   @default("in stock")
+  unitsSold     Int            @default(0)
+  status        String         @default("in stock")
   picture       String
-  cartItems       CartItem[]     @relation("ProductCartItems")
-  wishlistItems   WishlistItem[] @relation("ProductWishlistItems")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  cartItems     CartItem[]     @relation("ProductCartItems")
+  wishlistItems WishlistItem[] @relation("ProductWishlistItems")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Notification {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
   message   String
-  type      String   // e.g., "BOOKING"
+  type      String // e.g., "BOOKING"
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation("UserNotifications", fields: [userId], references: [id])
+  user User @relation("UserNotifications", fields: [userId], references: [id])
 }
 
-
 model Review {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  bookingId  String   @unique @db.ObjectId // ✅ must be unique for 1-to-1
-  vendorId   String   @db.ObjectId
-  clientId   String   @db.ObjectId
-  rating     Int
-  comment    String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId String   @unique @db.ObjectId // ✅ must be unique for 1-to-1
+  vendorId  String   @db.ObjectId
+  clientId  String   @db.ObjectId
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
 
-  booking    Booking? @relation("BookingToReview", fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction) // ✅ Only set fields and references here
-  vendor     User     @relation("VendorReview", fields: [vendorId], references: [id])
-  client     User     @relation("ClientReview", fields: [clientId], references: [id])
+  booking Booking? @relation("BookingToReview", fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction) // ✅ Only set fields and references here
+  vendor  User     @relation("VendorReview", fields: [vendorId], references: [id])
+  client  User     @relation("ClientReview", fields: [clientId], references: [id])
 }
 
 model Promotion {
@@ -193,23 +190,21 @@ model Promotion {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-   vendor             User     @relation("UserPromotions", fields: [vendorId], references: [id])
+  vendor User @relation("UserPromotions", fields: [vendorId], references: [id])
 }
 
-
-
 model Message {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  senderId  String   @db.ObjectId
-  receiverId String  @db.ObjectId
-  message   String
-  createdAt DateTime @default(now())
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  senderId   String   @db.ObjectId
+  receiverId String   @db.ObjectId
+  message    String
+  createdAt  DateTime @default(now())
   roomId     String?
-  read       Boolean @default(false)
+  read       Boolean  @default(false)
 
   likedBy  String[] @default([])
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender   User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
 }
 
 model VendorService {
@@ -221,10 +216,8 @@ model VendorService {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  vendor       User?     @relation(fields: [vendorId], references: [id])
+  vendor User? @relation(fields: [vendorId], references: [id])
 }
-
-
 
 enum ServiceType {
   IN_SHOP
@@ -232,68 +225,64 @@ enum ServiceType {
 }
 
 model CartItem {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  productId  String   @db.ObjectId
-  quantity   Int      @default(1)
-  createdAt  DateTime @default(now())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  productId String   @db.ObjectId
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
 
-  user     User     @relation("UserCartItems", fields: [userId], references: [id])
-  product  Product  @relation("ProductCartItems", fields: [productId], references: [id])
+  user    User    @relation("UserCartItems", fields: [userId], references: [id])
+  product Product @relation("ProductCartItems", fields: [productId], references: [id])
 }
 
 model WishlistItem {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  productId  String   @db.ObjectId
-  createdAt  DateTime @default(now())
- user     User     @relation("UserWishlistItems", fields: [userId], references: [id])
-  product  Product  @relation("ProductWishlistItems", fields: [productId], references: [id])
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  productId String   @db.ObjectId
+  createdAt DateTime @default(now())
+  user      User     @relation("UserWishlistItems", fields: [userId], references: [id])
+  product   Product  @relation("ProductWishlistItems", fields: [productId], references: [id])
 }
 
 model Wallet {
-  id           String         @id @default(auto()) @map("_id") @db.ObjectId
-  balance      Int            @default(0)
-  status       WalletStatus   @default(ACTIVE)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
- user      User?   
-  userId    String?  @unique
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  balance      Int           @default(0)
+  status       WalletStatus  @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User?
+  userId       String?       @unique
   likes        Like[]
   transactions Transaction[]
 }
 
 // prisma/schema.prisma
 model Referral {
-  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  referredById    String
-  referredUserId  String
-  createdAt       DateTime @default(now())
-  referredBy      User     @relation("ReferredBy", fields: [referredById], references: [id])
-  referredUser    User     @relation("ReferredUser", fields: [referredUserId], references: [id])
+  referredById   String
+  referredUserId String
+  createdAt      DateTime @default(now())
+  referredBy     User     @relation("ReferredBy", fields: [referredById], references: [id])
+  referredUser   User     @relation("ReferredUser", fields: [referredUserId], references: [id])
 }
-
 
 model Transaction {
-  id        String           @id @default(auto()) @map("_id") @db.ObjectId
-  amount    Int
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  amount      Int
   description String?
-  type      TransactionType
-  createdAt DateTime         @default(now())
-  walletId  String           @db.ObjectId
-  wallet    Wallet           @relation(fields: [walletId], references: [id])
+  type        TransactionType
+  createdAt   DateTime        @default(now())
+  walletId    String          @db.ObjectId
+  wallet      Wallet          @relation(fields: [walletId], references: [id])
 }
-
 
 model Like {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  walletId  String     @db.ObjectId
-  wallet    Wallet     @relation(fields: [walletId], references: [id])
-  createdAt DateTime   @default(now())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  walletId  String   @db.ObjectId
+  wallet    Wallet   @relation(fields: [walletId], references: [id])
+  createdAt DateTime @default(now())
 }
-
-
 
 enum Role {
   CLIENT
