@@ -4,12 +4,16 @@ import {getCurrentUser, register, login, requestReset, reset } from "../controll
 import { sendOtp, verifyOtp } from "../controllers/auth.controller"
 import { registerVendor } from "../controllers/vendorOnboarding.controller"
 import { uploadSingle } from "../middlewares/upload.middleware"
+import { validate } from "../middlewares/validate";
+import { registerSchema } from "../validations/auth.schema";
+
+
 
 const router = Router()
 
 
 router.get("/me", authenticate, getCurrentUser);
-router.post("/register", register)
+router.post("/register",validate(registerSchema), register)
 router.post("/login", login)
 router.post("/send-otp", sendOtp)
 router.post("/verify-otp", verifyOtp)
