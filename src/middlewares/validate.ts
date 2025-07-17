@@ -13,4 +13,5 @@ export const validate = (schema: ZodSchema<any>) => (req: Request, res: Response
       errors: error.errors,
     });
   }
+  
 };
