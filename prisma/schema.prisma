@@ -35,7 +35,7 @@ model User {
   referrals            User[]               @relation("UserReferrals")
 
   // ✅ Referral code
-  referralCode         String?              @unique
+  referralCode         String              @unique
 
   // ✅ Wallet relation
   walletId             String?              @unique
