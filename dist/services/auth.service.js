@@ -34,6 +34,7 @@ const registerUser = async (email, password, firstName, lastName, role, accepted
         referralCode,
     };
     let referredByUser = null;
+    // ✅ Handle referral code connection
     if (referredByCode) {
         console.log("🔍 Looking up referrer by referralCode:", referredByCode);
         referredByUser = await prisma_1.default.user.findUnique({
@@ -42,15 +43,17 @@ const registerUser = async (email, password, firstName, lastName, role, accepted
         if (referredByUser) {
             console.log("✅ Found referrer user:", referredByUser.id);
             userData.referredBy = {
-                connect: { id: referredByUser.id }
+                connect: { id: referredByUser.id },
             };
         }
         else {
             console.log("⚠️ No user found with referralCode:", referredByCode);
         }
     }
+    // ✅ Create the user
     console.log("📦 Creating user with data:", userData);
     const user = await prisma_1.default.user.create({ data: userData });
+    // ✅ Create wallet for user
     console.log("💰 Creating wallet for new user...");
     const userWallet = await prisma_1.default.wallet.create({
         data: {
@@ -59,11 +62,13 @@ const registerUser = async (email, password, firstName, lastName, role, accepted
             status: "ACTIVE",
         },
     });
+    // ✅ Link wallet to user
     console.log("🔗 Linking wallet to user...");
     await prisma_1.default.user.update({
         where: { id: user.id },
         data: { walletId: userWallet.id },
     });
+    // ✅ Credit wallets if there's a referrer
     if (referredByUser?.walletId) {
         console.log("💸 Crediting referrer's wallet:", referredByUser.walletId);
         await (0, wallet_service_1.creditWallet)(referredByUser.walletId, 100);
@@ -73,6 +78,7 @@ const registerUser = async (email, password, firstName, lastName, role, accepted
     else {
         console.log("ℹ️ No valid referrer to credit.");
     }
+    // ✅ Final user fetch including referredBy name
     const updatedUser = await prisma_1.default.user.findUnique({
         where: { id: user.id },
         include: {

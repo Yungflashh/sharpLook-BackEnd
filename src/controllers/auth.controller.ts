@@ -13,32 +13,67 @@ import prisma from "../config/prisma"
 
 
 
-
 export const register = async (req: Request, res: Response) => {
-  const { firstName, lastName, email, password, role, acceptedPersonalData, phone, referredByCode } = req.body;
+  const {
+    firstName,
+    lastName,
+    email,
+    password,
+    role,
+    acceptedPersonalData,
+    phone,
+    referredByCode,
+  } = req.body;
+
   console.log("➡️ Register attempt:", { email, role });
 
+  let user;
+
   try {
-    const user = await registerUser(email, password, firstName, lastName, role, acceptedPersonalData, phone, referredByCode);
+    // ✅ Step 1: Create user
+    user = await registerUser(
+      email,
+      password,
+      firstName,
+      lastName,
+      role,
+      acceptedPersonalData,
+      phone,
+      referredByCode
+    );
     console.log("✅ User registered:", user.id);
-
-    await sendOtpService(email);
-    console.log("📨 OTP sent to email after registration");
-
-    return res.status(201).json({
-      success: true,
-      message: "User registered successfully. OTP sent to email.",
-      data: user,
-    });
   } catch (err: any) {
-    console.error("❌ Registration failed:", err.message);
+    console.error("❌ Error during user creation:", err.message);
     return res.status(400).json({
       success: false,
-      message: "Registration failed",
+      step: "registerUser",
+      message: "Failed to create user.",
       error: err.message,
     });
   }
+
+  try {
+    // ✅ Step 2: Send OTP after registration
+    await sendOtpService(email);
+    console.log("📨 OTP sent to email after registration");
+  } catch (err: any) {
+    console.error("❌ Failed to send OTP:", err.message);
+    return res.status(500).json({
+      success: false,
+      step: "sendOtpService",
+      message: "User created, but failed to send OTP. Please try again.",
+      error: err.message,
+      data: user,
+    });
+  }
+
+  return res.status(201).json({
+    success: true,
+    message: "User registered successfully. OTP sent to email.",
+    data: user,
+  });
 };
+
 
 
 export const login = async (req: Request, res: Response) => {

@@ -10,27 +10,43 @@ const otp_service_1 = require("../services/otp.service");
 const auth_service_3 = require("../services/auth.service");
 const prisma_1 = __importDefault(require("../config/prisma"));
 const register = async (req, res) => {
-    const { firstName, lastName, email, password, role, acceptedPersonalData, phone, referredByCode } = req.body;
+    const { firstName, lastName, email, password, role, acceptedPersonalData, phone, referredByCode, } = req.body;
     console.log("➡️ Register attempt:", { email, role });
+    let user;
     try {
-        const user = await (0, auth_service_1.registerUser)(email, password, firstName, lastName, role, acceptedPersonalData, phone, referredByCode);
+        // ✅ Step 1: Create user
+        user = await (0, auth_service_1.registerUser)(email, password, firstName, lastName, role, acceptedPersonalData, phone, referredByCode);
         console.log("✅ User registered:", user.id);
-        await (0, otp_service_1.sendOtpService)(email);
-        console.log("📨 OTP sent to email after registration");
-        return res.status(201).json({
-            success: true,
-            message: "User registered successfully. OTP sent to email.",
-            data: user,
-        });
     }
     catch (err) {
-        console.error("❌ Registration failed:", err.message);
+        console.error("❌ Error during user creation:", err.message);
         return res.status(400).json({
             success: false,
-            message: "Registration failed",
+            step: "registerUser",
+            message: "Failed to create user.",
             error: err.message,
         });
     }
+    try {
+        // ✅ Step 2: Send OTP after registration
+        await (0, otp_service_1.sendOtpService)(email);
+        console.log("📨 OTP sent to email after registration");
+    }
+    catch (err) {
+        console.error("❌ Failed to send OTP:", err.message);
+        return res.status(500).json({
+            success: false,
+            step: "sendOtpService",
+            message: "User created, but failed to send OTP. Please try again.",
+            error: err.message,
+            data: user,
+        });
+    }
+    return res.status(201).json({
+        success: true,
+        message: "User registered successfully. OTP sent to email.",
+        data: user,
+    });
 };
 exports.register = register;
 const login = async (req, res) => {
