@@ -13,6 +13,9 @@ export const createVendorService = async (req: Request, res: Response) => {
   // 1. Extract data
   const { serviceName, servicePrice } = req.body;
   const serviceImage = req.file;
+
+  console.log("Here u go ", req.user);
+  
   const vendorId = req.user?.id!;
 
   console.log("📥 Request body:", { serviceName, servicePrice });
