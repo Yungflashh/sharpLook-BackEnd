@@ -11,6 +11,10 @@ import {
   ClientLoginResponse,
 } from "../types/auth.types";
 
+import { generateReferralCode } from "../utils/referral";
+import { createWallet, creditWallet } from "./wallet.service";
+
+// Accept an optional referralCode during registration
 export const registerUser = async (
   email: string,
   password: string,
@@ -19,11 +23,17 @@ export const registerUser = async (
   role: Role,
   acceptedPersonalData: boolean,
   phone: string,
+  referredByCode?: string  // 👈 New
 ) => {
   const existing = await prisma.user.findUnique({ where: { email } })
   if (existing) throw new Error("Email already in use")
 
   const hash = await bcrypt.hash(password, 10)
+
+  // Generate a referral code for this new user
+  const referralCode = generateReferralCode()
+
+  // Create the user with referralCode and (optional) referredBy
   const user = await prisma.user.create({
     data: {
       firstName,
@@ -32,9 +42,30 @@ export const registerUser = async (
       password: hash,
       role,
       acceptedPersonalData,
-      phone
+      phone,
+      referralCode,
+      referredBy: referredByCode || undefined
     }
   })
+
+  // Create an empty wallet for the user
+  const userWallet = await createWallet(user.id)
+
+  // ✅ Credit both referrer and this user if referredByCode is valid
+  if (referredByCode) {
+    const referrer = await prisma.user.findFirst({
+      where: { referralCode: referredByCode },
+      include: { wallet: true }
+    })
+
+    if (referrer?.wallet) {
+      await creditWallet(referrer.wallet.id, 100)
+    }
+
+    if (userWallet) {
+      await creditWallet(userWallet.id, 100)
+    }
+  }
 
   return user
 }

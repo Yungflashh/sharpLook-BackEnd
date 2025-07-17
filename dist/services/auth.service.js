@@ -9,11 +9,18 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const crypto_1 = __importDefault(require("crypto"));
 const email_helper_1 = require("../helpers/email.helper");
-const registerUser = async (email, password, firstName, lastName, role, acceptedPersonalData, phone) => {
+const referral_1 = require("../utils/referral");
+const wallet_service_1 = require("./wallet.service");
+// Accept an optional referralCode during registration
+const registerUser = async (email, password, firstName, lastName, role, acceptedPersonalData, phone, referredByCode // 👈 New
+) => {
     const existing = await prisma_1.default.user.findUnique({ where: { email } });
     if (existing)
         throw new Error("Email already in use");
     const hash = await bcryptjs_1.default.hash(password, 10);
+    // Generate a referral code for this new user
+    const referralCode = (0, referral_1.generateReferralCode)();
+    // Create the user with referralCode and (optional) referredBy
     const user = await prisma_1.default.user.create({
         data: {
             firstName,
@@ -22,9 +29,26 @@ const registerUser = async (email, password, firstName, lastName, role, accepted
             password: hash,
             role,
             acceptedPersonalData,
-            phone
+            phone,
+            referralCode,
+            referredBy: referredByCode || undefined
         }
     });
+    // Create an empty wallet for the user
+    const userWallet = await (0, wallet_service_1.createWallet)(user.id);
+    // ✅ Credit both referrer and this user if referredByCode is valid
+    if (referredByCode) {
+        const referrer = await prisma_1.default.user.findFirst({
+            where: { referralCode: referredByCode },
+            include: { wallet: true }
+        });
+        if (referrer?.wallet) {
+            await (0, wallet_service_1.creditWallet)(referrer.wallet.id, 100);
+        }
+        if (userWallet) {
+            await (0, wallet_service_1.creditWallet)(userWallet.id, 100);
+        }
+    }
     return user;
 };
 exports.registerUser = registerUser;

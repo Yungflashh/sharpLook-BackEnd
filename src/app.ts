@@ -14,6 +14,8 @@ import promotionRoutes from "./routes/promotion.routes"
 import messageRoutes from "./routes/message.routes"
 import vendorServiceRoutes from "./routes/vendorService.routes"
 import historyRoutes from "./routes/history.routes"
+import walletRoutes from "./routes/wallet.routes"
+import referralRoutes from "./routes/referral.routes"
 
 
 
@@ -47,6 +49,9 @@ app.use("/api/v1/reviews", reviewRoutes)
 app.use("/api/v1/promotions", promotionRoutes)
 app.use("/api/v1/messages", messageRoutes)
 app.use("/api/v1/vendorServices", vendorServiceRoutes)
+app.use("/api/v1/wallet", walletRoutes)
+app.use("/api/v1/referrals", referralRoutes)
+
 
 
 // For clients 

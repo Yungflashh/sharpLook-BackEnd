@@ -18,6 +18,8 @@ const promotion_routes_1 = __importDefault(require("./routes/promotion.routes"))
 const message_routes_1 = __importDefault(require("./routes/message.routes"));
 const vendorService_routes_1 = __importDefault(require("./routes/vendorService.routes"));
 const history_routes_1 = __importDefault(require("./routes/history.routes"));
+const wallet_routes_1 = __importDefault(require("./routes/wallet.routes"));
+const referral_routes_1 = __importDefault(require("./routes/referral.routes"));
 // For clients
 const clientService_routes_1 = __importDefault(require("./routes/clientService.routes"));
 const cart_routes_1 = __importDefault(require("./routes/cart.routes"));
@@ -36,6 +38,8 @@ app.use("/api/v1/reviews", review_routes_1.default);
 app.use("/api/v1/promotions", promotion_routes_1.default);
 app.use("/api/v1/messages", message_routes_1.default);
 app.use("/api/v1/vendorServices", vendorService_routes_1.default);
+app.use("/api/v1/wallet", wallet_routes_1.default);
+app.use("/api/v1/referrals", referral_routes_1.default);
 // For clients 
 app.use("/api/v1/client", clientService_routes_1.default);
 app.use("/api/v1/client", cart_routes_1.default);

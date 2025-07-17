@@ -37,13 +37,13 @@ exports.changeBookingStatus = exports.getMyBookings = exports.bookVendor = void 
 const BookingService = __importStar(require("../services/booking.service"));
 const notification_service_1 = require("../services/notification.service");
 const bookVendor = async (req, res) => {
-    const { vendorId, date, time, price, serviceName } = req.body;
-    if (!vendorId || !date || !time || !price || !serviceName) {
+    const { vendorId, date, time, price, serviceName, location, paymentMethod, notes, status, serviceId } = req.body;
+    if (!vendorId || !date || !time || !price || !serviceName || !location || !paymentMethod || !status || !serviceId) {
         return res.status(400).json({ error: "Missing required booking details" });
     }
     const clientId = req.user?.id;
     try {
-        const booking = await BookingService.createBooking(clientId, vendorId, new Date(date), time, price, serviceName);
+        const booking = await BookingService.createBooking(clientId, vendorId, date, time, price, serviceName, location, paymentMethod, notes || "", status, serviceId);
         await (0, notification_service_1.createNotification)(vendorId, `You received a new booking request for ${serviceName} on ${date} at ${time}.`);
         await (0, notification_service_1.createNotification)(clientId, `Your booking for ${serviceName} has been placed successfully.`);
         res.status(201).json({ success: true, data: booking });

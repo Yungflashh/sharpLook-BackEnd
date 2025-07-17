@@ -5,9 +5,20 @@ import { createNotification } from "../services/notification.service"
 
 
 export const bookVendor = async (req: Request, res: Response) => {
-  const { vendorId, date, time, price, serviceName } = req.body
+  const {
+    vendorId,
+    date,
+    time,
+    price,
+    serviceName,
+    location,
+    paymentMethod,
+    notes,
+    status,
+    serviceId
+  } = req.body
 
-  if (!vendorId || !date || !time || !price || !serviceName) {
+  if (!vendorId || !date || !time || !price || !serviceName || !location || !paymentMethod || !status || !serviceId) {
     return res.status(400).json({ error: "Missing required booking details" })
   }
 
@@ -17,10 +28,15 @@ export const bookVendor = async (req: Request, res: Response) => {
     const booking = await BookingService.createBooking(
       clientId,
       vendorId,
-      new Date(date),
+      date,
       time,
       price,
-      serviceName
+      serviceName,
+      location,
+      paymentMethod,
+      notes || "",
+      status,
+      serviceId
     )
 
     await createNotification(

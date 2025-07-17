@@ -5,18 +5,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBookingById = exports.updateBookingStatus = exports.getUserBookings = exports.createBooking = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
-const client_1 = require("@prisma/client");
-const createBooking = async (clientId, vendorId, date, time, price, serviceName) => {
+const wallet_service_1 = require("./wallet.service");
+const createBooking = async (clientId, vendorId, serviceId, amount, paymentMethod, serviceName, price, paymentStatus, totalAmount, time, date) => {
+    if (paymentMethod === "WALLET") {
+        const wallet = await (0, wallet_service_1.getUserWallet)(clientId);
+        if (!wallet || wallet.balance < amount) {
+            throw new Error("Insufficient wallet balance");
+        }
+        await (0, wallet_service_1.debitWallet)(wallet.id, amount, "Booking Payment");
+    }
     return await prisma_1.default.booking.create({
         data: {
             clientId,
             vendorId,
-            date,
-            time,
-            price,
+            serviceId,
+            totalAmount,
+            paymentMethod, // "WALLET" | "CARD"
+            paymentStatus, // e.g. "PENDING"
             serviceName,
-            status: client_1.BookingStatus.PENDING,
-        },
+            date, // e.g. new Date().toISOString().split("T")[0]
+            time, // e.g. "12:00 PM"
+            price, // probably the same as totalAmount or service price
+            status: "PENDING", // or "CONFIRMED", depending on logic
+        }
     });
 };
 exports.createBooking = createBooking;
