@@ -10,8 +10,12 @@ const otp_service_1 = require("../services/otp.service");
 const auth_service_3 = require("../services/auth.service");
 const prisma_1 = __importDefault(require("../config/prisma"));
 const register = async (req, res) => {
-    const { firstName, lastName, email, password, role, acceptedPersonalData, phone, referredByCode, } = req.body;
+    const { firstName, lastName, email, password, role, phone, referredByCode, } = req.body;
     console.log("➡️ Register attempt:", { email, role });
+    let { acceptedPersonalData } = req.body;
+    if (acceptedPersonalData == "true" || acceptedPersonalData == "True" || acceptedPersonalData == true) {
+        acceptedPersonalData = true;
+    }
     let user;
     try {
         // ✅ Step 1: Create user

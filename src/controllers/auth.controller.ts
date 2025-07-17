@@ -20,12 +20,17 @@ export const register = async (req: Request, res: Response) => {
     email,
     password,
     role,
-    acceptedPersonalData,
     phone,
     referredByCode,
   } = req.body;
 
   console.log("➡️ Register attempt:", { email, role });
+
+  let {acceptedPersonalData} = req.body
+
+  if (acceptedPersonalData == "true" || acceptedPersonalData == "True" || acceptedPersonalData == true){
+    acceptedPersonalData = true
+  }
 
   let user;
 
