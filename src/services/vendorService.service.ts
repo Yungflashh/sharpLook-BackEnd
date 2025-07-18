@@ -27,11 +27,6 @@ export const getVendorServices = async (vendorId: string) => {
 // ✅ Get all services (admin/global purpose)
 export const getAllServices = async () => {
   return await prisma.vendorService.findMany({
-    where: {
-      vendor: {
-        isNot: null,
-      },
-    },
     orderBy: { createdAt: "desc" },
     include: {
       vendor: {
