@@ -9,4 +9,6 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = express_1.default.Router();
 router.get("/walletDetails", auth_middleware_1.verifyToken, wallet_controller_1.getWalletDetails);
 router.get("/transactions", auth_middleware_1.verifyToken, wallet_controller_1.walletTransactions);
+router.post("/fund", auth_middleware_1.verifyToken, wallet_controller_1.fundWallet);
+router.get("/verify", auth_middleware_1.verifyToken, wallet_controller_1.verifyWalletFunding);
 exports.default = router;

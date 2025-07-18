@@ -1,5 +1,7 @@
 import { Request, Response } from "express"
-import { getUserWallet, getWalletTransactions } from "../services/wallet.service"
+import { getUserWallet, getWalletTransactions} from "../services/wallet.service"
+import { handlePaystackWebhook  } from "../services/payment.service"
+import { initializePayment  } from "../utils/paystack"
 
 export const getWalletDetails = async (req: Request, res: Response) => {
   try {
@@ -39,3 +41,30 @@ export const walletTransactions = async (req: Request, res: Response) => {
     res.status(500).json({ message: "An Error occurred" });
   }
 };
+
+
+export const fundWallet = async (req: Request, res: Response) => {
+  try {
+    const { email, amount } = req.body
+    const payment = await initializePayment(email, amount)
+    res.status(200).json({ message: "Initialized", data: payment.data })
+  } catch (error: unknown) {
+    const err = error as Error
+    res.status(400).json({ error: err.message })
+  }
+}
+
+export const verifyWalletFunding = async (req: Request, res: Response) => {
+  try {
+    const { reference } = req.body
+    if (!reference || typeof reference !== "string") {
+      return res.status(400).json({ error: "Missing or invalid reference" })
+    }
+
+    const result = await handlePaystackWebhook(reference)
+    res.status(200).json({ message: result })
+  } catch (error: unknown) {
+    const err = error as Error
+    res.status(400).json({ error: err.message })
+  }
+}

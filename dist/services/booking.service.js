@@ -7,7 +7,7 @@ exports.getBookingById = exports.updateBookingStatus = exports.getUserBookings =
 const prisma_1 = __importDefault(require("../config/prisma"));
 const wallet_service_1 = require("./wallet.service");
 const createBooking = async (clientId, vendorId, serviceId, amount, paymentMethod, serviceName, price, paymentStatus, totalAmount, time, date) => {
-    if (paymentMethod === "WALLET") {
+    if (paymentMethod === "SHARPPAY") {
         const wallet = await (0, wallet_service_1.getUserWallet)(clientId);
         if (!wallet || wallet.balance < amount) {
             throw new Error("Insufficient wallet balance");

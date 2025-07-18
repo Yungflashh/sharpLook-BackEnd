@@ -18,7 +18,7 @@ export const bookVendor = async (req: Request, res: Response) => {
     serviceId
   } = req.body;
 
-  if (!vendorId || !date || !time || !price || !serviceName || !location || !paymentMethod || !status || !serviceId) {
+  if (!vendorId || !date || !time || !price || !serviceName  || !paymentMethod || !status || !serviceId) {
     return res.status(400).json({
       success: false,
       message: "Missing required booking details"

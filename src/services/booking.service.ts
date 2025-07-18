@@ -7,7 +7,7 @@ export const createBooking = async (
   vendorId: string,
   serviceId: string,
   amount: number,
-  paymentMethod: "WALLET" | "CARD",
+  paymentMethod: "SHARPPAY" | "CARD",
   serviceName: string,
   price : number,
   paymentStatus : string,
@@ -16,7 +16,7 @@ export const createBooking = async (
   date: string
 
 ) => {
-  if (paymentMethod === "WALLET") {
+  if (paymentMethod === "SHARPPAY") {
     const wallet = await getUserWallet(clientId);
     if (!wallet || wallet.balance < amount) {
       throw new Error("Insufficient wallet balance");

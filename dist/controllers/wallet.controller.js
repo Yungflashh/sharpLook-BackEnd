@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.walletTransactions = exports.getWalletDetails = void 0;
+exports.verifyWalletFunding = exports.fundWallet = exports.walletTransactions = exports.getWalletDetails = void 0;
 const wallet_service_1 = require("../services/wallet.service");
+const payment_service_1 = require("../services/payment.service");
+const paystack_1 = require("../utils/paystack");
 const getWalletDetails = async (req, res) => {
     try {
         // 1. Extract user ID
@@ -38,3 +40,30 @@ const walletTransactions = async (req, res) => {
     }
 };
 exports.walletTransactions = walletTransactions;
+const fundWallet = async (req, res) => {
+    try {
+        const { email, amount } = req.body;
+        const payment = await (0, paystack_1.initializePayment)(email, amount);
+        res.status(200).json({ message: "Initialized", data: payment.data });
+    }
+    catch (error) {
+        const err = error;
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.fundWallet = fundWallet;
+const verifyWalletFunding = async (req, res) => {
+    try {
+        const { reference } = req.body;
+        if (!reference || typeof reference !== "string") {
+            return res.status(400).json({ error: "Missing or invalid reference" });
+        }
+        const result = await (0, payment_service_1.handlePaystackWebhook)(reference);
+        res.status(200).json({ message: result });
+    }
+    catch (error) {
+        const err = error;
+        res.status(400).json({ error: err.message });
+    }
+};
+exports.verifyWalletFunding = verifyWalletFunding;

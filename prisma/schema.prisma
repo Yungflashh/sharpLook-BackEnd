@@ -272,6 +272,7 @@ model Transaction {
   amount      Int
   description String?
   type        TransactionType
+  reference   String?  
   createdAt   DateTime        @default(now())
   walletId    String          @db.ObjectId
   wallet      Wallet          @relation(fields: [walletId], references: [id])

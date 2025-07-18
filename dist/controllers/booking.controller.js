@@ -38,7 +38,7 @@ const BookingService = __importStar(require("../services/booking.service"));
 const notification_service_1 = require("../services/notification.service");
 const bookVendor = async (req, res) => {
     const { vendorId, date, time, price, serviceName, location, paymentMethod, notes, status, serviceId } = req.body;
-    if (!vendorId || !date || !time || !price || !serviceName || !location || !paymentMethod || !status || !serviceId) {
+    if (!vendorId || !date || !time || !price || !serviceName || !paymentMethod || !status || !serviceId) {
         return res.status(400).json({
             success: false,
             message: "Missing required booking details"
