@@ -139,13 +139,16 @@ const loginWithVendorCheck = async (email, password) => {
     const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
         expiresIn: "7d",
     });
+    const existingVendorProfile = await prisma_1.default.vendorOnboarding.findUnique({
+        where: { userId: user.id },
+    });
     let vendorProfile = await prisma_1.default.vendorOnboarding.upsert({
         where: { userId: user.id },
         update: {},
         create: {
             userId: user.id,
             identityImage: "",
-            serviceType: "IN_SHOP",
+            serviceType: existingVendorProfile.serviceType,
             specialties: [],
             portfolioImages: [],
         },

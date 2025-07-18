@@ -25,7 +25,7 @@ router.get("/my-services", verifyToken, requireRole(["VENDOR"]), fetchVendorServ
 router.get("/allServices", fetchAllVendorServices);
 
 
-router.put("/edit/:serviceId",verifyToken,requireRole(["VENDOR"]),updateVendorService);
+router.put("/edit/:serviceId",verifyToken,requireRole(["VENDOR"]), uploadSingle2, updateVendorService);
 
 
 router.delete("/delete/:serviceId",verifyToken,requireRole(["VENDOR"]),deleteAVendorService);

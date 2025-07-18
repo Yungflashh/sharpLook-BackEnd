@@ -176,13 +176,17 @@ export const loginWithVendorCheck = async (email: string, password: string): Pro
     expiresIn: "7d",
   });
 
+  const existingVendorProfile = await prisma.vendorOnboarding.findUnique({
+  where: { userId: user.id },
+});
+
   let vendorProfile = await prisma.vendorOnboarding.upsert({
     where: { userId: user.id },
     update: {},
     create: {
       userId: user.id,
       identityImage: "",
-      serviceType: "IN_SHOP",
+      serviceType:existingVendorProfile!.serviceType,
       specialties: [],
       portfolioImages: [],
     },

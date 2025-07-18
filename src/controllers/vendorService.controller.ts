@@ -101,7 +101,25 @@ export const fetchAllVendorServices = async (_req: Request, res: Response) => {
 // ✅ Update vendor service
 export const updateVendorService = async (req: Request, res: Response) => {
   const { serviceId } = req.params;
-  const updateData = req.body;
+  const { serviceName, serviceImage } = req.body;
+
+  const servicePrice = req.body?.servicePrice
+      ? parseFloat(req.body.servicePrice)
+      : undefined;
+
+  // ✅ Build only provided fields
+  const updateData: any = {};
+  if (serviceName) updateData.serviceName = serviceName;
+  if (servicePrice) updateData.servicePrice = servicePrice;
+  if (serviceImage) updateData.serviceImage = serviceImage;
+
+  // ✅ Check if updateData is still empty
+  if (Object.keys(updateData).length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "No valid fields provided for update",
+    });
+  }
 
   try {
     const updated = await editVendorService(serviceId, updateData);

@@ -78,7 +78,25 @@ exports.fetchAllVendorServices = fetchAllVendorServices;
 // ✅ Update vendor service
 const updateVendorService = async (req, res) => {
     const { serviceId } = req.params;
-    const updateData = req.body;
+    const { serviceName, serviceImage } = req.body;
+    const servicePrice = req.body?.servicePrice
+        ? parseFloat(req.body.servicePrice)
+        : undefined;
+    // ✅ Build only provided fields
+    const updateData = {};
+    if (serviceName)
+        updateData.serviceName = serviceName;
+    if (servicePrice)
+        updateData.servicePrice = servicePrice;
+    if (serviceImage)
+        updateData.serviceImage = serviceImage;
+    // ✅ Check if updateData is still empty
+    if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "No valid fields provided for update",
+        });
+    }
     try {
         const updated = await (0, vendorService_service_1.editVendorService)(serviceId, updateData);
         res.status(200).json({
