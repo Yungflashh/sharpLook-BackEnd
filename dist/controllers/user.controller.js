@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchTopVendors = exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
+exports.getAVendorDetails = exports.fetchTopVendors = exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
 const user_services_1 = require("../services/user.services");
 // 🧑‍💼 Get Logged-in User Profile
 const getMyProfile = async (req, res) => {
@@ -73,3 +73,25 @@ const fetchTopVendors = async (req, res) => {
     }
 };
 exports.fetchTopVendors = fetchTopVendors;
+const getAVendorDetails = async (req, res) => {
+    const vendorId = req.params.id;
+    try {
+        const vendorDetails = await (0, user_services_1.getVendorDetails)(vendorId);
+        if (!vendorDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "Vendor not found",
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Vendor details fetched successfully",
+            data: vendorDetails,
+        });
+    }
+    catch (err) {
+        console.error("❌ Failed to get vendor details:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+exports.getAVendorDetails = getAVendorDetails;

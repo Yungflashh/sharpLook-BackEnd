@@ -6,8 +6,7 @@ export const createBooking = async (
   clientId: string,
   vendorId: string,
   serviceId: string,
-  amount: number,
-  paymentMethod: "SHARPPAY" | "CARD",
+  paymentMethod: string,
   serviceName: string,
   price : number,
   paymentStatus : string,
@@ -18,11 +17,11 @@ export const createBooking = async (
 ) => {
   if (paymentMethod === "SHARPPAY") {
     const wallet = await getUserWallet(clientId);
-    if (!wallet || wallet.balance < amount) {
+    if (!wallet || wallet.balance < price) {
       throw new Error("Insufficient wallet balance");
     }
 
-    await debitWallet(wallet.id, amount, "Booking Payment");
+    await debitWallet(wallet.id, price, "Booking Payment");
   }
 
   return await prisma.booking.create({

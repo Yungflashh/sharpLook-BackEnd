@@ -4,6 +4,7 @@ import {
   updateUserProfile,
   updateClientLocationPreferences,
   getTopRatedVendors,
+ getVendorDetails
 } from "../services/user.services"
 
 // 🧑‍💼 Get Logged-in User Profile
@@ -82,6 +83,31 @@ export const fetchTopVendors = async (req: Request, res: Response) => {
     console.log("📤 Response sent to client")
   } catch (err: any) {
     console.error("❌ Error occurred while fetching top vendors:", err)
+    res.status(500).json({ success: false, message: err.message })
+  }
+}
+
+
+export const getAVendorDetails = async (req: Request, res: Response) => {
+  const vendorId = req.params.id
+
+  try {
+    const vendorDetails = await getVendorDetails(vendorId)
+
+    if (!vendorDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Vendor details fetched successfully",
+      data: vendorDetails,
+    })
+  } catch (err: any) {
+    console.error("❌ Failed to get vendor details:", err)
     res.status(500).json({ success: false, message: err.message })
   }
 }

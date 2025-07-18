@@ -6,13 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBookingById = exports.updateBookingStatus = exports.getUserBookings = exports.createBooking = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const wallet_service_1 = require("./wallet.service");
-const createBooking = async (clientId, vendorId, serviceId, amount, paymentMethod, serviceName, price, paymentStatus, totalAmount, time, date) => {
+const createBooking = async (clientId, vendorId, serviceId, paymentMethod, serviceName, price, paymentStatus, totalAmount, time, date) => {
     if (paymentMethod === "SHARPPAY") {
         const wallet = await (0, wallet_service_1.getUserWallet)(clientId);
-        if (!wallet || wallet.balance < amount) {
+        if (!wallet || wallet.balance < price) {
             throw new Error("Insufficient wallet balance");
         }
-        await (0, wallet_service_1.debitWallet)(wallet.id, amount, "Booking Payment");
+        await (0, wallet_service_1.debitWallet)(wallet.id, price, "Booking Payment");
     }
     return await prisma_1.default.booking.create({
         data: {

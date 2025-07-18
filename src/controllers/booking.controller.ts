@@ -11,14 +11,16 @@ export const bookVendor = async (req: Request, res: Response) => {
     time,
     price,
     serviceName,
-    location,
-    paymentMethod,
-    notes,
-    status,
-    serviceId
+    serviceId,
+    totalAmount,
+  
+
   } = req.body;
 
-  if (!vendorId || !date || !time || !price || !serviceName  || !paymentMethod || !status || !serviceId) {
+  let   paymentMethod = "SHARP-PAY"
+  let paymentStatus = "PENDING"
+
+  if (!vendorId || !date || !time || !price || !serviceName  || !serviceId || !totalAmount) {
     return res.status(400).json({
       success: false,
       message: "Missing required booking details"
@@ -29,17 +31,17 @@ export const bookVendor = async (req: Request, res: Response) => {
 
   try {
     const booking = await BookingService.createBooking(
-      clientId,
-      vendorId,
-      date,
-      time,
-      price,
-      serviceName,
-      location,
-      paymentMethod,
-      notes || "",
-      status,
-      serviceId
+  clientId,
+  vendorId,
+  serviceId,
+  paymentMethod,
+  serviceName,
+  price ,
+  paymentStatus ,
+  totalAmount,
+  time,
+  date,
+
     );
 
     await createNotification(
