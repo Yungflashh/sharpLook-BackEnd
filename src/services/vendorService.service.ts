@@ -17,6 +17,8 @@ export const addVendorService = async (
 }
 
 export const getVendorServices = async (vendorId: string) => {
+ 
+  
   return await prisma.vendorService.findMany({
     where: { vendorId },
     orderBy: { createdAt: "desc" },

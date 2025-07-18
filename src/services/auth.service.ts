@@ -126,7 +126,13 @@ export const registerUser = async (
 
 
 export const loginUser = async (email: string, password: string): Promise<BaseLoginResponse> => {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+  where: { email },
+  include: {
+    vendorOnboarding: true, 
+  },
+});
+;
   if (!user) throw new Error("Invalid credentials");
 
   const match = await bcrypt.compare(password, user.password);
@@ -147,12 +153,16 @@ export const loginWithClientCheck = async (email: string, password: string) => {
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new Error("Invalid credentials");
 
-  const token = jwt.sign(
-    { id: user.id, role: user.role },
-    process.env.JWT_SECRET!,
-    { expiresIn: "7d" }
-  );
-
+ const token = jwt.sign(
+  {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+     // ✅ get vendor ID from the related record
+  },
+  process.env.JWT_SECRET!,
+  { expiresIn: "7d" }
+);
   let message: string | undefined;
 
   if (user.role === "CLIENT") {
@@ -166,13 +176,18 @@ export const loginWithClientCheck = async (email: string, password: string) => {
 
 
 export const loginWithVendorCheck = async (email: string, password: string): Promise<VendorLoginResponse> => {
-  const user = await prisma.user.findUnique({ where: { email } });
+   const user = await prisma.user.findUnique({
+  where: { email },
+  include: {
+    vendorOnboarding: true, // 👈 this tells Prisma to load the related data
+  },
+});
   if (!user) throw new Error("Invalid credentials");
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new Error("Invalid credentials");
 
-  const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!, {
+  const token = jwt.sign({ id: user.id, role: user.role,  vendorId: user.vendorOnboarding?.id, }, process.env.JWT_SECRET!, {
     expiresIn: "7d",
   });
 

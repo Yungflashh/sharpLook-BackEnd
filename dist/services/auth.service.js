@@ -100,7 +100,13 @@ const registerUser = async (email, password, firstName, lastName, role, accepted
 };
 exports.registerUser = registerUser;
 const loginUser = async (email, password) => {
-    const user = await prisma_1.default.user.findUnique({ where: { email } });
+    const user = await prisma_1.default.user.findUnique({
+        where: { email },
+        include: {
+            vendorOnboarding: true,
+        },
+    });
+    ;
     if (!user)
         throw new Error("Invalid credentials");
     const match = await bcryptjs_1.default.compare(password, user.password);
@@ -119,7 +125,12 @@ const loginWithClientCheck = async (email, password) => {
     const match = await bcryptjs_1.default.compare(password, user.password);
     if (!match)
         throw new Error("Invalid credentials");
-    const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = jsonwebtoken_1.default.sign({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        // ✅ get vendor ID from the related record
+    }, process.env.JWT_SECRET, { expiresIn: "7d" });
     let message;
     if (user.role === "CLIENT") {
         if (user.preferredLatitude == null || user.preferredLongitude == null) {
@@ -130,13 +141,18 @@ const loginWithClientCheck = async (email, password) => {
 };
 exports.loginWithClientCheck = loginWithClientCheck;
 const loginWithVendorCheck = async (email, password) => {
-    const user = await prisma_1.default.user.findUnique({ where: { email } });
+    const user = await prisma_1.default.user.findUnique({
+        where: { email },
+        include: {
+            vendorOnboarding: true, // 👈 this tells Prisma to load the related data
+        },
+    });
     if (!user)
         throw new Error("Invalid credentials");
     const match = await bcryptjs_1.default.compare(password, user.password);
     if (!match)
         throw new Error("Invalid credentials");
-    const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
+    const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role, vendorId: user.vendorOnboarding?.id, }, process.env.JWT_SECRET, {
         expiresIn: "7d",
     });
     const existingVendorProfile = await prisma_1.default.vendorOnboarding.findUnique({

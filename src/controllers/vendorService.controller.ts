@@ -67,25 +67,32 @@ export const createVendorService = async (req: Request, res: Response) => {
 };
 
 export const fetchVendorServices = async (req: Request, res: Response) => {
-  const vendorId = req.user?.vendorId!;
-
-  console.log("🔐 Fetched vendor ID:", req.user?.id);
-
   try {
-    // 1. Get vendor services from DB
-    // 1.2 Log the vendor Id for debugging 
+    console.log("🔐 Fetching vendor services...");
 
+    // 1. Extract and log vendorId and user info
+    const vendorId = req.user?.vendorId!;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
 
-    
+    console.log("👤 Authenticated User ID:", userId);
+    console.log("🎭 Role:", userRole);
+    console.log("🆔 Vendor ID from token:", vendorId);
+
+    // 2. Fetch vendor services
     const services = await getVendorServices(vendorId);
 
-    // 2. Return response
+    // 3. Log the fetched services
+    console.log("📦 Fetched Services:", services);
+
+    // 4. Return services
     res.json({ success: true, data: services });
   } catch (err: any) {
-    // 3. Handle error
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error fetching vendor services:", err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 };
+
 
 
 // ✅ Fetch all services (admin/global view)
