@@ -157,7 +157,7 @@ export const loginWithClientCheck = async (email: string, password: string) => {
 
   if (user.role === "CLIENT") {
     if (user.preferredLatitude == null || user.preferredLongitude == null) {
-      message = "Please set your location preference to continue.";
+      message = "No Location";
     }
   }
 
