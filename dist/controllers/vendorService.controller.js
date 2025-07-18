@@ -12,7 +12,7 @@ const createVendorService = async (req, res) => {
     const { serviceName, servicePrice } = req.body;
     const serviceImage = req.file;
     console.log("Here u go ", req.user);
-    const vendorId = req.user?.id;
+    const vendorId = req.user?.vendorId;
     console.log("📥 Request body:", { serviceName, servicePrice });
     console.log("📥 Image received:", !!serviceImage);
     console.log("📥 Vendor ID:", vendorId);

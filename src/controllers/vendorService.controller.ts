@@ -16,7 +16,8 @@ export const createVendorService = async (req: Request, res: Response) => {
 
   console.log("Here u go ", req.user);
   
-  const vendorId = req.user?.id!;
+
+  const vendorId = req.user?.vendorId!;
 
   console.log("📥 Request body:", { serviceName, servicePrice });
   console.log("📥 Image received:", !!serviceImage);
