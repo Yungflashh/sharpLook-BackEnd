@@ -1,19 +1,7 @@
 import prisma from "../config/prisma"
 
 export const getAllVendorServices = async () => {
-  return await prisma.vendorService.findMany({
-    include: {
-      vendor: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatar: true,
-          vendorOnboarding: true,
-        },
-      },
-    },
-  })
+  return await prisma.vendorService.findMany()
 }
 
 export const getVendorServicesByVendorId = async (vendorId: string) => {
