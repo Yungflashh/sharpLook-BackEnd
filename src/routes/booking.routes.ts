@@ -1,11 +1,16 @@
-import express from "express"
-import { verifyToken } from "../middlewares/auth.middleware"
-import * as BookingController from "../controllers/booking.controller"
+import express from "express";
+import { verifyToken } from "../middlewares/auth.middleware";
+import * as BookingController from "../controllers/booking.controller";
 
-const router = express.Router()
+const router = express.Router();
 
-router.post("/bookVendor", verifyToken, BookingController.bookVendor)
-router.get("/getBookings", verifyToken, BookingController.getMyBookings)
-router.patch("/:bookingId/status", verifyToken, BookingController.changeBookingStatus)
+// Existing routes
+router.post("/bookVendor", verifyToken, BookingController.bookVendor);
+router.get("/getBookings", verifyToken, BookingController.getMyBookings);
+router.patch("/:bookingId/status", verifyToken, BookingController.changeBookingStatus);
 
-export default router
+// New routes for marking booking completed by client or vendor
+router.patch("/:bookingId/complete/client", verifyToken, BookingController.markBookingCompletedByClient);
+router.patch("/:bookingId/complete/vendor", verifyToken, BookingController.markBookingCompletedByVendor);
+
+export default router;

@@ -23,6 +23,7 @@ const referral_routes_1 = __importDefault(require("./routes/referral.routes"));
 // For clients
 const clientService_routes_1 = __importDefault(require("./routes/clientService.routes"));
 const cart_routes_1 = __importDefault(require("./routes/cart.routes"));
+const productOrder_route_1 = __importDefault(require("./routes/productOrder.route"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
@@ -53,6 +54,7 @@ app.use("/api/v1/referrals", referral_routes_1.default);
 app.use("/api/v1/client", clientService_routes_1.default);
 app.use("/api/v1/client", cart_routes_1.default);
 app.use("/api/v1/history", history_routes_1.default);
+app.use("/api/v1/orders", productOrder_route_1.default);
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"));
 const PORT = parseInt(process.env.PORT || '4000', 10);
 app.listen(PORT, '0.0.0.0', () => {

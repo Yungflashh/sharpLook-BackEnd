@@ -58,9 +58,10 @@ const getTopRatedVendors = async (limit = 10) => {
 };
 exports.getTopRatedVendors = getTopRatedVendors;
 const getVendorDetails = async (vendorId) => {
-    // Fetch vendor onboarding, user, availability, services, reviews
     const vendor = await prisma_1.default.user.findUnique({
-        where: { id: vendorId },
+        where: {
+            id: vendorId // <-- this must be a string
+        },
         select: {
             id: true,
             firstName: true,
@@ -81,41 +82,32 @@ const getVendorDetails = async (vendorId) => {
                         select: {
                             firstName: true,
                             lastName: true,
-                            avatar: true,
-                        },
-                    },
+                            avatar: true
+                        }
+                    }
                 },
-                orderBy: { createdAt: "desc" },
+                orderBy: {
+                    createdAt: "desc"
+                }
             },
             promotions: {
-                where: { isActive: true },
-                orderBy: { startDate: "desc" },
+                where: {
+                    isActive: true
+                },
+                orderBy: {
+                    startDate: "desc"
+                }
             },
             products: {
                 select: {
                     productName: true,
                     price: true,
                     picture: true,
-                    status: true,
-                },
-            },
-        },
+                    status: true
+                }
+            }
+        }
     });
-    if (!vendor)
-        return null;
-    return {
-        id: vendor.id,
-        name: `${vendor.firstName} ${vendor.lastName}`,
-        bio: vendor.bio,
-        avatar: vendor.avatar,
-        email: vendor.email,
-        phone: vendor.phone,
-        onboarding: vendor.vendorOnboarding,
-        availability: vendor.vendorAvailabilities,
-        services: vendor.vendorServices,
-        reviews: vendor.vendorReviews,
-        promotions: vendor.promotions,
-        products: vendor.products,
-    };
+    return vendor;
 };
 exports.getVendorDetails = getVendorDetails;

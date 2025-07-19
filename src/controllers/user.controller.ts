@@ -89,7 +89,14 @@ export const fetchTopVendors = async (req: Request, res: Response) => {
 
 
 export const getAVendorDetails = async (req: Request, res: Response) => {
-  const vendorId = req.params.id
+  const {vendorId} = req.params
+
+  if (!vendorId) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing vendorId in request parameters"
+    });
+  }
 
   try {
     const vendorDetails = await getVendorDetails(vendorId)

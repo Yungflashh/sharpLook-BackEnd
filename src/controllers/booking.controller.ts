@@ -1,8 +1,7 @@
-import { Request, Response } from "express"
-import * as BookingService from "../services/booking.service"
-import { BookingStatus } from "@prisma/client"
-import { createNotification } from "../services/notification.service"
-
+import { Request, Response } from "express";
+import * as BookingService from "../services/booking.service";
+import { BookingStatus } from "@prisma/client";
+import { createNotification } from "../services/notification.service";
 
 export const bookVendor = async (req: Request, res: Response) => {
   const {
@@ -13,17 +12,15 @@ export const bookVendor = async (req: Request, res: Response) => {
     serviceName,
     serviceId,
     totalAmount,
-  
-
   } = req.body;
 
-  let   paymentMethod = "SHARP-PAY"
-  let paymentStatus = "PENDING"
+  const paymentMethod = "SHARPPAY";  // Corrected to match your service
+  // Payment status will be set inside the service based on wallet logic, so no need to send here.
 
-  if (!vendorId || !date || !time || !price || !serviceName  || !serviceId || !totalAmount) {
+  if (!vendorId || !date || !time || !price || !serviceName || !serviceId || !totalAmount) {
     return res.status(400).json({
       success: false,
-      message: "Missing required booking details"
+      message: "Missing required booking details",
     });
   }
 
@@ -31,17 +28,15 @@ export const bookVendor = async (req: Request, res: Response) => {
 
   try {
     const booking = await BookingService.createBooking(
-  clientId,
-  vendorId,
-  serviceId,
-  paymentMethod,
-  serviceName,
-  price ,
-  paymentStatus ,
-  totalAmount,
-  time,
-  date,
-
+      clientId,
+      vendorId,
+      serviceId,
+      paymentMethod,
+      serviceName,
+      price,
+      totalAmount,
+      time,
+      date
     );
 
     await createNotification(
@@ -57,16 +52,15 @@ export const bookVendor = async (req: Request, res: Response) => {
     return res.status(201).json({
       success: true,
       message: "Booking created successfully",
-      data: booking
+      data: booking,
     });
   } catch (err: any) {
     return res.status(500).json({
       success: false,
-      message: err.message
+      message: err.message,
     });
   }
 };
-
 
 export const getMyBookings = async (req: Request, res: Response) => {
   try {
@@ -76,19 +70,19 @@ export const getMyBookings = async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       message: "Bookings retrieved successfully",
-      data: bookings
+      data: bookings,
     });
   } catch (err: any) {
     return res.status(500).json({
       success: false,
-      message: err.message
+      message: err.message,
     });
   }
 };
 
 export const changeBookingStatus = async (req: Request, res: Response) => {
   const { bookingId } = req.params;
-  const { status } = req.body;
+  const { status, completedBy } = req.body;
 
   try {
     const booking = await BookingService.getBookingById(bookingId);
@@ -96,31 +90,83 @@ export const changeBookingStatus = async (req: Request, res: Response) => {
     if (!booking) {
       return res.status(404).json({
         success: false,
-        message: "Booking not found"
+        message: "Booking not found",
       });
     }
 
-    const updated = await BookingService.updateBookingStatus(bookingId, status as BookingStatus);
+    let updatedBooking;
 
-    await createNotification(
-      booking.clientId,
-      `Your booking for ${booking.serviceName} was ${status.toLowerCase()}.`
-    );
+    if (status === "COMPLETED" && completedBy) {
+      // Mark completion by client or vendor
+      if (completedBy === "CLIENT") {
+        updatedBooking = await BookingService.markBookingCompletedByClient(bookingId);
+        await createNotification(
+          booking.vendorId,
+          `Client marked booking for ${booking.serviceName} as completed.`
+        );
+      } else if (completedBy === "VENDOR") {
+        updatedBooking = await BookingService.markBookingCompletedByVendor(bookingId);
+        await createNotification(
+          booking.clientId,
+          `Vendor marked booking for ${booking.serviceName} as completed.`
+        );
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid 'completedBy' value. Must be 'CLIENT' or 'VENDOR'."
+        });
+      }
+    } else {
+      // Normal status update: ACCEPTED, REJECTED, PENDING, etc.
+      updatedBooking = await BookingService.updateBookingStatus(bookingId, status as BookingStatus);
 
-    await createNotification(
-      booking.vendorId,
-      `You ${status.toLowerCase()} a booking for ${booking.serviceName}.`
-    );
+      await createNotification(
+        booking.clientId,
+        `Your booking for ${booking.serviceName} was ${status.toLowerCase()}.`
+      );
+
+      await createNotification(
+        booking.vendorId,
+        `You ${status.toLowerCase()} a booking for ${booking.serviceName}.`
+      );
+    }
 
     return res.status(200).json({
       success: true,
       message: "Booking status updated successfully",
-      data: updated
+      data: updatedBooking,
     });
   } catch (err: any) {
     return res.status(500).json({
       success: false,
-      message: err.message
+      message: err.message,
     });
+  }
+};
+
+
+export const markBookingCompletedByClient = async (req: Request, res: Response) => {
+  try {
+    const updatedBooking = await BookingService.markBookingCompletedByClient(req.params.bookingId);
+    return res.status(200).json({
+      success: true,
+      message: "Booking marked as completed by client.",
+      data: updatedBooking,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const markBookingCompletedByVendor = async (req: Request, res: Response) => {
+  try {
+    const updatedBooking = await BookingService.markBookingCompletedByVendor(req.params.bookingId);
+    return res.status(200).json({
+      success: true,
+      message: "Booking marked as completed by vendor.",
+      data: updatedBooking,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
   }
 };

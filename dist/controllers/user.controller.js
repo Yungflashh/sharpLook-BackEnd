@@ -74,7 +74,13 @@ const fetchTopVendors = async (req, res) => {
 };
 exports.fetchTopVendors = fetchTopVendors;
 const getAVendorDetails = async (req, res) => {
-    const vendorId = req.params.id;
+    const { vendorId } = req.params;
+    if (!vendorId) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing vendorId in request parameters"
+        });
+    }
     try {
         const vendorDetails = await (0, user_services_1.getVendorDetails)(vendorId);
         if (!vendorDetails) {

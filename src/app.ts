@@ -24,6 +24,7 @@ import referralRoutes from "./routes/referral.routes"
 
 import clientServiceRoutes from "./routes/clientService.routes"
 import cartRoutes from "./routes/cart.routes"
+import productOrderRoutes from "./routes/productOrder.route";
 
 
 
@@ -68,6 +69,8 @@ app.use("/api/v1/referrals", referralRoutes)
 app.use("/api/v1/client", clientServiceRoutes)
 app.use("/api/v1/client", cartRoutes)
 app.use("/api/v1/history", historyRoutes)
+app.use("/api/v1/orders", productOrderRoutes);
+
 
 
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"))

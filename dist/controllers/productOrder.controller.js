@@ -32,19 +32,26 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const auth_middleware_1 = require("../middlewares/auth.middleware");
-const BookingController = __importStar(require("../controllers/booking.controller"));
-const router = express_1.default.Router();
-// Existing routes
-router.post("/bookVendor", auth_middleware_1.verifyToken, BookingController.bookVendor);
-router.get("/getBookings", auth_middleware_1.verifyToken, BookingController.getMyBookings);
-router.patch("/:bookingId/status", auth_middleware_1.verifyToken, BookingController.changeBookingStatus);
-// New routes for marking booking completed by client or vendor
-router.patch("/:bookingId/complete/client", auth_middleware_1.verifyToken, BookingController.markBookingCompletedByClient);
-router.patch("/:bookingId/complete/vendor", auth_middleware_1.verifyToken, BookingController.markBookingCompletedByVendor);
-exports.default = router;
+exports.checkoutCart = void 0;
+const ProductOrderService = __importStar(require("../services/productOrder.service"));
+const notification_service_1 = require("../services/notification.service");
+const checkoutCart = async (req, res) => {
+    const userId = req.user?.id;
+    try {
+        const order = await ProductOrderService.checkoutCart(userId);
+        await (0, notification_service_1.createNotification)(userId, `Your order of ₦${order.total} was placed successfully.`);
+        return res.status(201).json({
+            success: true,
+            message: "Order placed successfully using SHARP-PAY",
+            data: order,
+        });
+    }
+    catch (err) {
+        return res.status(400).json({
+            success: false,
+            message: err.message,
+        });
+    }
+};
+exports.checkoutCart = checkoutCart;

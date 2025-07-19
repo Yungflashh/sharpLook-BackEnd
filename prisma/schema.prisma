@@ -65,6 +65,8 @@ model User {
   // ✅ Product ownership
   products Product[] @relation("UserProducts")
 
+   orders Order[] 
+
   // ✅ Notifications
   notifications Notification[] @relation("UserNotifications")
 
@@ -128,13 +130,16 @@ model Booking {
   status        BookingStatus
   totalAmount   Float
   paymentMethod String // "WALLET" | "CARD"
-  paymentStatus String // "PAID" | "PENDING"
+  paymentStatus PaymentStatus @default(PENDING)
   review        Review?       @relation("BookingToReview") // ✅ only define relation name here
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
   client User @relation("ClientBooking", fields: [clientId], references: [id])
   vendor User @relation("VendorBooking", fields: [vendorId], references: [id])
+
+  clientCompleted  Boolean        @default(false)
+  vendorCompleted  Boolean        @default(false)
 }
 
 model Product {
@@ -151,6 +156,16 @@ model Product {
   wishlistItems WishlistItem[] @relation("ProductWishlistItems")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+
+model Order {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  items     Json     // Contains array of { productId, productName, quantity, price }
+  total     Float
+  createdAt DateTime @default(now())
 }
 
 model Notification {
@@ -284,6 +299,13 @@ model Like {
   wallet    Wallet   @relation(fields: [walletId], references: [id])
   createdAt DateTime @default(now())
 }
+enum PaymentStatus {
+  PENDING
+  LOCKED       // Client's money is deducted and locked until completion or cancellation
+  REFUNDED     // Money refunded back to client wallet
+  COMPLETED    // Vendor paid successfully
+}
+
 
 enum Role {
   CLIENT
