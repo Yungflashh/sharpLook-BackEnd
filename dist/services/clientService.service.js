@@ -6,19 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getVendorServicesByVendorId = exports.getAllVendorServices = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const getAllVendorServices = async () => {
-    return await prisma_1.default.vendorService.findMany({
-        include: {
-            vendor: {
-                select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    avatar: true,
-                    vendorOnboarding: true,
-                },
-            },
-        },
-    });
+    return await prisma_1.default.vendorService.findMany();
 };
 exports.getAllVendorServices = getAllVendorServices;
 const getVendorServicesByVendorId = async (vendorId) => {

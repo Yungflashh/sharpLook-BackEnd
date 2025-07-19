@@ -40,5 +40,5 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = (0, express_1.Router)();
 router.post("/addProductTocart", auth_middleware_1.verifyToken, CartController.addProductToCart);
 router.get("/getMycart", auth_middleware_1.verifyToken, CartController.getMyCart);
-router.delete("/removeProduct:productId", auth_middleware_1.verifyToken, CartController.removeProductFromCart);
+router.delete("/removeProduct/:productId", auth_middleware_1.verifyToken, CartController.removeProductFromCart);
 exports.default = router;
