@@ -26,7 +26,15 @@ const cart_routes_1 = __importDefault(require("./routes/cart.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
-app.use(express_1.default.json());
+app.use((req, res, next) => {
+    const contentType = req.headers['content-type'] || '';
+    if (contentType.includes('application/json')) {
+        express_1.default.json()(req, res, next);
+    }
+    else {
+        next();
+    }
+});
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use("/api/v1/vendor", vendor_routes_1.default);
 app.use("/api/v1/auth", auth_routes_1.default);

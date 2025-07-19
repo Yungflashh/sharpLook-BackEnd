@@ -10,7 +10,7 @@ const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const registerVendor = async (req, res) => {
     try {
         // 1. Extract required fields from request body
-        const { firstName, lastName, email, password, role, phone } = req.body;
+        const { firstName, lastName, email, password, role, phone, serviceType } = req.body;
         let { acceptedPersonalData } = req.body;
         // 2. Normalize boolean for acceptedPersonalData
         if (acceptedPersonalData == "True" || acceptedPersonalData == true || acceptedPersonalData == "true") {
@@ -28,7 +28,7 @@ const registerVendor = async (req, res) => {
         // 6. Register the user (role: VENDOR)
         const user = await (0, auth_service_1.registerUser)(email, password, firstName, lastName, role, acceptedPersonalData, phone);
         // 7. Create vendor onboarding with Cloudinary image
-        await (0, vendorOnboarding_service_1.createVendorOnboarding)(user.id, req.body.serviceType, secure_url);
+        await (0, vendorOnboarding_service_1.createVendorOnboarding)(user.id, serviceType, secure_url);
         // 8. Return successful response
         res.status(201).json({
             success: true,
