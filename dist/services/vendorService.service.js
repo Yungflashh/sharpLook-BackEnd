@@ -5,10 +5,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteVendorService = exports.editVendorService = exports.getAllServices = exports.getVendorServices = exports.addVendorService = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
-const addVendorService = async (vendorId, serviceName, servicePrice, serviceImage) => {
+const addVendorService = async (userId, serviceName, servicePrice, serviceImage) => {
+    console.log("This is the vendor ID:", userId);
+    const user = await prisma_1.default.user.findUnique({ where: { id: userId } });
+    if (!user) {
+        throw new Error(`Vendor with id ${userId} does not exist.`);
+    }
     return await prisma_1.default.vendorService.create({
         data: {
-            vendorId,
+            userId,
             serviceName,
             servicePrice,
             serviceImage,
@@ -16,9 +21,9 @@ const addVendorService = async (vendorId, serviceName, servicePrice, serviceImag
     });
 };
 exports.addVendorService = addVendorService;
-const getVendorServices = async (vendorId) => {
+const getVendorServices = async (userId) => {
     return await prisma_1.default.vendorService.findMany({
-        where: { vendorId },
+        where: { userId },
         orderBy: { createdAt: "desc" },
     });
 };
@@ -26,17 +31,7 @@ exports.getVendorServices = getVendorServices;
 // ✅ Get all services (admin/global purpose)
 const getAllServices = async () => {
     return await prisma_1.default.vendorService.findMany({
-        orderBy: { createdAt: "desc" },
-        include: {
-            vendor: {
-                select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    email: true,
-                },
-            },
-        },
+        include: { vendor: true } // optional, to include vendor info
     });
 };
 exports.getAllServices = getAllServices;

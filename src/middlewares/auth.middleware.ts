@@ -20,6 +20,8 @@ interface JwtPayload {
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload
         req.user = decoded
+
+        
         console.log(req.user);
         
         next()

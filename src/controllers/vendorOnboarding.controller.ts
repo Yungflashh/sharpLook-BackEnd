@@ -47,6 +47,7 @@ export const registerVendor = async (req: Request, res: Response) => {
       secure_url
     );
 
+    await sendOtpService(email)
     // 8. Return successful response
     res.status(201).json({
       success: true,

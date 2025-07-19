@@ -17,11 +17,11 @@ export const createVendorService = async (req: Request, res: Response) => {
   console.log("Here u go ", req.user);
   
 
-  const vendorId = req.user?.vendorId!;
+  const userId = req.user?.id!;
 
   console.log("📥 Request body:", { serviceName, servicePrice });
   console.log("📥 Image received:", !!serviceImage);
-  console.log("📥 Vendor ID:", vendorId);
+  console.log("📥 Vendor ID:", userId);
 
   // 2. Validate input
   if (!serviceImage || !serviceName || !servicePrice) {
@@ -42,7 +42,7 @@ export const createVendorService = async (req: Request, res: Response) => {
     // 4. Save service to database
     console.log("🛠️ Creating service...");
     const service = await addVendorService(
-      vendorId,
+      userId,
       serviceName,
       parseFloat(servicePrice),
       upload.secure_url

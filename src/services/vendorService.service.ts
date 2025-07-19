@@ -1,26 +1,37 @@
 import prisma from "../config/prisma"
 
 export const addVendorService = async (
-  vendorId: string,
+  userId: string,
   serviceName: string,
   servicePrice: number,
   serviceImage: string
 ) => {
+
+   
+
+  console.log("This is the vendor ID:", userId);
+  
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new Error(`Vendor with id ${userId} does not exist.`);
+  }
+
   return await prisma.vendorService.create({
     data: {
-      vendorId,
+      
+      userId,
       serviceName,
       servicePrice,
       serviceImage,
     },
-  })
-}
+  });
+};
 
-export const getVendorServices = async (vendorId: string) => {
+export const getVendorServices = async (userId: string) => {
  
   
   return await prisma.vendorService.findMany({
-    where: { vendorId },
+    where: { userId },
     orderBy: { createdAt: "desc" },
   })
 }
@@ -29,17 +40,7 @@ export const getVendorServices = async (vendorId: string) => {
 // ✅ Get all services (admin/global purpose)
 export const getAllServices = async () => {
   return await prisma.vendorService.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      vendor: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-      },
-    },
+    include: { vendor: true } // optional, to include vendor info
   });
 };
 

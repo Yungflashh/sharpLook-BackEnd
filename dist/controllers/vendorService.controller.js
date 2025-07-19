@@ -12,10 +12,10 @@ const createVendorService = async (req, res) => {
     const { serviceName, servicePrice } = req.body;
     const serviceImage = req.file;
     console.log("Here u go ", req.user);
-    const vendorId = req.user?.vendorId;
+    const userId = req.user?.id;
     console.log("📥 Request body:", { serviceName, servicePrice });
     console.log("📥 Image received:", !!serviceImage);
-    console.log("📥 Vendor ID:", vendorId);
+    console.log("📥 Vendor ID:", userId);
     // 2. Validate input
     if (!serviceImage || !serviceName || !servicePrice) {
         console.warn("⚠️ Missing required fields");
@@ -28,7 +28,7 @@ const createVendorService = async (req, res) => {
         console.log("✅ Image uploaded:", upload.secure_url);
         // 4. Save service to database
         console.log("🛠️ Creating service...");
-        const service = await (0, vendorService_service_1.addVendorService)(vendorId, serviceName, parseFloat(servicePrice), upload.secure_url);
+        const service = await (0, vendorService_service_1.addVendorService)(userId, serviceName, parseFloat(servicePrice), upload.secure_url);
         console.log("✅ Service created:", service.id);
         // 5. Return success response
         return res.status(201).json({

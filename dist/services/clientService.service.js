@@ -6,12 +6,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getVendorServicesByVendorId = exports.getAllVendorServices = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const getAllVendorServices = async () => {
-    return await prisma_1.default.vendorService.findMany();
+    try {
+        // No 'where' clause here — fetch all vendor services
+        const services = await prisma_1.default.vendorService.findMany({
+            include: { vendor: true } // optional: include vendor info
+        });
+        return services;
+    }
+    catch (error) {
+        console.error('Failed to fetch all services:', error);
+        throw error;
+    }
 };
 exports.getAllVendorServices = getAllVendorServices;
-const getVendorServicesByVendorId = async (vendorId) => {
+const getVendorServicesByVendorId = async (userId) => {
     return await prisma_1.default.vendorService.findMany({
-        where: { vendorId },
+        where: { userId },
         include: {
             vendor: {
                 select: {

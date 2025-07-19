@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerVendor = void 0;
 const auth_service_1 = require("../services/auth.service");
 const vendorOnboarding_service_1 = require("../services/vendorOnboarding.service");
+const otp_service_1 = require("../services/otp.service");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const registerVendor = async (req, res) => {
     try {
@@ -29,6 +30,7 @@ const registerVendor = async (req, res) => {
         const user = await (0, auth_service_1.registerUser)(email, password, firstName, lastName, role, acceptedPersonalData, phone);
         // 7. Create vendor onboarding with Cloudinary image
         await (0, vendorOnboarding_service_1.createVendorOnboarding)(user.id, serviceType, secure_url);
+        await (0, otp_service_1.sendOtpService)(email);
         // 8. Return successful response
         res.status(201).json({
             success: true,

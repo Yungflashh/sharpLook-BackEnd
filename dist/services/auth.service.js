@@ -152,7 +152,7 @@ const loginWithVendorCheck = async (email, password) => {
     const match = await bcryptjs_1.default.compare(password, user.password);
     if (!match)
         throw new Error("Invalid credentials");
-    const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role, vendorId: user.vendorOnboarding?.id }, process.env.JWT_SECRET, {
+    const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
         expiresIn: "7d",
     });
     const existingVendorProfile = await prisma_1.default.vendorOnboarding.findUnique({

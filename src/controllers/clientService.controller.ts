@@ -5,6 +5,8 @@ import {
 } from "../services/clientService.service"
 
 export const fetchAllServices = async (_req: Request, res: Response) => {
+
+  
   try {
     const services = await getAllVendorServices();
     return res.status(200).json({

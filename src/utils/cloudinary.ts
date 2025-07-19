@@ -1,10 +1,14 @@
 // src/utils/cloudinary.ts
 import { v2 as cloudinary } from "cloudinary";
 
+const CLOUDINARY_CLOUD_NAME= "dt2il3eyn"
+const CLOUDINARY_API_KEY="647663984449251"
+const CLOUDINARY_API_SECRET="RWGpOfZ5TaVvL35iTCmDOnVstq0"
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
-  api_key: process.env.CLOUDINARY_API_KEY!,
-  api_secret: process.env.CLOUDINARY_API_SECRET!,
+  cloud_name: CLOUDINARY_CLOUD_NAME!,
+  api_key: CLOUDINARY_API_KEY!,
+  api_secret: CLOUDINARY_API_SECRET!,
 });
 
 const uploadToCloudinary = async (
