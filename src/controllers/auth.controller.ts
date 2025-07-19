@@ -109,7 +109,7 @@ export const login = async (req: Request, res: Response) => {
     const {
       token,
       user,
-      vendorProfile = null, // optional chaining support
+      vendorProfile = null, 
       message,
     } = responseData as any;
 

@@ -187,7 +187,7 @@ export const loginWithVendorCheck = async (email: string, password: string): Pro
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new Error("Invalid credentials");
 
-  const token = jwt.sign({ id: user.id, role: user.role,  vendorId: user.vendorOnboarding?.id, }, process.env.JWT_SECRET!, {
+  const token = jwt.sign({ id: user.id, role: user.role,  vendorId: user.vendorOnboarding?.id }, process.env.JWT_SECRET!, {
     expiresIn: "7d",
   });
 
@@ -208,8 +208,8 @@ export const loginWithVendorCheck = async (email: string, password: string): Pro
   });
 
   let message: string | undefined;
-  if (!vendorProfile.registerationNumber) {
-    message = "Please complete your vendor profile (registration number and location required).";
+  if (!vendorProfile.businessName) {
+    message = "Please complete your vendor profile (business Name required).";
   } else if (vendorProfile.latitude == null || vendorProfile.longitude == null) {
     message = "No Location";
   }

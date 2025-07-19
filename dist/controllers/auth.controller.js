@@ -74,8 +74,7 @@ const login = async (req, res) => {
         else {
             responseData = await (0, auth_service_2.loginUser)(email, password);
         }
-        const { token, user, vendorProfile = null, // optional chaining support
-        message, } = responseData;
+        const { token, user, vendorProfile = null, message, } = responseData;
         if (!user.isEmailVerified) {
             await (0, otp_service_1.sendOtpService)(email);
             return res.status(403).json({
