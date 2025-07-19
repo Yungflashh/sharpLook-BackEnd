@@ -9,7 +9,7 @@ import uploadToCloudinary from "../utils/cloudinary"
 export const registerVendor = async (req: Request, res: Response) => {
   try {
     // 1. Extract required fields from request body
-    const { firstName, lastName, email, password, role, phone } = req.body;
+    const { firstName, lastName, email, password, role, phone, serviceType } = req.body;
     let { acceptedPersonalData } = req.body;
 
     // 2. Normalize boolean for acceptedPersonalData
@@ -43,7 +43,7 @@ export const registerVendor = async (req: Request, res: Response) => {
     // 7. Create vendor onboarding with Cloudinary image
     await createVendorOnboarding(
       user.id,
-      req.body.serviceType,
+      serviceType,
       secure_url
     );
 

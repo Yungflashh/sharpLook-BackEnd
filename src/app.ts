@@ -37,7 +37,15 @@ dotenv.config()
 const app = express()
 
 app.use(cors())
-app.use(express.json())
+app.use((req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.includes('application/json')) {
+    express.json()(req, res, next);
+  } else {
+    next();
+  }
+});
+
 app.use(express.urlencoded({ extended: true }))
 app.use("/api/v1/vendor", vendorRoutes)
 app.use("/api/v1/auth", authRoutes)
