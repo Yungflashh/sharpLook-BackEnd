@@ -16,6 +16,7 @@ import vendorServiceRoutes from "./routes/vendorService.routes"
 import historyRoutes from "./routes/history.routes"
 import walletRoutes from "./routes/wallet.routes"
 import referralRoutes from "./routes/referral.routes"
+import adminRoutes from "./routes/admin.routes"
 
 
 
@@ -48,6 +49,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.urlencoded({ extended: true }))
+app.use("/api/v1/admin", adminRoutes)
 app.use("/api/v1/vendor", vendorRoutes)
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/user", userRoutes)

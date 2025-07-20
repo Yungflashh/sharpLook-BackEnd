@@ -30,65 +30,54 @@ export const updateClientLocationPreferences = async (
 };
 
 
-
 export const getTopRatedVendors = async (limit: number = 10) => {
   const topVendors = await prisma.user.findMany({
     where: { role: "VENDOR" },
     include: {
       vendorOnboarding: true,
       vendorReviews: true,
-
+      vendorServices: true,
+      vendorAvailabilities: true,
+      promotions: true,
+      wallet: true,
+      // Add other relevant includes if needed
     },
-  })
+  });
 
   const sorted = topVendors
-    .map((vendor : any) => {
-      const reviews = vendor.vendorReviews
-      const total = reviews.length
-      const avgRating = total > 0
-        ? reviews.reduce((acc: any, r: any) => acc + r.rating, 0) / total
-        : 0
+    .map((vendor: any) => {
+      const reviews = vendor.vendorReviews || [];
+      const total = reviews.length;
+      const avgRating =
+        total > 0
+          ? reviews.reduce((acc: any, r: any) => acc + r.rating, 0) / total
+          : 0;
 
       return {
-        id: vendor.id,
-        name: vendor.name,
-        avatar: vendor.avatar,
-        businessName: vendor.vendorOnboarding?.businessName,
-        specialties: vendor.vendorOnboarding?.specialties,
+        ...vendor, // return the entire vendor object
         rating: avgRating,
         totalReviews: total,
-      }
+      };
     })
-    .sort((a:any, b:any) => b.rating - a.rating)
-    .slice(0, limit)
+    .sort((a: any, b: any) => b.rating - a.rating)
+    .slice(0, limit);
 
-  return sorted
-}
-
+  return sorted;
+};
 
 
 
 export const getVendorDetails = async (vendorId: string) => {
   const vendor = await prisma.user.findUnique({
     where: {
-      id: vendorId // <-- this must be a string
+      id: vendorId
     },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      avatar: true,
-      phone: true,
-      bio: true,
+    include: {
       vendorOnboarding: true,
       vendorAvailabilities: true,
       vendorServices: true,
       vendorReviews: {
-        select: {
-          rating: true,
-          comment: true,
-          createdAt: true,
+        include: {
           client: {
             select: {
               firstName: true,
@@ -109,16 +98,33 @@ export const getVendorDetails = async (vendorId: string) => {
           startDate: "desc"
         }
       },
-      products: {
-        select: {
-          productName: true,
-          price: true,
-          picture: true,
-          status: true
-        }
-      }
+      products: true, // Include full product info, not just selected fields
+      wallet: true,
+      cartItems: true,
+      wishlistItems: true,
+      orders: true,
+      referralsMade: true,
+      referralsGotten: true,
+      notifications: true,
+      sentMessages: true,
+      receivedMessages: true,
     }
   });
 
-  return vendor;
+  if (!vendor) return null;
+
+  // Optional: Compute average rating & total reviews
+  const reviews = vendor.vendorReviews || [];
+  const totalReviews = reviews.length;
+  const avgRating =
+    totalReviews > 0
+      ? reviews.reduce((acc: any, r: any) => acc + r.rating, 0) / totalReviews
+      : 0;
+
+  return {
+    ...vendor,
+    totalReviews,
+    avgRating
+  };
 };
+

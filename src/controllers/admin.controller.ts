@@ -20,10 +20,23 @@ export const banUser = async (req: Request, res: Response) => {
 }
 
 export const promoteToAdmin = async (req: Request, res: Response) => {
-  const { userId } = req.params
-  await AdminService.promoteUserToAdmin(userId)
-  res.json({ success: true, message: "User promoted to ADMIN" })
-}
+  const { adminId } = req.params;
+
+  try {
+    await AdminService.promoteUserToAdmin(adminId);
+
+    res.json({
+      success: true,
+      message: "User promoted to ADMIN and granted admin power",
+    });
+  } catch (error: any) {
+    console.error("❌ Error promoting user to ADMIN:", error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to promote user to ADMIN",
+    });
+  }
+};
 
 
 export const getAllUsersByRole = async (req: Request, res: Response) => {

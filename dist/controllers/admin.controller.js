@@ -52,9 +52,21 @@ const banUser = async (req, res) => {
 };
 exports.banUser = banUser;
 const promoteToAdmin = async (req, res) => {
-    const { userId } = req.params;
-    await AdminService.promoteUserToAdmin(userId);
-    res.json({ success: true, message: "User promoted to ADMIN" });
+    const { adminId } = req.params;
+    try {
+        await AdminService.promoteUserToAdmin(adminId);
+        res.json({
+            success: true,
+            message: "User promoted to ADMIN and granted admin power",
+        });
+    }
+    catch (error) {
+        console.error("❌ Error promoting user to ADMIN:", error.message);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Failed to promote user to ADMIN",
+        });
+    }
 };
 exports.promoteToAdmin = promoteToAdmin;
 const getAllUsersByRole = async (req, res) => {

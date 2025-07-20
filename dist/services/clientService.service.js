@@ -7,9 +7,14 @@ exports.getVendorServicesByVendorId = exports.getAllVendorServices = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const getAllVendorServices = async () => {
     try {
-        // No 'where' clause here — fetch all vendor services
         const services = await prisma_1.default.vendorService.findMany({
-            include: { vendor: true } // optional: include vendor info
+            include: {
+                vendor: {
+                    include: {
+                        vendorOnboarding: true, // 👈 include vendor onboarding info
+                    },
+                },
+            },
         });
         return services;
     }

@@ -94,6 +94,13 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
+     else if (userCheck.role === "ADMIN" && !userCheck.powerGiven) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin privileges not granted by SuperAdmin.",
+      });
+    }
+
     let responseData: GenericLoginResponse;
 
     if (userCheck.role === "VENDOR") {

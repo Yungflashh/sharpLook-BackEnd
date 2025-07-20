@@ -5,22 +5,72 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getVendorReviews = exports.createReview = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
-const createReview = async (vendorId, clientId, bookingId, rating, comment) => {
+const createReview = async ({ vendorId, clientId, rating, comment, bookingId, productId, serviceId, type }) => {
     return await prisma_1.default.review.create({
         data: {
             vendorId,
             clientId,
-            bookingId,
             rating,
             comment,
-        },
+            bookingId,
+            productId,
+            serviceId,
+            type
+        }
     });
 };
 exports.createReview = createReview;
-const getVendorReviews = async (vendorId) => {
+// export const getVendorReviews = async (vendorId: string) => {
+//   return await prisma.review.findMany({
+//     where: { vendorId },
+//     include: {
+//       client: {
+//         select: {
+//           firstName: true,
+//           lastName: true,
+//           avatar: true,
+//         },
+//       },
+//       booking: {
+//         select: {
+//           id: true,
+//           date: true,
+//           serviceName: true,
+//         },
+//       },
+//       product: {
+//         select: {
+//           id: true,
+//           productName: true,
+//           picture: true,
+//         },
+//       },
+//       service: {
+//         select: {
+//           id: true,
+//           serviceName: true,
+//           serviceImage: true,
+//         },
+//       },
+//     },
+//     orderBy: {
+//       createdAt: 'desc',
+//     },
+//   });
+// };
+const getVendorReviews = async (vendorId, type) => {
     return await prisma_1.default.review.findMany({
-        where: { vendorId },
-        include: { client: true, booking: true },
+        where: {
+            vendorId,
+            ...(type ? { type } : {}), // Optional filter
+        },
+        include: {
+            client: { select: { firstName: true, lastName: true, avatar: true } },
+            booking: { select: { id: true, date: true, serviceName: true } },
+            product: { select: { id: true, productName: true, picture: true } },
+            service: { select: { id: true, serviceName: true, serviceImage: true } },
+        },
+        orderBy: { createdAt: 'desc' },
     });
 };
 exports.getVendorReviews = getVendorReviews;

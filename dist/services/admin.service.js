@@ -33,10 +33,17 @@ const unbanUser = async (userId) => {
     });
 };
 exports.unbanUser = unbanUser;
-const promoteUserToAdmin = async (userId) => {
+const promoteUserToAdmin = async (adminId) => {
+    console.log(adminId);
+    const user = await prisma_1.default.user.findUnique({ where: { id: adminId } });
+    if (!user)
+        throw new Error("User not found");
     return await prisma_1.default.user.update({
-        where: { id: userId },
-        data: { role: "ADMIN" },
+        where: { id: adminId },
+        data: {
+            role: "ADMIN",
+            powerGiven: true, // ✅ Set admin power as granted
+        },
     });
 };
 exports.promoteUserToAdmin = promoteUserToAdmin;

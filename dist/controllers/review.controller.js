@@ -36,16 +36,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchVendorReviews = exports.postReview = void 0;
 const ReviewService = __importStar(require("../services/review.service"));
 const postReview = async (req, res) => {
-    const { bookingId, vendorId, rating, comment } = req.body;
+    const { bookingId, productId, serviceId, vendorId, rating, comment, type } = req.body;
     const clientId = req.user?.id;
-    if (!bookingId || !vendorId || !rating) {
+    // ✅ Validate required fields
+    if (!vendorId || !clientId || !rating || !type) {
         return res.status(400).json({
             success: false,
-            message: "Missing required fields: bookingId, vendorId, or rating",
+            message: "Missing required fields: vendorId, clientId, rating, or type",
+        });
+    }
+    // ✅ Enforce type-specific ID requirement
+    const missingContext = (type === 'BOOKING' && !bookingId) ||
+        (type === 'PRODUCT' && !productId) ||
+        (type === 'SERVICE' && !serviceId) ||
+        (type === 'VENDOR' && (bookingId || productId || serviceId)); // VENDOR should have no others
+    if (missingContext) {
+        return res.status(400).json({
+            success: false,
+            message: `Missing or invalid ID for review type "${type}"`,
         });
     }
     try {
-        const review = await ReviewService.createReview(vendorId, clientId, bookingId, rating, comment);
+        const review = await ReviewService.createReview({
+            vendorId,
+            clientId,
+            rating,
+            comment,
+            bookingId,
+            productId,
+            serviceId,
+            type,
+        });
         return res.status(201).json({
             success: true,
             message: "Review posted successfully",
@@ -61,9 +82,10 @@ const postReview = async (req, res) => {
 };
 exports.postReview = postReview;
 const fetchVendorReviews = async (req, res) => {
-    const vendorId = req.params.vendorId;
+    const { vendorId } = req.params;
+    const type = req.query.type;
     try {
-        const reviews = await ReviewService.getVendorReviews(vendorId);
+        const reviews = await ReviewService.getVendorReviews(vendorId, type);
         return res.status(200).json({
             success: true,
             message: "Vendor reviews fetched successfully",

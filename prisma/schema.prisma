@@ -15,6 +15,8 @@ model User {
   phone            String?
   password         String
   role             Role
+  powerGiven Boolean? @default(false)
+
   vendorOnboarding VendorOnboarding?
 
   isEmailVerified      Boolean   @default(false)
@@ -117,7 +119,6 @@ model VendorAvailability {
 
   vendor User @relation(fields: [vendorId], references: [id])
 }
-
 model Booking {
   id            String        @id @default(auto()) @map("_id") @db.ObjectId
   clientId      String        @db.ObjectId
@@ -129,17 +130,18 @@ model Booking {
   price         Float
   status        BookingStatus
   totalAmount   Float
-  paymentMethod String // "WALLET" | "CARD"
   paymentStatus PaymentStatus @default(PENDING)
-  review        Review?       @relation("BookingToReview") // ✅ only define relation name here
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  paymentMethod String      
 
   client User @relation("ClientBooking", fields: [clientId], references: [id])
   vendor User @relation("VendorBooking", fields: [vendorId], references: [id])
 
   clientCompleted  Boolean        @default(false)
   vendorCompleted  Boolean        @default(false)
+
+  review Review? @relation("BookingToReview")
+
+  createdAt     DateTime    @default(now())
 }
 
 model Product {
@@ -156,6 +158,11 @@ model Product {
   wishlistItems WishlistItem[] @relation("ProductWishlistItems")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
+
+  reviews Review[] @relation("ProductToReview")
+
+
 }
 
 
@@ -180,17 +187,29 @@ model Notification {
 }
 
 model Review {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  bookingId String   @unique @db.ObjectId // ✅ must be unique for 1-to-1
-  vendorId  String   @db.ObjectId
-  clientId  String   @db.ObjectId
-  rating    Int
-  comment   String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId String? @db.ObjectId @unique
+  productId   String?  @db.ObjectId
+  serviceId   String?  @db.ObjectId
+  vendorId    String   @db.ObjectId
+  clientId    String   @db.ObjectId
+  rating      Int
+  comment     String?
+  type        ReviewType
+  createdAt   DateTime @default(now())
 
-  booking Booking? @relation("BookingToReview", fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction) // ✅ Only set fields and references here
-  vendor  User     @relation("VendorReview", fields: [vendorId], references: [id])
-  client  User     @relation("ClientReview", fields: [clientId], references: [id])
+  booking    Booking?        @relation("BookingToReview", fields: [bookingId], references: [id])
+  product    Product?        @relation("ProductToReview", fields: [productId], references: [id])
+  service    VendorService?  @relation("ServiceToReview", fields: [serviceId], references: [id])
+  vendor      User          @relation("VendorReview", fields: [vendorId], references: [id])
+  client      User          @relation("ClientReview", fields: [clientId], references: [id])
+}
+
+enum ReviewType {
+  BOOKING
+  PRODUCT
+  SERVICE
+  VENDOR   
 }
 
 model Promotion {
@@ -232,6 +251,8 @@ model VendorService {
   updatedAt    DateTime @updatedAt
 
   vendor User? @relation(fields: [userId], references: [id])
+  reviews Review[] @relation("ServiceToReview")
+
 }
 
 enum ServiceType {

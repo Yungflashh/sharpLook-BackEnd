@@ -8,5 +8,5 @@ const review_controller_1 = require("../controllers/review.controller");
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = express_1.default.Router();
 router.post("/postReview", auth_middleware_1.verifyToken, review_controller_1.postReview);
-router.get("/:vendorId", review_controller_1.fetchVendorReviews);
+router.get("/:vendorId/reviews", review_controller_1.fetchVendorReviews);
 exports.default = router;

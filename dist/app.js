@@ -20,6 +20,7 @@ const vendorService_routes_1 = __importDefault(require("./routes/vendorService.r
 const history_routes_1 = __importDefault(require("./routes/history.routes"));
 const wallet_routes_1 = __importDefault(require("./routes/wallet.routes"));
 const referral_routes_1 = __importDefault(require("./routes/referral.routes"));
+const admin_routes_1 = __importDefault(require("./routes/admin.routes"));
 // For clients
 const clientService_routes_1 = __importDefault(require("./routes/clientService.routes"));
 const cart_routes_1 = __importDefault(require("./routes/cart.routes"));
@@ -37,6 +38,7 @@ app.use((req, res, next) => {
     }
 });
 app.use(express_1.default.urlencoded({ extended: true }));
+app.use("/api/v1/admin", admin_routes_1.default);
 app.use("/api/v1/vendor", vendor_routes_1.default);
 app.use("/api/v1/auth", auth_routes_1.default);
 app.use("/api/v1/user", user_routes_1.default);

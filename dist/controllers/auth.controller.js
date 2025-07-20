@@ -64,6 +64,12 @@ const login = async (req, res) => {
                 message: "Invalid login credentials",
             });
         }
+        else if (userCheck.role === "ADMIN" && !userCheck.powerGiven) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin privileges not granted by SuperAdmin.",
+            });
+        }
         let responseData;
         if (userCheck.role === "VENDOR") {
             responseData = await (0, auth_service_2.loginWithVendorCheck)(email, password);

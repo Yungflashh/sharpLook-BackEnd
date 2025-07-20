@@ -3,10 +3,15 @@ import prisma from "../config/prisma"
 
 
 export const getAllVendorServices = async () => {
-   try {
-    // No 'where' clause here — fetch all vendor services
+  try {
     const services = await prisma.vendorService.findMany({
-      include: { vendor: true }  // optional: include vendor info
+      include: {
+        vendor: {
+          include: {
+            vendorOnboarding: true, // 👈 include vendor onboarding info
+          },
+        },
+      },
     });
     return services;
   } catch (error) {
