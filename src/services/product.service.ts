@@ -31,8 +31,32 @@ export const getVendorProducts = async (vendorId: string) => {
   return await prisma.product.findMany({
     where: { vendorId },
     orderBy: { createdAt: "desc" },
-  })
-}
+    include: {
+      vendor: {
+        include: {
+          vendorOnboarding: true,
+          vendorAvailabilities: true,
+          vendorServices: true,
+          vendorReviews: {
+            include: {
+              client: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  avatar: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
 
 export const getAllProducts = async () => {
   return await prisma.product.findMany({

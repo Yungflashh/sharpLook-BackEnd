@@ -25,6 +25,29 @@ const getVendorProducts = async (vendorId) => {
     return await prisma_1.default.product.findMany({
         where: { vendorId },
         orderBy: { createdAt: "desc" },
+        include: {
+            vendor: {
+                include: {
+                    vendorOnboarding: true,
+                    vendorAvailabilities: true,
+                    vendorServices: true,
+                    vendorReviews: {
+                        include: {
+                            client: {
+                                select: {
+                                    firstName: true,
+                                    lastName: true,
+                                    avatar: true,
+                                },
+                            },
+                        },
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                    },
+                },
+            },
+        },
     });
 };
 exports.getVendorProducts = getVendorProducts;
