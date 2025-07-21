@@ -55,15 +55,25 @@ exports.fundWallet = fundWallet;
 const verifyWalletFunding = async (req, res) => {
     try {
         const { reference } = req.body;
+        console.log("[verifyWalletFunding] Incoming request - Body:", req.body);
         if (!reference || typeof reference !== "string") {
-            return res.status(400).json({ error: "Missing or invalid reference" });
+            const message = "Missing or invalid reference";
+            console.error("[verifyWalletFunding] Error:", message);
+            return res.status(400).json({ error: message });
         }
         const result = await (0, payment_service_1.handlePaystackWebhook)(reference);
+        console.log("[verifyWalletFunding] Success:", result);
         res.status(200).json({ message: result });
     }
     catch (error) {
         const err = error;
-        res.status(400).json({ error: err.message });
+        console.error("[verifyWalletFunding] Error occurred:", err.message);
+        // Add more structured error details for debugging
+        res.status(400).json({
+            error: "Funding failed",
+            details: err.message,
+            message: "verifyWalletFunding",
+        });
     }
 };
 exports.verifyWalletFunding = verifyWalletFunding;
