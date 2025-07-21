@@ -74,7 +74,7 @@ const fetchTopVendors = async (req, res) => {
 };
 exports.fetchTopVendors = fetchTopVendors;
 const getAVendorDetails = async (req, res) => {
-    const { vendorId } = req.params;
+    const { vendorId } = req.body;
     if (!vendorId) {
         return res.status(400).json({
             success: false,

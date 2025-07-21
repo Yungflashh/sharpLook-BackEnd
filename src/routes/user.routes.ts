@@ -16,7 +16,7 @@ router.put(
 )
 router.get("/nearby-vendors", getNearbyVendors)
 router.get("/topVendors", fetchTopVendors)
-router.get("/getVendorDetails/:vendorId", getAVendorDetails)
+router.get("/getVendorDetails", getAVendorDetails)
 router.get("/products/top-selling", fetchTopSellingProducts)
 
 

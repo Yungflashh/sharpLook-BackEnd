@@ -6,7 +6,7 @@ const router = express.Router()
 
 
 router.post("/postReview", verifyToken, postReview)
-router.get("/:vendorId/reviews", fetchVendorReviews)
+router.get("/getAllReviews", fetchVendorReviews)
 
 export default router
 

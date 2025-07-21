@@ -11,6 +11,6 @@ router.put("/me", auth_middleware_1.verifyToken, user_controller_1.updateMyProfi
 router.put("/location", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["CLIENT"]), user_controller_1.setClientLocationPreferences);
 router.get("/nearby-vendors", vendor_controller_1.getNearbyVendors);
 router.get("/topVendors", user_controller_1.fetchTopVendors);
-router.get("/getVendorDetails/:vendorId", user_controller_1.getAVendorDetails);
+router.get("/getVendorDetails", user_controller_1.getAVendorDetails);
 router.get("/products/top-selling", product_controller_1.fetchTopSellingProducts);
 exports.default = router;
