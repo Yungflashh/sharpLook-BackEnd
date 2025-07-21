@@ -82,8 +82,8 @@ const postReview = async (req, res) => {
 };
 exports.postReview = postReview;
 const fetchVendorReviews = async (req, res) => {
-    const { vendorId } = req.params;
-    const type = req.query.type;
+    const { vendorId, type } = req.body;
+    // const type = req.query.type as 'BOOKING' | 'PRODUCT' | 'SERVICE' | 'VENDOR' | undefined;
     try {
         const reviews = await ReviewService.getVendorReviews(vendorId, type);
         return res.status(200).json({
