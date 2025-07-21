@@ -9,7 +9,7 @@ const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const createVendorService = async (req, res) => {
     console.log("➡️ [VendorService] Incoming request to create vendor service");
     // 1. Extract data
-    const { serviceName, servicePrice } = req.body;
+    const { serviceName, servicePrice, description } = req.body;
     const serviceImage = req.file;
     console.log("Here u go ", req.user);
     const userId = req.user?.id;
@@ -28,7 +28,7 @@ const createVendorService = async (req, res) => {
         console.log("✅ Image uploaded:", upload.secure_url);
         // 4. Save service to database
         console.log("🛠️ Creating service...");
-        const service = await (0, vendorService_service_1.addVendorService)(userId, serviceName, parseFloat(servicePrice), upload.secure_url);
+        const service = await (0, vendorService_service_1.addVendorService)(userId, serviceName, parseFloat(servicePrice), upload.secure_url, description);
         console.log("✅ Service created:", service.id);
         // 5. Return success response
         return res.status(201).json({
@@ -85,7 +85,7 @@ exports.fetchAllVendorServices = fetchAllVendorServices;
 // ✅ Update vendor service
 const updateVendorService = async (req, res) => {
     const { serviceId } = req.params;
-    const { serviceName, serviceImage } = req.body;
+    const { serviceName, serviceImage, description } = req.body;
     const servicePrice = req.body?.servicePrice
         ? parseFloat(req.body.servicePrice)
         : undefined;

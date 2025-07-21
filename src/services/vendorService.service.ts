@@ -4,7 +4,8 @@ export const addVendorService = async (
   userId: string,
   serviceName: string,
   servicePrice: number,
-  serviceImage: string
+  serviceImage: string,
+  description: string,
 ) => {
 
    
@@ -23,6 +24,7 @@ export const addVendorService = async (
       serviceName,
       servicePrice,
       serviceImage,
+      description,
     },
   });
 };

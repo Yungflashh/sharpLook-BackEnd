@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getVendorReviews = exports.createReview = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
-const client_1 = require("@prisma/client"); // <-- add this line
+const client_1 = require("@prisma/client");
 const createReview = async ({ vendorId, clientId, rating, comment, bookingId, productId, serviceId, type }) => {
     return await prisma_1.default.review.create({
         data: {
@@ -59,7 +59,6 @@ exports.createReview = createReview;
 //     },
 //   });
 // };
-;
 const getVendorReviews = async (vendorId, type) => {
     if (!vendorId)
         throw new Error("vendorId is required");

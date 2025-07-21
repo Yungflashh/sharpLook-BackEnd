@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteVendorService = exports.editVendorService = exports.getAllServices = exports.getVendorServices = exports.addVendorService = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
-const addVendorService = async (userId, serviceName, servicePrice, serviceImage) => {
+const addVendorService = async (userId, serviceName, servicePrice, serviceImage, description) => {
     console.log("This is the vendor ID:", userId);
     const user = await prisma_1.default.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -17,6 +17,7 @@ const addVendorService = async (userId, serviceName, servicePrice, serviceImage)
             serviceName,
             servicePrice,
             serviceImage,
+            description,
         },
     });
 };

@@ -50,6 +50,58 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
     });
 };
 exports.createBooking = createBooking;
+// export const createBooking = async (
+//   clientId: string,
+//   vendorId: string,
+//   serviceId: string,
+//   paymentMethod: string,
+//   serviceName: string,
+//   servicePrice: number,
+//   date: string,
+//   time: string,
+//   isHomeService: boolean,
+//   distanceKm?: number,
+//   serviceLocation?: string,
+//   landmark?: string,
+//   instructions?: string,
+//   referencePhoto?: string
+// ) => {
+//   const homeServicePrice = isHomeService ? calculateHomeServicePrice(distanceKm || 0) : 0;
+//   const totalAmount = servicePrice + homeServicePrice;
+//   if (paymentMethod === "SHARP-PAY") {
+//     const wallet = await getUserWallet(clientId);
+//     if (!wallet || wallet.balance < totalAmount) {
+//       throw new Error("Insufficient wallet balance");
+//     }
+//     // 💰 Debit wallet immediately
+//     await debitWallet(wallet.id, totalAmount, "Home Service Booking Payment");
+//   }
+//   // Create booking
+//   return await prisma.booking.create({
+//     data: {
+//       clientId,
+//       vendorId,
+//       serviceId,
+//       paymentMethod,
+//       paymentStatus: paymentMethod === "SHARP-PAY" ? PaymentStatus.LOCKED : PaymentStatus.PENDING,
+//       serviceName,
+//       date,
+//       time,
+//       price: servicePrice,
+//       homeServicePrice,
+//       totalAmount,
+//       status: BookingStatus.PENDING,
+//       serviceLocation,
+//       landmark,
+//       instructions,
+//       referencePhoto,
+//     }
+//   });
+// };
+// const calculateHomeServicePrice = (distanceKm: number): number => {
+//   const baseRatePerKm = 1000; // ₦1000 per km
+//   return Math.ceil(distanceKm) * baseRatePerKm;
+// };
 const getUserBookings = async (userId, role) => {
     const condition = role === "CLIENT" ? { clientId: userId } : { vendorId: userId };
     const include = role === "CLIENT" ? { vendor: true } : { client: true };

@@ -8,7 +8,7 @@ const product_service_1 = require("../services/product.service");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const product_service_2 = require("../services/product.service");
 const addProduct = async (req, res) => {
-    const { productName } = req.body;
+    const { productName, description } = req.body;
     const price = parseFloat(req.body.price);
     const qtyAvailable = parseInt(req.body.qtyAvailable);
     if (!productName || isNaN(price) || isNaN(qtyAvailable)) {
@@ -25,7 +25,7 @@ const addProduct = async (req, res) => {
     }
     try {
         const cloudRes = await (0, cloudinary_1.default)(req.file.buffer, req.file.mimetype);
-        const product = await (0, product_service_1.createProduct)(req.user.id, productName, price, qtyAvailable, cloudRes.secure_url);
+        const product = await (0, product_service_1.createProduct)(req.user.id, productName, price, qtyAvailable, description, cloudRes.secure_url);
         return res.status(201).json({
             success: true,
             message: "Product posted successfully",

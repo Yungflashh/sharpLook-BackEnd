@@ -154,6 +154,7 @@ model Product {
   vendorId      String         @db.ObjectId
   vendor        User           @relation("UserProducts", fields: [vendorId], references: [id])
   productName   String
+  description   String
   price         Float
   qtyAvailable  Int
   unitsSold     Int            @default(0)
@@ -252,6 +253,7 @@ model VendorService {
   serviceName  String
   servicePrice Float
   serviceImage String
+  description String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

@@ -7,7 +7,8 @@ export const createProduct = async (
   productName: string,
   price: number,
   qtyAvailable: number,
-  picture: string
+  picture: string,
+  description: string,
 ) => {
   const status = qtyAvailable === 0 ? "not in stock" : "in stock"
 
@@ -18,6 +19,7 @@ export const createProduct = async (
       qtyAvailable,
       status,
       picture,
+      description,
       vendor: {
         connect: { id: vendorId }
       }

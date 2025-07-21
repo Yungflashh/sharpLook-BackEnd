@@ -11,7 +11,7 @@ export const createVendorService = async (req: Request, res: Response) => {
   console.log("➡️ [VendorService] Incoming request to create vendor service");
 
   // 1. Extract data
-  const { serviceName, servicePrice } = req.body;
+  const { serviceName, servicePrice, description } = req.body;
   const serviceImage = req.file;
 
   console.log("Here u go ", req.user);
@@ -45,7 +45,8 @@ export const createVendorService = async (req: Request, res: Response) => {
       userId,
       serviceName,
       parseFloat(servicePrice),
-      upload.secure_url
+      upload.secure_url,
+      description
     );
 
     console.log("✅ Service created:", service.id);
@@ -109,7 +110,7 @@ export const fetchAllVendorServices = async (_req: Request, res: Response) => {
 // ✅ Update vendor service
 export const updateVendorService = async (req: Request, res: Response) => {
   const { serviceId } = req.params;
-  const { serviceName, serviceImage } = req.body;
+  const { serviceName, serviceImage, description} = req.body;
 
   const servicePrice = req.body?.servicePrice
       ? parseFloat(req.body.servicePrice)

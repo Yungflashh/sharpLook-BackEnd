@@ -5,7 +5,7 @@ import { getVendorProducts, getAllProducts, getTopSellingProducts, deleteProduct
 
 
 export const addProduct = async (req: Request, res: Response) => {
-  const { productName } = req.body;
+  const { productName, description } = req.body;
   const price = parseFloat(req.body.price);
   const qtyAvailable = parseInt(req.body.qtyAvailable);
 
@@ -30,7 +30,9 @@ export const addProduct = async (req: Request, res: Response) => {
       productName,
       price,
       qtyAvailable,
-      cloudRes.secure_url
+      description,
+      cloudRes.secure_url,
+     
     );
 
     return res.status(201).json({

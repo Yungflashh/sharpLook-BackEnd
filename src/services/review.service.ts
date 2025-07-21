@@ -1,5 +1,5 @@
 import prisma from "../config/prisma"
-import { ReviewType } from "@prisma/client";  // <-- add this line
+import { ReviewType } from "@prisma/client";  
 
 
 
@@ -76,9 +76,6 @@ export const createReview = async ({
 //   });
 // };
 
-
-
-;
 
 export const getVendorReviews = async (vendorId: string, type?: string) => {
   if (!vendorId) throw new Error("vendorId is required");
