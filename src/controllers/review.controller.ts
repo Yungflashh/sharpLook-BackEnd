@@ -1,5 +1,7 @@
 import { Request, Response } from "express"
 import * as ReviewService from "../services/review.service"
+import { ReviewType } from '@prisma/client';
+
 
 export const postReview = async (req: Request, res: Response) => {
   const { bookingId, productId, serviceId, vendorId, rating, comment, type } = req.body;
@@ -52,12 +54,20 @@ export const postReview = async (req: Request, res: Response) => {
   }
 };
 
+
+
 export const fetchVendorReviews = async (req: Request, res: Response) => {
-  const {vendorId, type} = req.body;
-  // const type = req.query.type as 'BOOKING' | 'PRODUCT' | 'SERVICE' | 'VENDOR' | undefined;
+  const { vendorId, type } = req.body;
 
   try {
-    const reviews = await ReviewService.getVendorReviews(vendorId, type);
+    // Validate and convert type string to enum
+    let reviewType: ReviewType | undefined;
+
+    if (type && Object.values(ReviewType).includes(type)) {
+      reviewType = type as ReviewType;
+    }
+
+    const reviews = await ReviewService.getVendorReviews(vendorId, reviewType);
 
     return res.status(200).json({
       success: true,
