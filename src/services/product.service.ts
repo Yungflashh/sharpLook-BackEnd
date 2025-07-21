@@ -7,8 +7,8 @@ export const createProduct = async (
   productName: string,
   price: number,
   qtyAvailable: number,
-  picture: string,
   description: string,
+   picture: string,
 ) => {
   const status = qtyAvailable === 0 ? "not in stock" : "in stock"
 

@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteProduct = exports.updateProduct = exports.getTopSellingProducts = exports.getAllProducts = exports.getVendorProducts = exports.createProduct = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
-const createProduct = async (vendorId, productName, price, qtyAvailable, picture, description) => {
+const createProduct = async (vendorId, productName, price, qtyAvailable, description, picture) => {
     const status = qtyAvailable === 0 ? "not in stock" : "in stock";
     return await prisma_1.default.product.create({
         data: {

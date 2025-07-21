@@ -24,7 +24,7 @@ export const createVendorService = async (req: Request, res: Response) => {
   console.log("📥 Vendor ID:", userId);
 
   // 2. Validate input
-  if (!serviceImage || !serviceName || !servicePrice || description) {
+  if (!serviceImage || !serviceName || !servicePrice || !description) {
     console.warn("⚠️ Missing required fields");
     return res.status(400).json({ error: "All fields are required" });
   }
