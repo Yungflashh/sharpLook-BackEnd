@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getVendorReviews = exports.createReview = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
+const client_1 = require("@prisma/client"); // <-- add this line
 const createReview = async ({ vendorId, clientId, rating, comment, bookingId, productId, serviceId, type }) => {
     return await prisma_1.default.review.create({
         data: {
@@ -59,16 +60,44 @@ exports.createReview = createReview;
 //   });
 // };
 const getVendorReviews = async (vendorId, type) => {
+    let enumType;
+    if (type && Object.values(client_1.ReviewType).includes(type)) {
+        enumType = type;
+    }
     return await prisma_1.default.review.findMany({
         where: {
             vendorId,
-            ...(type ? { type } : {}), // Optional filter
+            ...(enumType ? { type: enumType } : {}), // apply only if valid
         },
         include: {
-            client: { select: { firstName: true, lastName: true, avatar: true } },
-            booking: { select: { id: true, date: true, serviceName: true } },
-            product: { select: { id: true, productName: true, picture: true } },
-            service: { select: { id: true, serviceName: true, serviceImage: true } },
+            client: {
+                select: {
+                    firstName: true,
+                    lastName: true,
+                    avatar: true,
+                },
+            },
+            booking: {
+                select: {
+                    id: true,
+                    date: true,
+                    serviceName: true,
+                },
+            },
+            product: {
+                select: {
+                    id: true,
+                    productName: true,
+                    picture: true,
+                },
+            },
+            service: {
+                select: {
+                    id: true,
+                    serviceName: true,
+                    serviceImage: true,
+                },
+            },
         },
         orderBy: { createdAt: 'desc' },
     });

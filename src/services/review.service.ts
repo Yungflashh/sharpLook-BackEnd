@@ -77,17 +77,48 @@ export const createReview = async ({
 // };
 
 
-export const getVendorReviews = async (vendorId: string, type?: ReviewType) => {
+
+export const getVendorReviews = async (vendorId: string, type?: string) => {
+  let enumType: ReviewType | undefined;
+
+  if (type && Object.values(ReviewType).includes(type as ReviewType)) {
+    enumType = type as ReviewType;
+  }
+
   return await prisma.review.findMany({
     where: {
       vendorId,
-      ...(type ? { type } : {}), // Optional filter
+      ...(enumType ? { type: enumType } : {}), // apply only if valid
     },
     include: {
-      client: { select: { firstName: true, lastName: true, avatar: true } },
-      booking: { select: { id: true, date: true, serviceName: true } },
-      product: { select: { id: true, productName: true, picture: true } },
-      service: { select: { id: true, serviceName: true, serviceImage: true } },
+      client: {
+        select: {
+          firstName: true,
+          lastName: true,
+          avatar: true,
+        },
+      },
+      booking: {
+        select: {
+          id: true,
+          date: true,
+          serviceName: true,
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          productName: true,
+          picture: true,
+        },
+      },
+      service: {
+        select: {
+          id: true,
+          serviceName: true,
+          serviceImage: true,
+        },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });

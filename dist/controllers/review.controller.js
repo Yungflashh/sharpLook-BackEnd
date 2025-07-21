@@ -35,7 +35,6 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchVendorReviews = exports.postReview = void 0;
 const ReviewService = __importStar(require("../services/review.service"));
-const client_1 = require("@prisma/client");
 const postReview = async (req, res) => {
     const { bookingId, productId, serviceId, vendorId, rating, comment, type } = req.body;
     const clientId = req.user?.id;
@@ -84,13 +83,9 @@ const postReview = async (req, res) => {
 exports.postReview = postReview;
 const fetchVendorReviews = async (req, res) => {
     const { vendorId, type } = req.body;
+    // const type = req.query.type as 'BOOKING' | 'PRODUCT' | 'SERVICE' | 'VENDOR' | undefined;
     try {
-        // Validate and convert type string to enum
-        let reviewType;
-        if (type && Object.values(client_1.ReviewType).includes(type)) {
-            reviewType = type;
-        }
-        const reviews = await ReviewService.getVendorReviews(vendorId, reviewType);
+        const reviews = await ReviewService.getVendorReviews(vendorId, type);
         return res.status(200).json({
             success: true,
             message: "Vendor reviews fetched successfully",
