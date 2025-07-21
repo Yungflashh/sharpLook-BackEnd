@@ -59,15 +59,18 @@ exports.createReview = createReview;
 //     },
 //   });
 // };
+;
 const getVendorReviews = async (vendorId, type) => {
-    let enumType;
-    if (type && Object.values(client_1.ReviewType).includes(type)) {
-        enumType = type;
-    }
+    if (!vendorId)
+        throw new Error("vendorId is required");
+    // Only set enumType if it's a valid ReviewType value
+    const enumValues = Object.values(client_1.ReviewType);
+    const isValidType = type && enumValues.includes(type);
+    const enumType = isValidType ? type : undefined;
     return await prisma_1.default.review.findMany({
         where: {
             vendorId,
-            ...(enumType ? { type: enumType } : {}), // apply only if valid
+            ...(enumType ? { type: enumType } : {}),
         },
         include: {
             client: {

@@ -78,17 +78,21 @@ export const createReview = async ({
 
 
 
-export const getVendorReviews = async (vendorId: string, type?: string) => {
-  let enumType: ReviewType | undefined;
+;
 
-  if (type && Object.values(ReviewType).includes(type as ReviewType)) {
-    enumType = type as ReviewType;
-  }
+export const getVendorReviews = async (vendorId: string, type?: string) => {
+  if (!vendorId) throw new Error("vendorId is required");
+
+  // Only set enumType if it's a valid ReviewType value
+  const enumValues = Object.values(ReviewType);
+  const isValidType = type && enumValues.includes(type as ReviewType);
+
+  const enumType = isValidType ? (type as ReviewType) : undefined;
 
   return await prisma.review.findMany({
     where: {
       vendorId,
-      ...(enumType ? { type: enumType } : {}), // apply only if valid
+      ...(enumType ? { type: enumType } : {}),
     },
     include: {
       client: {
@@ -123,3 +127,4 @@ export const getVendorReviews = async (vendorId: string, type?: string) => {
     orderBy: { createdAt: 'desc' },
   });
 };
+

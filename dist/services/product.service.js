@@ -54,6 +54,39 @@ exports.getVendorProducts = getVendorProducts;
 const getAllProducts = async () => {
     return await prisma_1.default.product.findMany({
         orderBy: { createdAt: "desc" },
+        include: {
+            vendor: {
+                include: {
+                    vendorOnboarding: true,
+                    vendorAvailabilities: true,
+                    vendorServices: true,
+                    vendorReviews: {
+                        include: {
+                            client: {
+                                select: {
+                                    firstName: true,
+                                    lastName: true,
+                                    avatar: true,
+                                },
+                            },
+                        },
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                    },
+                    wallet: true,
+                    products: true,
+                    cartItems: true,
+                    wishlistItems: true,
+                    orders: true,
+                    referralsMade: true,
+                    referralsGotten: true,
+                    notifications: true,
+                    sentMessages: true,
+                    receivedMessages: true,
+                },
+            },
+        },
     });
 };
 exports.getAllProducts = getAllProducts;
