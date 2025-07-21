@@ -8,7 +8,7 @@ router.get("/walletDetails", verifyToken, getWalletDetails)
 router.get("/transactions", verifyToken, walletTransactions)
 
 router.post("/fund", verifyToken, fundWallet)
-router.get("/verify", verifyToken, verifyWalletFunding)
+router.post("/verify", verifyToken, verifyWalletFunding)
 
 
 export default router

@@ -76,6 +76,9 @@ model User {
   referralsMade   Referral[] @relation("ReferredBy")
   referralsGotten Referral[] @relation("ReferredUser")
 
+
+  raisedDisputes Dispute[] @relation("UserDisputes")
+
   // ✅ Optional location preference
   preferredLatitude  Float?
   preferredLongitude Float?
@@ -140,6 +143,8 @@ model Booking {
   vendorCompleted  Boolean        @default(false)
 
   review Review? @relation("BookingToReview")
+  dispute Dispute? 
+
 
   createdAt     DateTime    @default(now())
 }
@@ -320,6 +325,29 @@ model Like {
   wallet    Wallet   @relation(fields: [walletId], references: [id])
   createdAt DateTime @default(now())
 }
+
+
+model Dispute {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId   String    @unique @db.ObjectId
+  raisedById  String   @db.ObjectId // Can be client or vendor
+  reason      String
+  status      DisputeStatus @default(PENDING)
+  resolution  String?
+  createdAt   DateTime @default(now())
+
+  raisedBy    User     @relation("UserDisputes", fields: [raisedById], references: [id])
+
+  booking  Booking  @relation(fields: [bookingId], references: [id])
+}
+
+enum DisputeStatus {
+  PENDING
+  RESOLVED
+  REJECTED
+}
+
+
 enum PaymentStatus {
   PENDING
   LOCKED       // Client's money is deducted and locked until completion or cancellation

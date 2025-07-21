@@ -17,6 +17,8 @@ import historyRoutes from "./routes/history.routes"
 import walletRoutes from "./routes/wallet.routes"
 import referralRoutes from "./routes/referral.routes"
 import adminRoutes from "./routes/admin.routes"
+import disputeRoutes from "./routes/dispute.routes";
+
 
 
 
@@ -63,6 +65,8 @@ app.use("/api/v1/messages", messageRoutes)
 app.use("/api/v1/vendorServices", vendorServiceRoutes)
 app.use("/api/v1/wallet", walletRoutes)
 app.use("/api/v1/referrals", referralRoutes)
+app.use("/api/v1/disputes", disputeRoutes);
+
 
 
 
