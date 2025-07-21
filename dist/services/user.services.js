@@ -37,7 +37,7 @@ const getTopRatedVendors = async (limit = 10) => {
             vendorAvailabilities: true,
             promotions: true,
             wallet: true,
-            // Add other relevant includes if needed
+            products: true, // ✅ Include vendor products here
         },
     });
     const sorted = topVendors
@@ -48,9 +48,10 @@ const getTopRatedVendors = async (limit = 10) => {
             ? reviews.reduce((acc, r) => acc + r.rating, 0) / total
             : 0;
         return {
-            ...vendor, // return the entire vendor object
+            ...vendor,
             rating: avgRating,
             totalReviews: total,
+            products: vendor.products // ✅ Ensure products are explicitly returned
         };
     })
         .sort((a, b) => b.rating - a.rating)

@@ -40,7 +40,7 @@ export const getTopRatedVendors = async (limit: number = 10) => {
       vendorAvailabilities: true,
       promotions: true,
       wallet: true,
-      // Add other relevant includes if needed
+      products: true, // ✅ Include vendor products here
     },
   });
 
@@ -54,9 +54,10 @@ export const getTopRatedVendors = async (limit: number = 10) => {
           : 0;
 
       return {
-        ...vendor, // return the entire vendor object
+        ...vendor,
         rating: avgRating,
         totalReviews: total,
+        products: vendor.products // ✅ Ensure products are explicitly returned
       };
     })
     .sort((a: any, b: any) => b.rating - a.rating)
