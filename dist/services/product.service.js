@@ -114,7 +114,7 @@ const getTopSellingProducts = async (limit = 10) => {
     });
 };
 exports.getTopSellingProducts = getTopSellingProducts;
-const updateProduct = async (productId, vendorId, productName, price, qtyAvailable, picture) => {
+const updateProduct = async (productId, vendorId, productName, price, qtyAvailable, description, picture) => {
     const status = qtyAvailable === 0 ? "not in stock" : "in stock";
     return await prisma_1.default.product.update({
         where: {
@@ -126,6 +126,7 @@ const updateProduct = async (productId, vendorId, productName, price, qtyAvailab
             price,
             qtyAvailable,
             status,
+            description,
             ...(picture && { picture }), // only update if a new picture was uploaded
         },
     });

@@ -133,7 +133,9 @@ export const updateProduct = async (
   productName: string,
   price: number,
   qtyAvailable: number,
-  picture?: string
+  description: string,
+  picture?: string,
+  
 ) => {
   const status = qtyAvailable === 0 ? "not in stock" : "in stock"
 
@@ -147,6 +149,7 @@ export const updateProduct = async (
       price,
       qtyAvailable,
       status,
+      description,
       ...(picture && { picture }), // only update if a new picture was uploaded
     },
   })

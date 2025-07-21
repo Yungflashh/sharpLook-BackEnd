@@ -104,7 +104,7 @@ export const editProduct = async (req: Request, res: Response) => {
   try {
     const vendorId = req.user?.id;
     const { productId } = req.params;
-    const { productName, price, qtyAvailable } = req.body;
+    const { productName, price, qtyAvailable, description } = req.body;
 
     if (!productName || !price || qtyAvailable === undefined) {
       return res.status(400).json({
@@ -126,7 +126,8 @@ export const editProduct = async (req: Request, res: Response) => {
       productName,
       Number(price),
       Number(qtyAvailable),
-      pictureUrl
+      description,
+      pictureUrl,
     );
 
     return res.status(200).json({

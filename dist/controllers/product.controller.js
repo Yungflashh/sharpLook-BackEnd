@@ -96,7 +96,7 @@ const editProduct = async (req, res) => {
     try {
         const vendorId = req.user?.id;
         const { productId } = req.params;
-        const { productName, price, qtyAvailable } = req.body;
+        const { productName, price, qtyAvailable, description } = req.body;
         if (!productName || !price || qtyAvailable === undefined) {
             return res.status(400).json({
                 success: false,
@@ -108,7 +108,7 @@ const editProduct = async (req, res) => {
             const cloudinaryRes = await (0, cloudinary_1.default)(req.file.buffer, req.file.mimetype);
             pictureUrl = cloudinaryRes.secure_url;
         }
-        const updatedProduct = await (0, product_service_2.updateProduct)(productId, vendorId, productName, Number(price), Number(qtyAvailable), pictureUrl);
+        const updatedProduct = await (0, product_service_2.updateProduct)(productId, vendorId, productName, Number(price), Number(qtyAvailable), description, pictureUrl);
         return res.status(200).json({
             success: true,
             message: "Product updated successfully",

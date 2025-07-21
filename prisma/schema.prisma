@@ -332,7 +332,7 @@ model Like {
 model Dispute {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   bookingId   String    @unique @db.ObjectId
-  raisedById  String   @db.ObjectId // Can be client or vendor
+  raisedById  String   @db.ObjectId 
   reason      String
   status      DisputeStatus @default(PENDING)
   resolution  String?
