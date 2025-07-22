@@ -52,10 +52,10 @@ const fetchVendorServices = async (req, res) => {
     try {
         console.log("🔐 Fetching vendor services...");
         // 1. Extract and log vendorId and user info
-        const vendorId = req.user?.vendorId;
-        const userId = req.user?.id;
+        const vendorId = req.user?.id;
+        // const userId = req.user?.id;
         const userRole = req.user?.role;
-        console.log("👤 Authenticated User ID:", userId);
+        // console.log("👤 Authenticated User ID:", userId);
         console.log("🎭 Role:", userRole);
         console.log("🆔 Vendor ID from token:", vendorId);
         // 2. Fetch vendor services
