@@ -33,12 +33,13 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markBookingCompletedByVendor = exports.markBookingCompletedByClient = exports.changeBookingStatus = exports.getMyBookings = exports.bookVendor = void 0;
+exports.payForBookingHandler = exports.acceptBookingHandler = exports.createBookingHandler = exports.markBookingCompletedByVendor = exports.markBookingCompletedByClient = exports.changeBookingStatus = exports.getMyBookings = exports.bookVendor = void 0;
 const BookingService = __importStar(require("../services/booking.service"));
 const notification_service_1 = require("../services/notification.service");
+const booking_service_1 = require("../services/booking.service");
 const bookVendor = async (req, res) => {
-    const { vendorId, date, time, price, serviceName, serviceId, totalAmount, reference, } = req.body;
-    const paymentMethod = "SHARPPAY"; // Corrected to match your service
+    const { vendorId, date, time, price, serviceName, serviceId, totalAmount, reference, paymentMethod } = req.body;
+    // Corrected to match your service
     // Payment status will be set inside the service based on wallet logic, so no need to send here.
     if (!vendorId || !date || !time || !price || !serviceName || !serviceId || !totalAmount) {
         return res.status(400).json({
@@ -162,3 +163,42 @@ const markBookingCompletedByVendor = async (req, res) => {
     }
 };
 exports.markBookingCompletedByVendor = markBookingCompletedByVendor;
+// hpome servcie 
+const createBookingHandler = async (req, res) => {
+    try {
+        const { serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, homeDetails, } = req.body;
+        const booking = await (0, booking_service_1.homeServiceCreateBooking)(req.user.id, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, homeDetails);
+        res.status(201).json({ success: true, message: "Booking created", data: booking });
+    }
+    catch (err) {
+        res.status(400).json({ success: false, message: err.message || "Failed to create booking" });
+    }
+};
+exports.createBookingHandler = createBookingHandler;
+const acceptBookingHandler = async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+        const vendorId = req.user.id;
+        const booking = await (0, booking_service_1.acceptBooking)(vendorId, bookingId);
+        // TODO: Notify client about acceptance (e.g., socket or push notification)
+        res.json({ success: true, message: "Booking accepted", data: booking });
+    }
+    catch (err) {
+        res.status(400).json({ success: false, message: err.message || "Failed to accept booking" });
+    }
+};
+exports.acceptBookingHandler = acceptBookingHandler;
+const payForBookingHandler = async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+        const clientId = req.user.id;
+        const { reference, paymentMethod } = req.body;
+        const booking = await (0, booking_service_1.payForAcceptedBooking)(clientId, bookingId, reference, paymentMethod);
+        // TODO: Notify vendor about payment (e.g., socket or push notification)
+        res.json({ success: true, message: "Booking paid", data: booking });
+    }
+    catch (err) {
+        res.status(400).json({ success: false, message: err.message || "Failed to pay for booking" });
+    }
+};
+exports.payForBookingHandler = payForBookingHandler;

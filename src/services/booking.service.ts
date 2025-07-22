@@ -1,6 +1,7 @@
 import prisma from "../config/prisma";
 import { BookingStatus, PaymentStatus, Booking } from "@prisma/client";
 import { debitWallet, getUserWallet, creditWallet } from "./wallet.service";
+import { verifyPayment } from "../utils/paystack"; // if Paystack used
 
 export const createBooking = async (
   clientId: string,
@@ -56,6 +57,9 @@ export const createBooking = async (
     },
   });
 };
+
+
+
 
 export const updateBookingStatus = async (
   bookingId: string,
@@ -170,4 +174,117 @@ export const getUserBookings = async (userId: string, role: "CLIENT" | "VENDOR")
     include,
     orderBy: { createdAt: "desc" },
   });
+};
+
+export const homeServiceCreateBooking = async (
+  clientId: string,
+  serviceId: string,
+  paymentMethod: string,
+  serviceName: string,
+  price: number,
+  totalAmount: number,
+  time: string,
+  date: string,
+  reference: string,
+  serviceType: string,
+  homeDetails?: {
+    serviceLocation?: string;
+    fullAddress?: string;
+    landmark?: string;
+    referencePhoto?: string;
+    specialInstruction?: string;
+  }
+) => {
+  const isHomeService = serviceType === "HOME_SERVICE";
+
+  const baseData: any = {
+    clientId,
+    serviceId,
+    serviceName,
+    totalAmount,
+    paymentMethod,
+    date: new Date(date),
+    time,
+    price,
+    reference: reference || null,
+    status: BookingStatus.PENDING,
+    paymentStatus: PaymentStatus.PENDING,
+  };
+
+  if (isHomeService && homeDetails) {
+    Object.assign(baseData, homeDetails);
+  }
+
+  return await prisma.booking.create({ data: baseData });
+};
+
+
+
+export const acceptBooking = async (vendorId: string, bookingId: string) => {
+  const updated = await prisma.booking.updateMany({
+    where: { id: bookingId, status: BookingStatus.PENDING },
+    data: { status: BookingStatus.ACCEPTED, vendorId },
+  });
+
+  if (updated.count === 0) throw new Error("Booking not found, unauthorized, or already accepted");
+
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+
+  await prisma.notification.create({
+    data: {
+      userId: booking!.clientId,
+      message: `Your booking "${booking!.serviceName}" has been accepted!`,
+      type: "BOOKING",
+     
+    },
+  });
+
+  return booking!;
+};
+
+
+export const payForAcceptedBooking = async (
+  clientId: string,
+  bookingId: string,
+  reference: string,
+  paymentMethod: "SHARP-PAY" | "PAYSTACK"
+) => {
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+  if (!booking || booking.clientId !== clientId) throw new Error("Not found or unauthorized");
+  if (booking.status !== BookingStatus.ACCEPTED) throw new Error("Booking not accepted");
+  if (booking.paymentStatus !== PaymentStatus.PENDING) throw new Error("Already paid");
+
+  if (paymentMethod === "SHARP-PAY") {
+    const wallet = await getUserWallet(clientId);
+    if (!wallet || wallet.balance < booking.price) {
+      throw new Error("Insufficient wallet balance");
+    }
+    await debitWallet(wallet.id, booking.price, "Booking Payment", reference);
+  }
+
+  if (paymentMethod === "PAYSTACK") {
+    const result = await verifyPayment(reference);
+    if (result.status !== "success") {
+      throw new Error("Payment verification failed");
+    }
+  }
+
+  const updated = await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      paymentStatus: PaymentStatus.LOCKED,
+      reference,
+    },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: booking.vendorId,
+      message: `Payment completed for booking "${booking.serviceName}".`,
+      type: "BOOKING",
+    
+    },
+  });
+
+  return updated;
 };

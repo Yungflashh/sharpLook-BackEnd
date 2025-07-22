@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserBookings = exports.getBookingById = exports.markBookingCompletedByVendor = exports.markBookingCompletedByClient = exports.updateBookingStatus = exports.createBooking = void 0;
+exports.payForAcceptedBooking = exports.acceptBooking = exports.homeServiceCreateBooking = exports.getUserBookings = exports.getBookingById = exports.markBookingCompletedByVendor = exports.markBookingCompletedByClient = exports.updateBookingStatus = exports.createBooking = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
 const wallet_service_1 = require("./wallet.service");
+const paystack_1 = require("../utils/paystack"); // if Paystack used
 const createBooking = async (clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference // <-- reference passed in here
 ) => {
     if (paymentMethod === "SHARP-PAY") {
@@ -142,3 +143,80 @@ const getUserBookings = async (userId, role) => {
     });
 };
 exports.getUserBookings = getUserBookings;
+const homeServiceCreateBooking = async (clientId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, homeDetails) => {
+    const isHomeService = serviceType === "HOME_SERVICE";
+    const baseData = {
+        clientId,
+        serviceId,
+        serviceName,
+        totalAmount,
+        paymentMethod,
+        date: new Date(date),
+        time,
+        price,
+        reference: reference || null,
+        status: client_1.BookingStatus.PENDING,
+        paymentStatus: client_1.PaymentStatus.PENDING,
+    };
+    if (isHomeService && homeDetails) {
+        Object.assign(baseData, homeDetails);
+    }
+    return await prisma_1.default.booking.create({ data: baseData });
+};
+exports.homeServiceCreateBooking = homeServiceCreateBooking;
+const acceptBooking = async (vendorId, bookingId) => {
+    const updated = await prisma_1.default.booking.updateMany({
+        where: { id: bookingId, status: client_1.BookingStatus.PENDING },
+        data: { status: client_1.BookingStatus.ACCEPTED, vendorId },
+    });
+    if (updated.count === 0)
+        throw new Error("Booking not found, unauthorized, or already accepted");
+    const booking = await prisma_1.default.booking.findUnique({ where: { id: bookingId } });
+    await prisma_1.default.notification.create({
+        data: {
+            userId: booking.clientId,
+            message: `Your booking "${booking.serviceName}" has been accepted!`,
+            type: "BOOKING",
+        },
+    });
+    return booking;
+};
+exports.acceptBooking = acceptBooking;
+const payForAcceptedBooking = async (clientId, bookingId, reference, paymentMethod) => {
+    const booking = await prisma_1.default.booking.findUnique({ where: { id: bookingId } });
+    if (!booking || booking.clientId !== clientId)
+        throw new Error("Not found or unauthorized");
+    if (booking.status !== client_1.BookingStatus.ACCEPTED)
+        throw new Error("Booking not accepted");
+    if (booking.paymentStatus !== client_1.PaymentStatus.PENDING)
+        throw new Error("Already paid");
+    if (paymentMethod === "SHARP-PAY") {
+        const wallet = await (0, wallet_service_1.getUserWallet)(clientId);
+        if (!wallet || wallet.balance < booking.price) {
+            throw new Error("Insufficient wallet balance");
+        }
+        await (0, wallet_service_1.debitWallet)(wallet.id, booking.price, "Booking Payment", reference);
+    }
+    if (paymentMethod === "PAYSTACK") {
+        const result = await (0, paystack_1.verifyPayment)(reference);
+        if (result.status !== "success") {
+            throw new Error("Payment verification failed");
+        }
+    }
+    const updated = await prisma_1.default.booking.update({
+        where: { id: bookingId },
+        data: {
+            paymentStatus: client_1.PaymentStatus.LOCKED,
+            reference,
+        },
+    });
+    await prisma_1.default.notification.create({
+        data: {
+            userId: booking.vendorId,
+            message: `Payment completed for booking "${booking.serviceName}".`,
+            type: "BOOKING",
+        },
+    });
+    return updated;
+};
+exports.payForAcceptedBooking = payForAcceptedBooking;

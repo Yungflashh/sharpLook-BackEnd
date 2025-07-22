@@ -2,6 +2,11 @@ import { Request, Response } from "express";
 import * as BookingService from "../services/booking.service";
 import { BookingStatus } from "@prisma/client";
 import { createNotification } from "../services/notification.service";
+import {
+  homeServiceCreateBooking,
+  acceptBooking,
+  payForAcceptedBooking,
+} from "../services/booking.service"
 
 export const bookVendor = async (req: Request, res: Response) => {
   const {
@@ -13,9 +18,10 @@ export const bookVendor = async (req: Request, res: Response) => {
     serviceId,
     totalAmount,
     reference,
+    paymentMethod
   } = req.body;
 
-  const paymentMethod = "SHARPPAY";  // Corrected to match your service
+    // Corrected to match your service
   // Payment status will be set inside the service based on wallet logic, so no need to send here.
 
   if (!vendorId || !date || !time || !price || !serviceName || !serviceId || !totalAmount) {
@@ -176,3 +182,74 @@ export const markBookingCompletedByVendor = async (req: Request, res: Response) 
     return res.status(500).json({ success: false, message: err.message });
   }
 };
+
+
+
+// hpome servcie 
+
+
+export const createBookingHandler = async (req: Request, res: Response) => {
+  try {
+    const {
+      serviceId,
+      paymentMethod,
+      serviceName,
+      price,
+      totalAmount,
+      time,
+      date,
+      reference,
+      serviceType,
+      homeDetails,
+    } = req.body
+
+    const booking = await homeServiceCreateBooking(
+  req.user!.id,
+  serviceId,
+  paymentMethod,
+  serviceName,
+  price,
+  totalAmount,
+  time,
+  date,
+  reference,
+  serviceType,
+  homeDetails
+)
+
+    res.status(201).json({ success: true, message: "Booking created", data: booking })
+  } catch (err: any) {
+    res.status(400).json({ success: false, message: err.message || "Failed to create booking" })
+  }
+}
+
+export const acceptBookingHandler = async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params
+    const vendorId = req.user!.id
+
+    const booking = await acceptBooking(vendorId, bookingId)
+
+    // TODO: Notify client about acceptance (e.g., socket or push notification)
+
+    res.json({ success: true, message: "Booking accepted", data: booking })
+  } catch (err: any) {
+    res.status(400).json({ success: false, message: err.message || "Failed to accept booking" })
+  }
+}
+
+export const payForBookingHandler = async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params
+    const clientId = req.user!.id
+    const { reference, paymentMethod} = req.body
+
+    const booking = await payForAcceptedBooking(clientId, bookingId, reference, paymentMethod)
+
+    // TODO: Notify vendor about payment (e.g., socket or push notification)
+
+    res.json({ success: true, message: "Booking paid", data: booking })
+  } catch (err: any) {
+    res.status(400).json({ success: false, message: err.message || "Failed to pay for booking" })
+  }
+}

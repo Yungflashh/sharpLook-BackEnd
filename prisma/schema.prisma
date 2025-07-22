@@ -140,7 +140,8 @@ model Booking {
   fullAddress         String?
   landmark            String?
   referencePhoto      String?
-  specialInstruction  String?  
+  specialInstruction  String? 
+  reference           String?
 
   client User @relation("ClientBooking", fields: [clientId], references: [id])
   vendor User @relation("VendorBooking", fields: [vendorId], references: [id])
