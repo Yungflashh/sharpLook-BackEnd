@@ -63,7 +63,7 @@ app.use("/api/v1/history", history_routes_1.default);
 app.use("/api/v1/orders", productOrder_route_1.default);
 app.get("/", (_, res) => res.send("🚀 SharpLook API is running"));
 const PORT = parseInt(process.env.PORT || '4000', 10);
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Server running on port ${PORT}`);
-});
+// app.listen(PORT, '0.0.0.0', () => {
+//   console.log(`✅ Server running on port ${PORT}`);
+// });
 exports.default = app;

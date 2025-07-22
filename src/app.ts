@@ -84,8 +84,8 @@ app.get("/", (_, res) => res.send("🚀 SharpLook API is running"))
 
 const PORT = parseInt(process.env.PORT || '4000', 10);
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+// app.listen(PORT, '0.0.0.0', () => {
+//   console.log(`✅ Server running on port ${PORT}`);
+// });
 
 export default app
