@@ -3,8 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getVendorDetails = exports.getTopRatedVendors = exports.updateClientLocationPreferences = exports.updateUserProfile = exports.getUserById = void 0;
+exports.updateUserAvatar = exports.getVendorDetails = exports.getTopRatedVendors = exports.updateClientLocationPreferences = exports.updateUserProfile = exports.getUserById = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
+const cloudinary_1 = require("../utils/cloudinary");
 const getUserById = async (id) => {
     return await prisma_1.default.user.findUnique({ where: { id } });
 };
@@ -117,3 +118,12 @@ const getVendorDetails = async (vendorId) => {
     };
 };
 exports.getVendorDetails = getVendorDetails;
+const updateUserAvatar = async (userId, fileBuffer) => {
+    const cloudinaryResult = await (0, cloudinary_1.uploadBufferToCloudinary)(fileBuffer, "avatars");
+    const user = await prisma_1.default.user.update({
+        where: { id: userId },
+        data: { avatar: cloudinaryResult.secure_url },
+    });
+    return user.avatar;
+};
+exports.updateUserAvatar = updateUserAvatar;

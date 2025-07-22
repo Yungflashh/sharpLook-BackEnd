@@ -9,7 +9,7 @@ const prisma_1 = __importDefault(require("../config/prisma"));
 const notification_service_1 = require("./notification.service");
 const email_helper_1 = require("../helpers/email.helper");
 const wallet_service_1 = require("./wallet.service");
-const checkoutCart = async (userId) => {
+const checkoutCart = async (userId, reference) => {
     const user = await prisma_1.default.user.findUnique({
         where: { id: userId },
         include: {
@@ -36,8 +36,8 @@ const checkoutCart = async (userId) => {
     if (user.wallet.balance < totalAmount)
         throw new Error("Insufficient wallet balance");
     return await prisma_1.default.$transaction(async (tx) => {
-        // Debit wallet
-        await (0, wallet_service_1.debitWallet)(user.wallet.id, totalAmount, "Cart checkout");
+        // Debit wallet with reference
+        await (0, wallet_service_1.debitWallet)(user.wallet.id, totalAmount, "Cart checkout", reference);
         // Prepare vendor-wise product grouping
         const vendorMap = {};
         const orderItems = [];
@@ -74,12 +74,13 @@ const checkoutCart = async (userId) => {
                 total: item.quantity * item.product.price,
             });
         }
-        // Create Order
+        // Create Order with reference included
         const order = await tx.order.create({
             data: {
                 userId,
                 items: orderItems,
                 total: totalAmount,
+                reference, // Save the payment/reference here
             },
         });
         // Clear cart

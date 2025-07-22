@@ -8,40 +8,34 @@ const prisma_1 = __importDefault(require("../config/prisma"));
 const paystack_1 = require("../utils/paystack");
 const wallet_service_1 = require("../services/wallet.service");
 const handlePaystackWebhook = async (reference) => {
-    console.log("[handlePaystackWebhook] Start - Reference:", reference);
-    const result = await (0, paystack_1.verifyPayment)(reference);
-    const paymentData = result.data;
-    console.log("[handlePaystackWebhook] Payment verified:", paymentData);
+    const paymentData = await (0, paystack_1.verifyPayment)(reference);
     const email = paymentData.customer?.email;
     const amount = paymentData.amount / 100;
-    if (!email) {
-        throw new Error("[handlePaystackWebhook] No email found in payment data");
-    }
+    if (!email)
+        throw new Error("Email missing from payment");
     const user = await prisma_1.default.user.findUnique({
         where: { email },
         include: { wallet: true },
     });
-    if (!user) {
-        throw new Error(`[handlePaystackWebhook] User not found for email: ${email}`);
-    }
-    if (!user.wallet) {
-        throw new Error(`[handlePaystackWebhook] Wallet not found for user: ${email}`);
-    }
-    console.log(`[handlePaystackWebhook] User found: ${user.email}, Wallet ID: ${user.wallet.id}`);
-    const alreadyFunded = await prisma_1.default.transaction.findFirst({
+    if (!user?.wallet)
+        throw new Error("User or wallet not found");
+    const transaction = await prisma_1.default.transaction.findUnique({
         where: { reference },
     });
-    if (alreadyFunded) {
-        console.warn(`[handlePaystackWebhook] Duplicate transaction detected - Reference: ${reference}`);
-        return "Already funded";
+    if (!transaction) {
+        console.error(`[Webhook] No transaction found for ${reference}`);
+        return;
     }
+    if (transaction.status === "SUCCESS") {
+        console.warn(`[Webhook] Transaction already processed: ${reference}`);
+        return;
+    }
+    // ✅ Credit wallet and mark transaction as successful
     await (0, wallet_service_1.creditWallet)(user.wallet.id, amount, "Wallet Funding");
-    console.log(`[handlePaystackWebhook] Wallet credited with amount: ${amount}`);
-    await prisma_1.default.transaction.updateMany({
-        where: { walletId: user.wallet.id, description: "Wallet Funding", reference },
-        data: { reference },
+    await prisma_1.default.transaction.update({
+        where: { reference },
+        data: { status: "SUCCESS" },
     });
-    console.log(`[handlePaystackWebhook] Transaction record updated for reference: ${reference}`);
-    return "Wallet funded successfully";
+    console.log(`[Webhook] Wallet funded successfully: ${amount}`);
 };
 exports.handlePaystackWebhook = handlePaystackWebhook;

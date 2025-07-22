@@ -4,9 +4,10 @@ import { createNotification } from "../services/notification.service";
 
 export const checkoutCart = async (req: Request, res: Response) => {
   const userId = req.user?.id;
+  const reference = req.body
 
   try {
-    const order = await ProductOrderService.checkoutCart(userId!);
+    const order = await ProductOrderService.checkoutCart(userId!, reference);
 
     await createNotification(userId!, `Your order of ₦${order.total} was placed successfully.`);
 

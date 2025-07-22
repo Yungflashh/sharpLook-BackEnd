@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAVendorDetails = exports.fetchTopVendors = exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
+exports.updateAvatar = exports.getAVendorDetails = exports.fetchTopVendors = exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
 const user_services_1 = require("../services/user.services");
 // 🧑‍💼 Get Logged-in User Profile
 const getMyProfile = async (req, res) => {
@@ -101,3 +101,21 @@ const getAVendorDetails = async (req, res) => {
     }
 };
 exports.getAVendorDetails = getAVendorDetails;
+const updateAvatar = async (req, res) => {
+    const userId = req.user?.id;
+    if (!req.file) {
+        return res.status(400).json({ error: "No image uploaded" });
+    }
+    try {
+        const avatarUrl = await (0, user_services_1.updateUserAvatar)(userId, req.file.buffer);
+        return res.status(200).json({
+            message: "Avatar updated successfully",
+            avatar: avatarUrl,
+        });
+    }
+    catch (error) {
+        console.error("Avatar update error:", error);
+        return res.status(500).json({ error: "Failed to update avatar" });
+    }
+};
+exports.updateAvatar = updateAvatar;

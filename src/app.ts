@@ -28,7 +28,7 @@ import disputeRoutes from "./routes/dispute.routes";
 import clientServiceRoutes from "./routes/clientService.routes"
 import cartRoutes from "./routes/cart.routes"
 import productOrderRoutes from "./routes/productOrder.route";
-
+import distanceRoutes from "./routes/distance.routes"
 
 
 
@@ -66,6 +66,7 @@ app.use("/api/v1/vendorServices", vendorServiceRoutes)
 app.use("/api/v1/wallet", walletRoutes)
 app.use("/api/v1/referrals", referralRoutes)
 app.use("/api/v1/disputes", disputeRoutes);
+app.use("/api/v1/distance", distanceRoutes);
 
 
 

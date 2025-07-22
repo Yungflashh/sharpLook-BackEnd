@@ -1,4 +1,6 @@
 import  prisma  from "../config/prisma"
+import { uploadBufferToCloudinary } from "../utils/cloudinary";
+
 
 export const getUserById = async (id: string) => {
   return await prisma.user.findUnique({ where: { id } })
@@ -129,3 +131,17 @@ export const getVendorDetails = async (vendorId: string) => {
   };
 };
 
+
+
+
+
+export const updateUserAvatar = async (userId: string, fileBuffer: Buffer) => {
+  const cloudinaryResult = await uploadBufferToCloudinary(fileBuffer, "avatars");
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { avatar: cloudinaryResult.secure_url },
+  });
+
+  return user.avatar;
+};

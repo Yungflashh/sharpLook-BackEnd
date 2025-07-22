@@ -1,5 +1,7 @@
 // src/utils/cloudinary.ts
 import { v2 as cloudinary } from "cloudinary";
+import { Readable } from "stream";
+
 
 const CLOUDINARY_CLOUD_NAME= "dt2il3eyn"
 const CLOUDINARY_API_KEY="647663984449251"
@@ -52,4 +54,18 @@ const uploadToCloudinary = async (
   });
 };
 
+
+export const uploadBufferToCloudinary = (
+  fileBuffer: Buffer,
+  folder: string
+): Promise<{ secure_url: string }> => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream({ folder }, (error, result) => {
+      if (error || !result) return reject(error || new Error("Upload failed"));
+      resolve(result);
+    });
+
+    Readable.from(fileBuffer).pipe(stream);
+  });
+};
 export default uploadToCloudinary;

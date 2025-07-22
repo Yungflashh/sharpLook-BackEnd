@@ -37,7 +37,7 @@ exports.markBookingCompletedByVendor = exports.markBookingCompletedByClient = ex
 const BookingService = __importStar(require("../services/booking.service"));
 const notification_service_1 = require("../services/notification.service");
 const bookVendor = async (req, res) => {
-    const { vendorId, date, time, price, serviceName, serviceId, totalAmount, } = req.body;
+    const { vendorId, date, time, price, serviceName, serviceId, totalAmount, reference, } = req.body;
     const paymentMethod = "SHARPPAY"; // Corrected to match your service
     // Payment status will be set inside the service based on wallet logic, so no need to send here.
     if (!vendorId || !date || !time || !price || !serviceName || !serviceId || !totalAmount) {
@@ -48,7 +48,7 @@ const bookVendor = async (req, res) => {
     }
     const clientId = req.user?.id;
     try {
-        const booking = await BookingService.createBooking(clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date);
+        const booking = await BookingService.createBooking(clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference);
         await (0, notification_service_1.createNotification)(vendorId, `You received a new booking request for ${serviceName} on ${date} at ${time}.`);
         await (0, notification_service_1.createNotification)(clientId, `Your booking for ${serviceName} has been placed successfully.`);
         return res.status(201).json({
@@ -85,7 +85,7 @@ const getMyBookings = async (req, res) => {
 exports.getMyBookings = getMyBookings;
 const changeBookingStatus = async (req, res) => {
     const { bookingId } = req.params;
-    const { status, completedBy } = req.body;
+    const { status, completedBy, reference } = req.body;
     try {
         const booking = await BookingService.getBookingById(bookingId);
         if (!booking) {
@@ -98,11 +98,11 @@ const changeBookingStatus = async (req, res) => {
         if (status === "COMPLETED" && completedBy) {
             // Mark completion by client or vendor
             if (completedBy === "CLIENT") {
-                updatedBooking = await BookingService.markBookingCompletedByClient(bookingId);
+                updatedBooking = await BookingService.markBookingCompletedByClient(bookingId, reference);
                 await (0, notification_service_1.createNotification)(booking.vendorId, `Client marked booking for ${booking.serviceName} as completed.`);
             }
             else if (completedBy === "VENDOR") {
-                updatedBooking = await BookingService.markBookingCompletedByVendor(bookingId);
+                updatedBooking = await BookingService.markBookingCompletedByVendor(bookingId, reference);
                 await (0, notification_service_1.createNotification)(booking.clientId, `Vendor marked booking for ${booking.serviceName} as completed.`);
             }
             else {
@@ -133,8 +133,9 @@ const changeBookingStatus = async (req, res) => {
 };
 exports.changeBookingStatus = changeBookingStatus;
 const markBookingCompletedByClient = async (req, res) => {
+    const { reference } = req.body;
     try {
-        const updatedBooking = await BookingService.markBookingCompletedByClient(req.params.bookingId);
+        const updatedBooking = await BookingService.markBookingCompletedByClient(req.params.bookingId, reference);
         return res.status(200).json({
             success: true,
             message: "Booking marked as completed by client.",
@@ -147,8 +148,9 @@ const markBookingCompletedByClient = async (req, res) => {
 };
 exports.markBookingCompletedByClient = markBookingCompletedByClient;
 const markBookingCompletedByVendor = async (req, res) => {
+    const { reference } = req.body;
     try {
-        const updatedBooking = await BookingService.markBookingCompletedByVendor(req.params.bookingId);
+        const updatedBooking = await BookingService.markBookingCompletedByVendor(req.params.bookingId, reference);
         return res.status(200).json({
             success: true,
             message: "Booking marked as completed by vendor.",

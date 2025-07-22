@@ -5,7 +5,7 @@ import { sendVendorOrderEmail } from "../helpers/email.helper";
 
 import { debitWallet, getUserWallet } from "./wallet.service";
 
-export const checkoutCart = async (userId: string) => {
+export const checkoutCart = async (userId: string, reference: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -34,8 +34,8 @@ export const checkoutCart = async (userId: string) => {
   if (user.wallet.balance < totalAmount) throw new Error("Insufficient wallet balance");
 
   return await prisma.$transaction(async (tx: any) => {
-    // Debit wallet
-    await debitWallet(user.wallet!.id, totalAmount, "Cart checkout");
+    // Debit wallet with reference
+    await debitWallet(user.wallet!.id, totalAmount, "Cart checkout", reference);
 
     // Prepare vendor-wise product grouping
     const vendorMap: Record<string, {
@@ -89,12 +89,13 @@ export const checkoutCart = async (userId: string) => {
       });
     }
 
-    // Create Order
+    // Create Order with reference included
     const order = await tx.order.create({
       data: {
         userId,
         items: orderItems,
         total: totalAmount,
+        reference,  // Save the payment/reference here
       },
     });
 

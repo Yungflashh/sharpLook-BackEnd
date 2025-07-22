@@ -4,8 +4,11 @@ import {
   updateUserProfile,
   updateClientLocationPreferences,
   getTopRatedVendors,
- getVendorDetails
+ getVendorDetails,
+ updateUserAvatar
 } from "../services/user.services"
+
+
 
 // 🧑‍💼 Get Logged-in User Profile
 export const getMyProfile = async (req: Request, res: Response) => {
@@ -118,3 +121,25 @@ export const getAVendorDetails = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: err.message })
   }
 }
+
+
+
+export const updateAvatar = async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+
+  if (!req.file) {
+    return res.status(400).json({ error: "No image uploaded" });
+  }
+
+  try {
+    const avatarUrl = await updateUserAvatar(userId!, req.file.buffer);
+
+    return res.status(200).json({
+      message: "Avatar updated successfully",
+      avatar: avatarUrl,
+    });
+  } catch (error) {
+    console.error("Avatar update error:", error);
+    return res.status(500).json({ error: "Failed to update avatar" });
+  }
+};

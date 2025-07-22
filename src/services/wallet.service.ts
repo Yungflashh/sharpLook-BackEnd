@@ -1,6 +1,39 @@
-import prisma from "../config/prisma"
+import prisma from "../config/prisma";
+import { initializePayment } from "../utils/paystack";
+import { TransactionType } from "@prisma/client";
 
-// Create a new wallet without needing userId
+// Helper to generate unique reference for referrals
+const generateReferralReference = (): string =>
+  `REFERRAL_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+
+export const initiateWalletFunding = async (userId: string, amount: number) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { wallet: true },
+  });
+
+  if (!user || !user.wallet) {
+    throw new Error("User or wallet not found");
+  }
+
+  const paymentData = await initializePayment(user.email, amount);
+  const reference = paymentData.reference;
+
+  await prisma.transaction.create({
+    data: {
+      walletId: user.wallet.id,
+      amount,
+      reference,
+      description: "Wallet Funding",
+      status: "PENDING",
+      type: TransactionType.CREDIT,
+    },
+  });
+
+  return paymentData; // send to frontend
+};
+
+// Create a new wallet for a user
 export const createWallet = async (userId: string) => {
   return await prisma.wallet.create({
     data: {
@@ -16,13 +49,16 @@ export const createWallet = async (userId: string) => {
   });
 };
 
-
-// Credit (add money) to wallet, and log a CREDIT transaction
+// Credit wallet and log CREDIT transaction
+// If no reference is provided, generate one (assumed referral)
 export const creditWallet = async (
   walletId: string,
   amount: number,
-  description = "Referral Bonus"
+  description = "Referral Bonus",
+  reference?: string
 ) => {
+  const transactionReference = reference ?? generateReferralReference();
+
   return await prisma.wallet.update({
     where: { id: walletId },
     data: {
@@ -30,19 +66,23 @@ export const creditWallet = async (
       transactions: {
         create: {
           amount,
-          type: "CREDIT",
+          type: TransactionType.CREDIT,
           description,
+          status: "PENDING",
+          reference: transactionReference,
         },
       },
     },
-  })
-}
+  });
+};
 
-// Debit (remove money) from wallet, and log a DEBIT transaction
+// Debit wallet and log DEBIT transaction
+// Reference must be provided explicitly
 export const debitWallet = async (
   walletId: string,
   amount: number,
-  description = "Debit"
+  description = "Debit",
+  reference: string
 ) => {
   return await prisma.wallet.update({
     where: { id: walletId },
@@ -51,26 +91,29 @@ export const debitWallet = async (
       transactions: {
         create: {
           amount,
-          type: "DEBIT",
+          type: TransactionType.DEBIT,
           description,
+          status: "PENDING",
+          reference,
         },
       },
     },
-  })
-}
+  });
+};
 
-// Get wallet and transactions for a user
+// Get wallet with all transactions for a user
 export const getUserWallet = async (userId: string) => {
   return await prisma.wallet.findUnique({
     where: { userId },
     include: { transactions: true },
-  })
-}
+  });
+};
 
+// Get transactions for user's wallet (most recent first)
 export const getWalletTransactions = async (userId: string) => {
   const wallet = await prisma.wallet.findUnique({
     where: { userId },
-    select: { id: true }
+    select: { id: true },
   });
 
   if (!wallet) return [];

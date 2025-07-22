@@ -94,6 +94,7 @@ model VendorOnboarding {
   userId              String      @unique @db.ObjectId
   user                User        @relation(fields: [userId], references: [id])
   serviceType         ServiceType
+  homeServicePrice     Int?
   identityImage       String
   registerationNumber String?
   businessName        String?
@@ -315,7 +316,8 @@ model Transaction {
   amount      Int
   description String?
   type        TransactionType
-  reference   String?  
+  reference   String          @unique
+  status     String?          
   createdAt   DateTime        @default(now())
   walletId    String          @db.ObjectId
   wallet      Wallet          @relation(fields: [walletId], references: [id])
@@ -381,4 +383,5 @@ enum WalletStatus {
 enum TransactionType {
   CREDIT
   DEBIT
+  REFUND
 }

@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.uploadBufferToCloudinary = void 0;
 // src/utils/cloudinary.ts
 const cloudinary_1 = require("cloudinary");
+const stream_1 = require("stream");
 const CLOUDINARY_CLOUD_NAME = "dt2il3eyn";
 const CLOUDINARY_API_KEY = "647663984449251";
 const CLOUDINARY_API_SECRET = "RWGpOfZ5TaVvL35iTCmDOnVstq0";
@@ -39,4 +41,15 @@ const uploadToCloudinary = async (fileBuffer, mimeType) => {
         uploadStream.end(fileBuffer);
     });
 };
+const uploadBufferToCloudinary = (fileBuffer, folder) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary_1.v2.uploader.upload_stream({ folder }, (error, result) => {
+            if (error || !result)
+                return reject(error || new Error("Upload failed"));
+            resolve(result);
+        });
+        stream_1.Readable.from(fileBuffer).pipe(stream);
+    });
+};
+exports.uploadBufferToCloudinary = uploadBufferToCloudinary;
 exports.default = uploadToCloudinary;
