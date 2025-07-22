@@ -1,9 +1,10 @@
 import http from "http"
 import { Server as SocketIOServer } from "socket.io"
 import app from "./app"
+
 import { registerSocketHandlers } from "./sockets/socket.handlers"
 
-const PORT =  4001
+const PORT =  4000
 
 const server = http.createServer(app)
 const io = new SocketIOServer(server, {

@@ -7,7 +7,7 @@ const http_1 = __importDefault(require("http"));
 const socket_io_1 = require("socket.io");
 const app_1 = __importDefault(require("./app"));
 const socket_handlers_1 = require("./sockets/socket.handlers");
-const PORT = 4001;
+const PORT = 4000;
 const server = http_1.default.createServer(app_1.default);
 const io = new socket_io_1.Server(server, {
     cors: {
