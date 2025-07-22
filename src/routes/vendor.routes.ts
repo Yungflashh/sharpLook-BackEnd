@@ -12,6 +12,8 @@ import { uploadPortfolioImages,
   filterVendorsByService } from "../controllers/vendor.controller"
 import { uploadMultiple } from "../middlewares/upload.middleware"
 import { setVendorPricing, fetchVendorPricing } from "../controllers/vendorPricing.controller"
+import { fetchVendorAnalytics ,fetchVendorEarningsGraph } from "../controllers/vendorAnalytics.controller";
+
 
 
 
@@ -32,6 +34,8 @@ router.get("/filter-by-service", filterVendorsByService)
 router.post("/setVendorAvailability", verifyToken, requireRole(["VENDOR"]), updateAvailability)
 router.get("/getVendorAvailability", verifyToken, requireRole(["VENDOR"]),  fetchAvailability)
 router.put("/update-service-radius",verifyToken,requireRole(["VENDOR"]),updateServiceRadius)
+router.get("/analytics/:vendorId", fetchVendorAnalytics);
+router.get("/earnings-graph", requireRole(["VENDOR"]), fetchVendorEarningsGraph);
 
 
 

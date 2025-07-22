@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = void 0;
+exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const date_fns_1 = require("date-fns");
@@ -99,3 +99,106 @@ const getSoldProducts = async () => {
     });
 };
 exports.getSoldProducts = getSoldProducts;
+const getUserDetail = async (userId) => {
+    return await prisma_1.default.user.findUnique({
+        where: { id: userId },
+        include: {
+            vendorOnboarding: true,
+            wallet: true,
+            clientBookings: true,
+            vendorBookings: true,
+            products: true,
+        },
+    });
+};
+exports.getUserDetail = getUserDetail;
+const deleteUser = async (userId) => {
+    return await prisma_1.default.user.delete({ where: { id: userId } });
+};
+exports.deleteUser = deleteUser;
+const getProductDetail = async (productId) => {
+    return await prisma_1.default.product.findUnique({
+        where: { id: productId },
+        include: {
+            vendor: true,
+            reviews: true,
+        },
+    });
+};
+exports.getProductDetail = getProductDetail;
+const deleteProduct = async (productId) => {
+    return await prisma_1.default.product.delete({ where: { id: productId } });
+};
+exports.deleteProduct = deleteProduct;
+const approveProduct = async (productId) => {
+    return await prisma_1.default.product.update({
+        where: { id: productId },
+        data: { status: "approved" },
+    });
+};
+exports.approveProduct = approveProduct;
+const suspendProduct = async (productId) => {
+    return await prisma_1.default.product.update({
+        where: { id: productId },
+        data: { status: "suspended" },
+    });
+};
+exports.suspendProduct = suspendProduct;
+const rejectProduct = async (productId, reason) => {
+    return await prisma_1.default.product.update({
+        where: { id: productId },
+        data: { status: "rejected", description: reason || "" },
+    });
+};
+exports.rejectProduct = rejectProduct;
+const getAllOrders = async () => {
+    return await prisma_1.default.order.findMany({
+        include: {
+            user: true,
+        },
+        orderBy: { createdAt: "desc" }
+    });
+};
+exports.getAllOrders = getAllOrders;
+const getAllPayments = async () => {
+    return await prisma_1.default.transaction.findMany({
+        include: {
+            wallet: {
+                include: { user: true }
+            }
+        },
+        orderBy: { createdAt: "desc" }
+    });
+};
+exports.getAllPayments = getAllPayments;
+const getAllBookingsDetailed = async () => {
+    return await prisma_1.default.booking.findMany({
+        include: {
+            client: true,
+            vendor: true,
+            review: true,
+        },
+        orderBy: { createdAt: "desc" }
+    });
+};
+exports.getAllBookingsDetailed = getAllBookingsDetailed;
+const getAllDisputes = async () => {
+    return await prisma_1.default.dispute.findMany({
+        include: {
+            raisedBy: true,
+            booking: true,
+        },
+        orderBy: { createdAt: "desc" }
+    });
+};
+exports.getAllDisputes = getAllDisputes;
+const resolveDispute = async (disputeId, resolution) => {
+    return await prisma_1.default.dispute.update({
+        where: { id: disputeId },
+        data: {
+            status: "RESOLVED",
+            resolution,
+        },
+    });
+};
+exports.resolveDispute = resolveDispute;

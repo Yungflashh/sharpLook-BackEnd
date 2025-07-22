@@ -18,5 +18,17 @@ router.get("/users/new",requireAdmin, AdminController.getNewUsersByRange);
 router.get("/users/active",requireAdmin, AdminController.getDailyActiveUsers);
 router.get("/products",requireAdmin, AdminController.getAllProducts);
 router.get("/products/sold",requireAdmin, AdminController.getSoldProducts);
+router.delete("/users/:userId", requireAdmin, AdminController.deleteUser);
+router.get("/users/:userId", requireAdmin, AdminController.getUserDetail);
+router.patch("/products/:productId/approve", requireAdmin, AdminController.approveProduct);
+router.patch("/products/:productId/suspend", requireAdmin, AdminController.suspendProduct);
+router.delete("/products/:productId", requireAdmin, AdminController.deleteProduct);
 
-export default router
+// ✅ Disputes
+router.patch("/disputes/:disputeId/resolve", requireAdmin, AdminController.resolveDispute);
+
+// ...etc
+
+export default router;
+
+

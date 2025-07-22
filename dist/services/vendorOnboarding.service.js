@@ -22,16 +22,39 @@ const getVendorOnboarding = async (userId) => {
     });
 };
 exports.getVendorOnboarding = getVendorOnboarding;
-const updateVendorProfile = async (userId, data) => {
-    const existing = await prisma_1.default.vendorOnboarding.findUnique({
-        where: { userId }
+const updateVendorProfile = async (vendorId, { bio, location, servicesOffered, portfolioImages, availability, ...rest }) => {
+    // 🔧 Update VendorOnboarding first
+    const updatedProfile = await prisma_1.default.vendorOnboarding.update({
+        where: { userId: vendorId },
+        data: {
+            bio,
+            location,
+            servicesOffered,
+            portfolioImages,
+            ...rest,
+        },
     });
-    if (!existing) {
-        throw new Error("Vendor profile not found. Please complete onboarding first.");
+    // 🗓️ Optional: Update availability if provided
+    let availabilityRecord = null;
+    if (availability) {
+        availabilityRecord = await prisma_1.default.vendorAvailability.upsert({
+            where: { vendorId },
+            update: {
+                days: availability.days,
+                fromTime: availability.fromTime,
+                toTime: availability.toTime,
+            },
+            create: {
+                vendorId,
+                days: availability.days,
+                fromTime: availability.fromTime,
+                toTime: availability.toTime,
+            },
+        });
     }
-    return await prisma_1.default.vendorOnboarding.update({
-        where: { userId },
-        data
-    });
+    return {
+        onboarding: updatedProfile,
+        availability: availabilityRecord,
+    };
 };
 exports.updateVendorProfile = updateVendorProfile;

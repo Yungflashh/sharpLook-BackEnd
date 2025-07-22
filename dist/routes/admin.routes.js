@@ -49,4 +49,12 @@ router.get("/users/new", admin_middleware_1.requireAdmin, AdminController.getNew
 router.get("/users/active", admin_middleware_1.requireAdmin, AdminController.getDailyActiveUsers);
 router.get("/products", admin_middleware_1.requireAdmin, AdminController.getAllProducts);
 router.get("/products/sold", admin_middleware_1.requireAdmin, AdminController.getSoldProducts);
+router.delete("/users/:userId", admin_middleware_1.requireAdmin, AdminController.deleteUser);
+router.get("/users/:userId", admin_middleware_1.requireAdmin, AdminController.getUserDetail);
+router.patch("/products/:productId/approve", admin_middleware_1.requireAdmin, AdminController.approveProduct);
+router.patch("/products/:productId/suspend", admin_middleware_1.requireAdmin, AdminController.suspendProduct);
+router.delete("/products/:productId", admin_middleware_1.requireAdmin, AdminController.deleteProduct);
+// ✅ Disputes
+router.patch("/disputes/:disputeId/resolve", admin_middleware_1.requireAdmin, AdminController.resolveDispute);
+// ...etc
 exports.default = router;

@@ -14,12 +14,22 @@ import uploadToCloudinary from "../utils/cloudinary"
 
 export const completeVendorProfile = async (req: Request, res: Response) => {
   try {
-    const updated = await updateVendorProfile(req.user!.id, req.body)
-    res.json({ success: true, message: "Profile updated", data: updated })
+    const vendorId = req.user!.id;
+    const updated = await updateVendorProfile(vendorId, req.body);
+
+    res.json({
+      success: true,
+      message: "Vendor profile completed successfully",
+      data: updated,
+    });
   } catch (err: any) {
-    res.status(400).json({ success: false, message: "Failed to update profile", error: err.message })
+    res.status(400).json({
+      success: false,
+      message: "Failed to complete vendor profile",
+      error: err.message,
+    });
   }
-}
+};
 
 export const uploadPortfolioImages = async (req: Request, res: Response) => {
   try {

@@ -106,3 +106,117 @@ export const getSoldProducts = async () => {
     orderBy: { createdAt: "desc" }
   });
 };
+
+
+export const getUserDetail = async (userId: string) => {
+  return await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      vendorOnboarding: true,
+      wallet: true,
+      clientBookings: true,
+      vendorBookings: true,
+      products: true,
+    },
+  });
+};
+
+
+export const deleteUser = async (userId: string) => {
+  return await prisma.user.delete({ where: { id: userId } });
+};
+
+
+export const getProductDetail = async (productId: string) => {
+  return await prisma.product.findUnique({
+    where: { id: productId },
+    include: {
+      vendor: true,
+      reviews: true,
+    },
+  });
+};
+
+
+export const deleteProduct = async (productId: string) => {
+  return await prisma.product.delete({ where: { id: productId } });
+};
+
+
+export const approveProduct = async (productId: string) => {
+  return await prisma.product.update({
+    where: { id: productId },
+    data: { status: "approved" },
+  });
+};
+
+
+export const suspendProduct = async (productId: string) => {
+  return await prisma.product.update({
+    where: { id: productId },
+    data: { status: "suspended" },
+  });
+};
+
+export const rejectProduct = async (productId: string, reason?: string) => {
+  return await prisma.product.update({
+    where: { id: productId },
+    data: { status: "rejected", description: reason || "" },
+  });
+};
+
+
+export const getAllOrders = async () => {
+  return await prisma.order.findMany({
+    include: {
+      user: true,
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+
+export const getAllPayments = async () => {
+  return await prisma.transaction.findMany({
+    include: {
+      wallet: {
+        include: { user: true }
+      }
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+
+export const getAllBookingsDetailed = async () => {
+  return await prisma.booking.findMany({
+    include: {
+      client: true,
+      vendor: true,
+      review: true,
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+
+export const getAllDisputes = async () => {
+  return await prisma.dispute.findMany({
+    include: {
+      raisedBy: true,
+      booking: true,
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+
+export const resolveDispute = async (disputeId: string, resolution: string) => {
+  return await prisma.dispute.update({
+    where: { id: disputeId },
+    data: {
+      status: "RESOLVED",
+      resolution,
+    },
+  });
+};

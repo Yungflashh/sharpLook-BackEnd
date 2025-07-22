@@ -9,11 +9,20 @@ const vendor_services_1 = require("../services/vendor.services");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const completeVendorProfile = async (req, res) => {
     try {
-        const updated = await (0, vendorOnboarding_service_1.updateVendorProfile)(req.user.id, req.body);
-        res.json({ success: true, message: "Profile updated", data: updated });
+        const vendorId = req.user.id;
+        const updated = await (0, vendorOnboarding_service_1.updateVendorProfile)(vendorId, req.body);
+        res.json({
+            success: true,
+            message: "Vendor profile completed successfully",
+            data: updated,
+        });
     }
     catch (err) {
-        res.status(400).json({ success: false, message: "Failed to update profile", error: err.message });
+        res.status(400).json({
+            success: false,
+            message: "Failed to complete vendor profile",
+            error: err.message,
+        });
     }
 };
 exports.completeVendorProfile = completeVendorProfile;

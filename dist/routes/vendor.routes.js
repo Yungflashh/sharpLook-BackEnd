@@ -7,6 +7,7 @@ const vendor_controller_1 = require("../controllers/vendor.controller");
 const vendor_controller_2 = require("../controllers/vendor.controller");
 const upload_middleware_1 = require("../middlewares/upload.middleware");
 const vendorPricing_controller_1 = require("../controllers/vendorPricing.controller");
+const vendorAnalytics_controller_1 = require("../controllers/vendorAnalytics.controller");
 const router = (0, express_1.Router)();
 router.get("/dashboard", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), (req, res) => {
     res.json({ message: "Welcome, Vendor!" });
@@ -21,4 +22,6 @@ router.get("/filter-by-service", vendor_controller_2.filterVendorsByService);
 router.post("/setVendorAvailability", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.updateAvailability);
 router.get("/getVendorAvailability", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.fetchAvailability);
 router.put("/update-service-radius", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.updateServiceRadius);
+router.get("/analytics/:vendorId", vendorAnalytics_controller_1.fetchVendorAnalytics);
+router.get("/earnings-graph", (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorAnalytics_controller_1.fetchVendorEarningsGraph);
 exports.default = router;
