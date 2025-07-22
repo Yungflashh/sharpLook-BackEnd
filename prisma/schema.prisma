@@ -135,7 +135,12 @@ model Booking {
   status        BookingStatus
   totalAmount   Float
   paymentStatus PaymentStatus @default(PENDING)
-  paymentMethod String      
+  paymentMethod String
+  serviceLocation     String?
+  fullAddress         String?
+  landmark            String?
+  referencePhoto      String?
+  specialInstruction  String?  
 
   client User @relation("ClientBooking", fields: [clientId], references: [id])
   vendor User @relation("VendorBooking", fields: [vendorId], references: [id])
