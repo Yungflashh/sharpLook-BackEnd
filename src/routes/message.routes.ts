@@ -10,12 +10,10 @@ import {
 
 const router = Router()
 
-router.use(verifyToken)
-
 router.get("/:roomId", fetchMessages)
 router.patch("/:roomId/read", markAsRead)
 router.patch("/:messageId/like", likeMessage)
-router.get("/unread/count", verifyToken, getUnreadMessageCount)
+router.get("/unread/count", getUnreadMessageCount)
 
 
 export default router
