@@ -5,12 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateDisputeStatus = exports.getAllDisputes = exports.createDispute = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
-const createDispute = async (bookingId, raisedById, reason) => {
+const createDispute = async (bookingId, raisedById, reason, imageUrl) => {
     return await prisma_1.default.dispute.create({
         data: {
             bookingId,
             raisedById,
             reason,
+            imageUrl,
         },
     });
 };

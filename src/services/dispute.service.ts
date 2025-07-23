@@ -3,16 +3,19 @@ import prisma from "../config/prisma";
 export const createDispute = async (
   bookingId: string,
   raisedById: string,
-  reason: string
+  reason: string,
+  imageUrl?: string
 ) => {
   return await prisma.dispute.create({
     data: {
       bookingId,
       raisedById,
       reason,
+      imageUrl,
     },
   });
 };
+
 
 export const getAllDisputes = async () => {
   return await prisma.dispute.findMany({

@@ -32,22 +32,34 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolveDispute = exports.getDisputes = exports.raiseDispute = void 0;
 const DisputeService = __importStar(require("../services/dispute.service"));
-const raiseDispute = async (req, res) => {
-    const { bookingId, reason } = req.body;
-    const userId = req.user?.id;
-    try {
-        const dispute = await DisputeService.createDispute(bookingId, userId, reason);
-        res.status(201).json({ success: true, message: "Dispute submitted", dispute });
+const upload_middleware_1 = require("../middlewares/upload.middleware");
+const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
+exports.raiseDispute = [
+    upload_middleware_1.uploadDisputeImage,
+    async (req, res) => {
+        const { bookingId, reason } = req.body;
+        const userId = req.user?.id;
+        try {
+            let imageUrl;
+            if (req.file) {
+                const result = await (0, cloudinary_1.default)(req.file.buffer, "hairdesign/vendors");
+                imageUrl = result.secure_url;
+            }
+            const dispute = await DisputeService.createDispute(bookingId, userId, reason, imageUrl);
+            res.status(201).json({ success: true, message: "Dispute submitted", dispute });
+        }
+        catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: "Dispute creation failed" });
+        }
     }
-    catch (error) {
-        console.error("Failed to raise dispute:", error);
-        res.status(500).json({ success: false, message: "Dispute creation failed" });
-    }
-};
-exports.raiseDispute = raiseDispute;
+];
 const getDisputes = async (_req, res) => {
     try {
         const disputes = await DisputeService.getAllDisputes();

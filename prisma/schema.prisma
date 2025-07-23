@@ -346,6 +346,7 @@ model Dispute {
   reason      String
   status      DisputeStatus @default(PENDING)
   resolution  String?
+  imageUrl      String?   
   createdAt   DateTime @default(now())
 
   raisedBy    User     @relation("UserDisputes", fields: [raisedById], references: [id])

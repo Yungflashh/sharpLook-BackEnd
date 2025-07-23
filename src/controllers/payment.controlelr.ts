@@ -6,7 +6,8 @@ import {
 
 export const createPaystackPayment = async (req: Request, res: Response) => {
   try {
-    const { userId, amount, paymentFor, metadata, description } = req.body;
+    const userId = req.user!.id;
+    const {  amount, paymentFor, description } = req.body;
 
     const payment = await initiatePaystackPayment(
       userId,

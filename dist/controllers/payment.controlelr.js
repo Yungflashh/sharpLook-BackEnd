@@ -4,7 +4,8 @@ exports.verifyPaystackPayment = exports.createPaystackPayment = void 0;
 const payment_service_1 = require("../services/payment.service");
 const createPaystackPayment = async (req, res) => {
     try {
-        const { userId, amount, paymentFor, metadata, description } = req.body;
+        const userId = req.user.id;
+        const { amount, paymentFor, description } = req.body;
         const payment = await (0, payment_service_1.initiatePaystackPayment)(userId, amount, paymentFor, description);
         return res.status(200).json({
             success: true,
