@@ -1,6 +1,7 @@
-import prisma from "../config/prisma"
-import { verifyPayment } from "../utils/paystack"
-import { creditWallet } from "../services/wallet.service"
+import prisma from "../config/prisma";
+import { verifyPayment, initializePayment } from "../utils/paystack";
+import { creditWallet } from "../services/wallet.service";
+import { TransactionType } from "@prisma/client";
 
 export const handlePaystackWebhook = async (reference: string) => {
   const paymentData = await verifyPayment(reference);
@@ -41,3 +42,48 @@ export const handlePaystackWebhook = async (reference: string) => {
   console.log(`[Webhook] Wallet funded successfully: ${amount}`);
 };
 
+export const initiatePaystackPayment = async (
+  userId: string,
+  amount: number,
+  paymentFor: string, // e.g. "BOOKING", "ORDER"
+  description = "Paystack Payment"
+) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { wallet: true },
+  });
+
+  if (!user || !user.wallet) throw new Error("User or wallet not found");
+
+  const paymentData = await initializePayment(user.email, amount);
+  const reference = paymentData.reference;
+
+  await prisma.transaction.create({
+    data: {
+      walletId: user.wallet.id,
+      amount,
+      reference,
+      description,
+      status: "pending",
+      type: TransactionType.DEBIT,
+      paymentFor,
+    },
+  });
+
+  return paymentData; // send authorization_url to frontend
+};
+
+export const confirmPaystackPayment = async (reference: string) => {
+  const verification = await verifyPayment(reference);
+
+  const status = verification.status === "success" ? "paid" : "failed";
+
+  const updatedTransaction = await prisma.transaction.update({
+    where: { reference },
+    data: {
+      status,
+    },
+  });
+
+  return updatedTransaction;
+};

@@ -324,7 +324,9 @@ model Transaction {
   type        TransactionType
   reference   String          @unique
   status     String?          
-  createdAt   DateTime        @default(now())
+   metadata    Json?  
+   paymentFor   String?
+     createdAt   DateTime        @default(now())
   walletId    String          @db.ObjectId
   wallet      Wallet          @relation(fields: [walletId], references: [id])
 }

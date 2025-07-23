@@ -18,7 +18,7 @@ import walletRoutes from "./routes/wallet.routes"
 import referralRoutes from "./routes/referral.routes"
 import adminRoutes from "./routes/admin.routes"
 import disputeRoutes from "./routes/dispute.routes";
-
+import paymentRoutes from "./routes/payment.routes"
 
 
 
@@ -50,6 +50,7 @@ app.use((req, res, next) => {
   }
 });
 
+
 app.use(express.urlencoded({ extended: true }))
 app.use("/api/v1/admin", adminRoutes)
 app.use("/api/v1/vendor", vendorRoutes)
@@ -67,6 +68,7 @@ app.use("/api/v1/wallet", walletRoutes)
 app.use("/api/v1/referrals", referralRoutes)
 app.use("/api/v1/disputes", disputeRoutes);
 app.use("/api/v1/distance", distanceRoutes);
+app.use("/api/v1/payment", paymentRoutes);
 
 
 
