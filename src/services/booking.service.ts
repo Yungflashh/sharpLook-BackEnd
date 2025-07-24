@@ -13,7 +13,7 @@ export const createBooking = async (
   totalAmount: number,
   time: string,
   date: string,
-  reference: string // <-- reference passed in here
+  reference: string
 ) => {
   if (paymentMethod === "SHARP-PAY") {
     const wallet = await getUserWallet(clientId);
@@ -21,30 +21,28 @@ export const createBooking = async (
       throw new Error("Insufficient wallet balance");
     }
 
-    // Pass the reference from the function param here
     await debitWallet(wallet.id, price, "Booking Payment", reference);
 
-  return await prisma.booking.create({
-  data: {
-    clientId,
-    vendorId,
-    serviceId,
-    totalAmount,
-    paymentMethod,
-    paymentStatus: paymentMethod === "SHARP-PAY" ? PaymentStatus.LOCKED : PaymentStatus.PENDING,
-    serviceName,
-    date: new Date(date),
-    time,
-    price,
-    status: BookingStatus.PENDING,
-    reference,
-  },
-  include: {
-    vendor: true,
-    service: true, // ✅ this now works
-  },
-});
-
+    return await prisma.booking.create({
+      data: {
+        clientId,
+        vendorId,
+        serviceId,
+        totalAmount,
+        paymentMethod,
+        paymentStatus: PaymentStatus.LOCKED,
+        serviceName,
+        date: new Date(date),
+        time,
+        price,
+        status: BookingStatus.PENDING,
+        reference,
+      },
+      include: {
+        vendor: true,
+        service: true,
+      },
+    });
   }
 
   return await prisma.booking.create({
@@ -56,10 +54,14 @@ export const createBooking = async (
       paymentMethod,
       paymentStatus: PaymentStatus.PENDING,
       serviceName,
-      date,
+      date: new Date(date), // Match format of the other branch
       time,
       price,
       status: BookingStatus.PENDING,
+    },
+    include: {
+      vendor: true,
+      service: true,
     },
   });
 };

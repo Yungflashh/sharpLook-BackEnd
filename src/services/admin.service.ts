@@ -220,3 +220,98 @@ export const resolveDispute = async (disputeId: string, resolution: string) => {
     },
   });
 };
+export const verifyVendorIdentity = async (vendorId: string) => {
+  return prisma.vendorOnboarding.update({
+    where: { userId: vendorId },
+    data: { bio: "Verified by admin" } 
+  });
+};
+
+
+export const getAllPromotions = async () => {
+  return prisma.promotion.findMany({
+    include: { vendor: true },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+export const suspendPromotion = async (promotionId: string) => {
+  return prisma.promotion.update({
+    where: { id: promotionId },
+    data: { isActive: false }
+  });
+};
+
+
+export const deleteReview = async (reviewId: string) => {
+  return prisma.review.delete({
+    where: { id: reviewId }
+  });
+};
+
+export const getAllReviewsWithContent = async () => {
+  return prisma.review.findMany({
+    where: { comment: { not: null } },
+    include: {
+      vendor: true,
+      client: true,
+      product: true,
+      service: true
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+
+export const getAllMessages = async () => {
+  return prisma.message.findMany({
+    include: {
+      sender: true,
+      receiver: true
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+
+export const getReferralHistory = async () => {
+  return prisma.referral.findMany({
+    include: {
+      referredBy: true,
+      referredUser: true
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
+
+export const adjustWalletBalance = async (userId: string, amount: number) => {
+  const user = await prisma.user.findUnique({ where: { id: userId }, include: { wallet: true } });
+  if (!user || !user.walletId) throw new Error("Wallet not found");
+
+  return prisma.wallet.update({
+    where: { id: user.walletId },
+    data: {
+      balance: { increment: amount }
+    }
+  });
+};
+
+
+export const getPlatformStats = async () => {
+  const [totalUsers, totalVendors, totalBookings, totalDisputes, totalTransactions] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.count({ where: { role: "VENDOR" } }),
+    prisma.booking.count(),
+    prisma.dispute.count(),
+    prisma.transaction.count()
+  ]);
+
+  return {
+    totalUsers,
+    totalVendors,
+    totalBookings,
+    totalDisputes,
+    totalTransactions
+  };
+};

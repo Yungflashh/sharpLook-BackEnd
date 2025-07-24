@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = void 0;
+exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const date_fns_1 = require("date-fns");
@@ -202,3 +202,92 @@ const resolveDispute = async (disputeId, resolution) => {
     });
 };
 exports.resolveDispute = resolveDispute;
+const verifyVendorIdentity = async (vendorId) => {
+    return prisma_1.default.vendorOnboarding.update({
+        where: { userId: vendorId },
+        data: { bio: "Verified by admin" }
+    });
+};
+exports.verifyVendorIdentity = verifyVendorIdentity;
+const getAllPromotions = async () => {
+    return prisma_1.default.promotion.findMany({
+        include: { vendor: true },
+        orderBy: { createdAt: "desc" }
+    });
+};
+exports.getAllPromotions = getAllPromotions;
+const suspendPromotion = async (promotionId) => {
+    return prisma_1.default.promotion.update({
+        where: { id: promotionId },
+        data: { isActive: false }
+    });
+};
+exports.suspendPromotion = suspendPromotion;
+const deleteReview = async (reviewId) => {
+    return prisma_1.default.review.delete({
+        where: { id: reviewId }
+    });
+};
+exports.deleteReview = deleteReview;
+const getAllReviewsWithContent = async () => {
+    return prisma_1.default.review.findMany({
+        where: { comment: { not: null } },
+        include: {
+            vendor: true,
+            client: true,
+            product: true,
+            service: true
+        },
+        orderBy: { createdAt: "desc" }
+    });
+};
+exports.getAllReviewsWithContent = getAllReviewsWithContent;
+const getAllMessages = async () => {
+    return prisma_1.default.message.findMany({
+        include: {
+            sender: true,
+            receiver: true
+        },
+        orderBy: { createdAt: "desc" }
+    });
+};
+exports.getAllMessages = getAllMessages;
+const getReferralHistory = async () => {
+    return prisma_1.default.referral.findMany({
+        include: {
+            referredBy: true,
+            referredUser: true
+        },
+        orderBy: { createdAt: "desc" }
+    });
+};
+exports.getReferralHistory = getReferralHistory;
+const adjustWalletBalance = async (userId, amount) => {
+    const user = await prisma_1.default.user.findUnique({ where: { id: userId }, include: { wallet: true } });
+    if (!user || !user.walletId)
+        throw new Error("Wallet not found");
+    return prisma_1.default.wallet.update({
+        where: { id: user.walletId },
+        data: {
+            balance: { increment: amount }
+        }
+    });
+};
+exports.adjustWalletBalance = adjustWalletBalance;
+const getPlatformStats = async () => {
+    const [totalUsers, totalVendors, totalBookings, totalDisputes, totalTransactions] = await Promise.all([
+        prisma_1.default.user.count(),
+        prisma_1.default.user.count({ where: { role: "VENDOR" } }),
+        prisma_1.default.booking.count(),
+        prisma_1.default.dispute.count(),
+        prisma_1.default.transaction.count()
+    ]);
+    return {
+        totalUsers,
+        totalVendors,
+        totalBookings,
+        totalDisputes,
+        totalTransactions
+    };
+};
+exports.getPlatformStats = getPlatformStats;

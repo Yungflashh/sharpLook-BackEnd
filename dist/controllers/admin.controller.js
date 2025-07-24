@@ -33,15 +33,17 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = void 0;
+exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = void 0;
 const AdminService = __importStar(require("../services/admin.service"));
 const email_helper_1 = require("../helpers/email.helper");
+const adminLogger_1 = require("../utils/adminLogger");
 // Utility to extract error message safely
 const getErrorMessage = (error) => error instanceof Error ? error.message : "Internal server error";
 // ====================== USERS ======================
-const getAllUsers = async (_req, res) => {
+const getAllUsers = async (req, res) => {
     try {
         const users = await AdminService.getAllUsers();
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'VIEW_ALL_USERS', 'Admin fetched all client users');
         res.json({ success: true, data: users });
     }
     catch (error) {
@@ -54,6 +56,7 @@ const getUserDetail = async (req, res) => {
         const user = await AdminService.getUserDetail(req.params.userId);
         if (!user)
             return res.status(404).json({ success: false, message: "User not found" });
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'GET_USER_DETAIL', 'Admin fetched A User Details');
         res.json({ success: true, data: user });
     }
     catch (error) {
@@ -65,6 +68,7 @@ const deleteUser = async (req, res) => {
     try {
         const user = await AdminService.deleteUser(req.params.userId);
         await (0, email_helper_1.sendMail)(user.email, "Account Deleted", `<p>Your account has been permanently deleted.</p>`);
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'DELETE_A_USER', 'Admin DELETED A User');
         res.json({ success: true, message: "User deleted", data: user });
     }
     catch (error) {
@@ -292,3 +296,103 @@ const getAllBookingsDetailed = async (_req, res) => {
     }
 };
 exports.getAllBookingsDetailed = getAllBookingsDetailed;
+const verifyVendorIdentity = async (req, res) => {
+    try {
+        const vendor = await AdminService.verifyVendorIdentity(req.params.vendorId);
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'VERIFY_VENDOR_IDENTITY', `Admin verified identity for vendor ${req.params.vendorId}`);
+        res.json({ success: true, message: "Vendor verified", data: vendor });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.verifyVendorIdentity = verifyVendorIdentity;
+const getAllPromotions = async (req, res) => {
+    try {
+        const promos = await AdminService.getAllPromotions();
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'VIEW_ALL_PROMOTIONS', 'Admin fetched all promotions');
+        res.json({ success: true, data: promos });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.getAllPromotions = getAllPromotions;
+const suspendPromotion = async (req, res) => {
+    try {
+        const promo = await AdminService.suspendPromotion(req.params.promotionId);
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'SUSPEND_PROMOTION', `Admin suspended promotion ${req.params.promotionId}`);
+        res.json({ success: true, message: "Promotion suspended", data: promo });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.suspendPromotion = suspendPromotion;
+const deleteReview = async (req, res) => {
+    try {
+        await AdminService.deleteReview(req.params.reviewId);
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'DELETE_REVIEW', `Admin deleted review ${req.params.reviewId}`);
+        res.json({ success: true, message: "Review deleted" });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.deleteReview = deleteReview;
+const getAllReviewsWithContent = async (req, res) => {
+    try {
+        const reviews = await AdminService.getAllReviewsWithContent();
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'VIEW_ALL_REVIEWS', 'Admin fetched all reviews with comments');
+        res.json({ success: true, data: reviews });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.getAllReviewsWithContent = getAllReviewsWithContent;
+const getAllMessages = async (req, res) => {
+    try {
+        const messages = await AdminService.getAllMessages();
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'VIEW_ALL_MESSAGES', 'Admin fetched all messages');
+        res.json({ success: true, data: messages });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.getAllMessages = getAllMessages;
+const getReferralHistory = async (req, res) => {
+    try {
+        const referrals = await AdminService.getReferralHistory();
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'VIEW_REFERRALS', 'Admin fetched referral history');
+        res.json({ success: true, data: referrals });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.getReferralHistory = getReferralHistory;
+const adjustWalletBalance = async (req, res) => {
+    try {
+        const { amount } = req.body;
+        const wallet = await AdminService.adjustWalletBalance(req.params.userId, amount);
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'ADJUST_WALLET_BALANCE', `Admin adjusted wallet for user ${req.params.userId} by ${amount}`);
+        res.json({ success: true, message: "Wallet adjusted", data: wallet });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.adjustWalletBalance = adjustWalletBalance;
+const getPlatformStats = async (req, res) => {
+    try {
+        const stats = await AdminService.getPlatformStats();
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'VIEW_PLATFORM_STATS', 'Admin viewed platform statistics');
+        res.json({ success: true, data: stats });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.getPlatformStats = getPlatformStats;

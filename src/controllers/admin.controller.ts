@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import * as AdminService from "../services/admin.service";
 import { Role } from "@prisma/client";
 import { sendMail } from "../helpers/email.helper";
+import { logAdminAction } from '../utils/adminLogger';
+
 
 // Utility to extract error message safely
 const getErrorMessage = (error: unknown): string =>
@@ -9,9 +11,13 @@ const getErrorMessage = (error: unknown): string =>
 
 // ====================== USERS ======================
 
-export const getAllUsers = async (_req: Request, res: Response) => {
+export const getAllUsers = async (req: Request, res: Response) => {
+
   try {
     const users = await AdminService.getAllUsers();
+
+      await logAdminAction(req.user!.id, 'VIEW_ALL_USERS', 'Admin fetched all client users');
+
     res.json({ success: true, data: users });
   } catch (error) {
     res.status(500).json({ success: false, message: getErrorMessage(error) });
@@ -22,6 +28,10 @@ export const getUserDetail = async (req: Request, res: Response) => {
   try {
     const user = await AdminService.getUserDetail(req.params.userId);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+
+    await logAdminAction(req.user!.id, 'GET_USER_DETAIL', 'Admin fetched A User Details');
+
     res.json({ success: true, data: user });
   } catch (error) {
     res.status(500).json({ success: false, message: getErrorMessage(error) });
@@ -32,6 +42,11 @@ export const deleteUser = async (req: Request, res: Response) => {
   try {
     const user = await AdminService.deleteUser(req.params.userId);
     await sendMail(user!.email, "Account Deleted", `<p>Your account has been permanently deleted.</p>`);
+
+
+    await logAdminAction(req.user!.id, 'DELETE_A_USER', 'Admin DELETED A User');
+
+
     res.json({ success: true, message: "User deleted", data: user });
   } catch (error) {
     res.status(500).json({ success: false, message: getErrorMessage(error) });
@@ -239,6 +254,126 @@ export const getAllBookingsDetailed = async (_req: Request, res: Response) => {
   try {
     const bookings = await AdminService.getAllBookingsDetailed();
     res.json({ success: true, data: bookings });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+
+export const verifyVendorIdentity = async (req: Request, res: Response) => {
+  try {
+    const vendor = await AdminService.verifyVendorIdentity(req.params.vendorId);
+
+    await logAdminAction(req.user!.id, 'VERIFY_VENDOR_IDENTITY', `Admin verified identity for vendor ${req.params.vendorId}`);
+
+    res.json({ success: true, message: "Vendor verified", data: vendor });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+
+export const getAllPromotions = async (req: Request, res: Response) => {
+  try {
+    const promos = await AdminService.getAllPromotions();
+
+    await logAdminAction(req.user!.id, 'VIEW_ALL_PROMOTIONS', 'Admin fetched all promotions');
+
+    res.json({ success: true, data: promos });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+export const suspendPromotion = async (req: Request, res: Response) => {
+  try {
+    const promo = await AdminService.suspendPromotion(req.params.promotionId);
+
+    await logAdminAction(req.user!.id, 'SUSPEND_PROMOTION', `Admin suspended promotion ${req.params.promotionId}`);
+
+    res.json({ success: true, message: "Promotion suspended", data: promo });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+
+export const deleteReview = async (req: Request, res: Response) => {
+  try {
+    await AdminService.deleteReview(req.params.reviewId);
+
+    await logAdminAction(req.user!.id, 'DELETE_REVIEW', `Admin deleted review ${req.params.reviewId}`);
+
+    res.json({ success: true, message: "Review deleted" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+export const getAllReviewsWithContent = async (req: Request, res: Response) => {
+  try {
+    const reviews = await AdminService.getAllReviewsWithContent();
+
+    await logAdminAction(req.user!.id, 'VIEW_ALL_REVIEWS', 'Admin fetched all reviews with comments');
+
+    res.json({ success: true, data: reviews });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+
+
+export const getAllMessages = async (req: Request, res: Response) => {
+  try {
+    const messages = await AdminService.getAllMessages();
+
+    await logAdminAction(req.user!.id, 'VIEW_ALL_MESSAGES', 'Admin fetched all messages');
+
+    res.json({ success: true, data: messages });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+
+
+export const getReferralHistory = async (req: Request, res: Response) => {
+  try {
+    const referrals = await AdminService.getReferralHistory();
+
+    await logAdminAction(req.user!.id, 'VIEW_REFERRALS', 'Admin fetched referral history');
+
+    res.json({ success: true, data: referrals });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+
+
+export const adjustWalletBalance = async (req: Request, res: Response) => {
+  try {
+    const { amount } = req.body;
+    const wallet = await AdminService.adjustWalletBalance(req.params.userId, amount);
+
+    await logAdminAction(req.user!.id, 'ADJUST_WALLET_BALANCE', `Admin adjusted wallet for user ${req.params.userId} by ${amount}`);
+
+    res.json({ success: true, message: "Wallet adjusted", data: wallet });
+  } catch (error) {
+    res.status(400).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+
+
+export const getPlatformStats = async (req: Request, res: Response) => {
+  try {
+    const stats = await AdminService.getPlatformStats();
+
+    await logAdminAction(req.user!.id, 'VIEW_PLATFORM_STATS', 'Admin viewed platform statistics');
+
+    res.json({ success: true, data: stats });
   } catch (error) {
     res.status(500).json({ success: false, message: getErrorMessage(error) });
   }

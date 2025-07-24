@@ -44,7 +44,7 @@ export const bookVendor = async (req: Request, res: Response) => {
       totalAmount,
       time,
       date,
-      reference
+      reference,
     );
 
     await createNotification(

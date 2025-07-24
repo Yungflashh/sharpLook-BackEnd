@@ -8,14 +8,12 @@ const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
 const wallet_service_1 = require("./wallet.service");
 const paystack_1 = require("../utils/paystack"); // if Paystack used
-const createBooking = async (clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference // <-- reference passed in here
-) => {
+const createBooking = async (clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference) => {
     if (paymentMethod === "SHARP-PAY") {
         const wallet = await (0, wallet_service_1.getUserWallet)(clientId);
         if (!wallet || wallet.balance < price) {
             throw new Error("Insufficient wallet balance");
         }
-        // Pass the reference from the function param here
         await (0, wallet_service_1.debitWallet)(wallet.id, price, "Booking Payment", reference);
         return await prisma_1.default.booking.create({
             data: {
@@ -24,7 +22,7 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
                 serviceId,
                 totalAmount,
                 paymentMethod,
-                paymentStatus: paymentMethod === "SHARP-PAY" ? client_1.PaymentStatus.LOCKED : client_1.PaymentStatus.PENDING,
+                paymentStatus: client_1.PaymentStatus.LOCKED,
                 serviceName,
                 date: new Date(date),
                 time,
@@ -34,7 +32,7 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
             },
             include: {
                 vendor: true,
-                service: true, // ✅ this now works
+                service: true,
             },
         });
     }
@@ -47,10 +45,14 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
             paymentMethod,
             paymentStatus: client_1.PaymentStatus.PENDING,
             serviceName,
-            date,
+            date: new Date(date), // Match format of the other branch
             time,
             price,
             status: client_1.BookingStatus.PENDING,
+        },
+        include: {
+            vendor: true,
+            service: true,
         },
     });
 };

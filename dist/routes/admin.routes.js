@@ -33,28 +33,57 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-// src/routes/admin.routes.ts
 const express_1 = require("express");
 const AdminController = __importStar(require("../controllers/admin.controller"));
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const admin_middleware_1 = require("../middlewares/admin.middleware");
+const isAuthorized_1 = require("../middlewares/isAuthorized");
+const client_1 = require("@prisma/client");
 const router = (0, express_1.Router)();
+// Middleware applied to all admin routes
 router.use(auth_middleware_1.verifyToken, admin_middleware_1.requireAdmin);
-router.get("/users", auth_middleware_1.verifyToken, admin_middleware_1.requireAdmin, AdminController.getAllUsers);
-router.get("/bookings", admin_middleware_1.requireAdmin, AdminController.getAllBookings);
-router.put("/users/:userId/ban", admin_middleware_1.requireAdmin, AdminController.banUser);
-router.put("/promote/:adminId", admin_middleware_1.requireAdmin, AdminController.promoteToAdmin);
-router.get("/users", admin_middleware_1.requireAdmin, AdminController.getAllUsersByRole);
-router.get("/users/new", admin_middleware_1.requireAdmin, AdminController.getNewUsersByRange);
-router.get("/users/active", admin_middleware_1.requireAdmin, AdminController.getDailyActiveUsers);
-router.get("/products", admin_middleware_1.requireAdmin, AdminController.getAllProducts);
-router.get("/products/sold", admin_middleware_1.requireAdmin, AdminController.getSoldProducts);
-router.delete("/users/:userId", admin_middleware_1.requireAdmin, AdminController.deleteUser);
-router.get("/users/:userId", admin_middleware_1.requireAdmin, AdminController.getUserDetail);
-router.patch("/products/:productId/approve", admin_middleware_1.requireAdmin, AdminController.approveProduct);
-router.patch("/products/:productId/suspend", admin_middleware_1.requireAdmin, AdminController.suspendProduct);
-router.delete("/products/:productId", admin_middleware_1.requireAdmin, AdminController.deleteProduct);
-// ✅ Disputes
-router.patch("/disputes/:disputeId/resolve", admin_middleware_1.requireAdmin, AdminController.resolveDispute);
-// ...etc
+// ========== USERS ==========
+router.get("/users", (0, isAuthorized_1.isAuthorized)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllUsers);
+router.get("/users/role", AdminController.getAllUsersByRole); // ?role=CLIENT
+router.get("/users/new", AdminController.getNewUsersByRange); // ?range=days|weeks|months|years
+router.get("/users/active", AdminController.getDailyActiveUsers);
+router.get("/users/:userId", AdminController.getUserDetail);
+router.put("/users/:userId/ban", AdminController.banUser);
+router.put("/users/:userId/unban", AdminController.unbanUser);
+router.delete("/users/:userId", AdminController.deleteUser);
+router.patch("/users/:userId/promote", AdminController.promoteToAdmin); // <-- changed from /promote/:adminId to match REST pattern
+// ========== PRODUCTS ==========
+router.get("/products", AdminController.getAllProducts);
+router.get("/products/sold", AdminController.getSoldProducts);
+router.get("/products/:productId", AdminController.getProductDetail);
+router.delete("/products/:productId", AdminController.deleteProduct);
+router.patch("/products/:productId/approve", AdminController.approveProduct);
+router.patch("/products/:productId/suspend", AdminController.suspendProduct);
+router.patch("/products/:productId/reject", AdminController.rejectProduct); // reason in body
+// ========== BOOKINGS ==========
+router.get("/bookings", AdminController.getAllBookings);
+router.get("/bookings/details", AdminController.getAllBookingsDetailed);
+// ========== ORDERS ==========
+router.get("/orders", AdminController.getAllOrders);
+// ========== PAYMENTS ==========
+router.get("/payments", AdminController.getAllPayments);
+// ========== DISPUTES ==========
+router.get("/disputes", AdminController.getAllDisputes);
+router.patch("/disputes/:disputeId/resolve", AdminController.resolveDispute);
+// ========== VENDOR ==========
+router.patch("/vendors/:vendorId/verify", AdminController.verifyVendorIdentity);
+// ========== PROMOTIONS ==========
+router.get("/promotions", AdminController.getAllPromotions);
+router.patch("/promotions/:promotionId/suspend", AdminController.suspendPromotion);
+// ========== REVIEWS ==========
+router.get("/reviews", AdminController.getAllReviewsWithContent);
+router.delete("/reviews/:reviewId", AdminController.deleteReview);
+// ========== MESSAGES ==========
+router.get("/messages", AdminController.getAllMessages);
+// ========== REFERRALS ==========
+router.get("/referrals", AdminController.getReferralHistory);
+// ========== WALLETS ==========
+router.patch("/wallets/:userId/adjust", AdminController.adjustWalletBalance); // { amount } in body
+// ========== STATS ==========
+router.get("/stats", AdminController.getPlatformStats);
 exports.default = router;

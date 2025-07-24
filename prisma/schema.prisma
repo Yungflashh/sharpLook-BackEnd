@@ -30,6 +30,7 @@ model User {
   resetToken           String?   @db.String
   resetTokenExp        DateTime?
   notes                String?
+  adminRole            AdminRole?
 
   // ✅ Self-relation for who referred the user
   referredBy   User?   @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -78,6 +79,8 @@ model User {
 
 
   raisedDisputes Dispute[] @relation("UserDisputes")
+
+  adminActions    AdminAction[]
 
   // ✅ Optional location preference
   preferredLatitude  Float?
@@ -397,4 +400,25 @@ enum TransactionType {
   CREDIT
   DEBIT
   REFUND
+}
+
+enum AdminRole {
+  SUPERADMIN
+  ADMIN
+  MODERATOR
+  ANALYST
+  FINANCE_ADMIN
+  CONTENT_MANAGER
+  SUPPORT
+}
+
+
+model AdminAction {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  adminId   String   @db.ObjectId
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  admin     User     @relation(fields: [adminId], references: [id])
 }
