@@ -24,21 +24,27 @@ export const createBooking = async (
     // Pass the reference from the function param here
     await debitWallet(wallet.id, price, "Booking Payment", reference);
 
-    return await prisma.booking.create({
-      data: {
-        clientId,
-        vendorId,
-        serviceId,
-        totalAmount,
-        paymentMethod,
-        paymentStatus: PaymentStatus.LOCKED,
-        serviceName,
-        date,
-        time,
-        price,
-        status: BookingStatus.PENDING,
-      },
-    });
+  return await prisma.booking.create({
+  data: {
+    clientId,
+    vendorId,
+    serviceId,
+    totalAmount,
+    paymentMethod,
+    paymentStatus: paymentMethod === "SHARP-PAY" ? PaymentStatus.LOCKED : PaymentStatus.PENDING,
+    serviceName,
+    date: new Date(date),
+    time,
+    price,
+    status: BookingStatus.PENDING,
+    reference,
+  },
+  include: {
+    vendor: true,
+    service: true, // ✅ this now works
+  },
+});
+
   }
 
   return await prisma.booking.create({

@@ -24,12 +24,17 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
                 serviceId,
                 totalAmount,
                 paymentMethod,
-                paymentStatus: client_1.PaymentStatus.LOCKED,
+                paymentStatus: paymentMethod === "SHARP-PAY" ? client_1.PaymentStatus.LOCKED : client_1.PaymentStatus.PENDING,
                 serviceName,
-                date,
+                date: new Date(date),
                 time,
                 price,
                 status: client_1.BookingStatus.PENDING,
+                reference,
+            },
+            include: {
+                vendor: true,
+                service: true, // ✅ this now works
             },
         });
     }
