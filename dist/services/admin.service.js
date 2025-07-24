@@ -9,37 +9,7 @@ const prisma_1 = __importDefault(require("../config/prisma"));
 const date_fns_1 = require("date-fns");
 const getAllUsers = async () => {
     return await prisma_1.default.user.findMany({
-        select: {
-            id: true,
-            email: true,
-            role: true,
-            isEmailVerified: true,
-            firstName: true,
-            lastName: true,
-            phone: true,
-            createdAt: true,
-            updatedAt: true,
-            isBanned: true,
-            referralCode: true,
-            powerGiven: true,
-            preferredLatitude: true,
-            preferredLongitude: true,
-            preferredRadiusKm: true,
-            wallet: {
-                select: {
-                    balance: true,
-                    status: true,
-                },
-            },
-            vendorOnboarding: {
-                select: {
-                    serviceType: true,
-                    businessName: true,
-                    location: true,
-                    profileImage: true,
-                },
-            },
-        },
+        select: { id: true, email: true, role: true, isEmailVerified: true },
     });
 };
 exports.getAllUsers = getAllUsers;

@@ -11,7 +11,7 @@ const initializePayment = async (email, amount) => {
         const response = await axios_1.default.post("https://api.paystack.co/transaction/initialize", {
             email,
             amount: amount * 100,
-            callback_url: "sharplookapp://payment-callback", // for mobile apps
+            callback_url: "sharplookapp://BookAppointmentScreen/:id",
         }, {
             headers: {
                 Authorization: `Bearer ${PAYSTACK_SECRET}`,

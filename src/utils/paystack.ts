@@ -9,7 +9,7 @@ export const initializePayment = async (email: string, amount: number) => {
       {
         email,
         amount: amount * 100,
-        callback_url: "sharplookapp://payment-callback", // for mobile apps
+        callback_url: "sharplookapp://BookAppointmentScreen/:id", 
       },
       {
         headers: {

@@ -6,40 +6,9 @@ import { subDays, subWeeks, subMonths, subYears } from "date-fns";
 
 export const getAllUsers = async () => {
   return await prisma.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      isEmailVerified: true,
-      firstName: true,
-      lastName: true,
-      phone: true,
-      createdAt: true,
-      updatedAt: true,
-      isBanned: true,
-      referralCode: true,
-      powerGiven: true,
-      preferredLatitude: true,
-      preferredLongitude: true,
-      preferredRadiusKm: true,
-      wallet: {
-        select: {
-          balance: true,
-          status: true,
-        },
-      },
-      vendorOnboarding: {
-        select: {
-          serviceType: true,
-          businessName: true,
-          location: true,
-          profileImage: true,
-        },
-      },
-    },
-  });
-};
-
+    select: { id: true, email: true, role: true, isEmailVerified: true },
+  })
+}
 
 export const getAllBookings = async () => {
   return await prisma.booking.findMany({
