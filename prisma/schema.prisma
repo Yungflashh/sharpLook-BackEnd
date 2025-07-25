@@ -42,6 +42,7 @@
 
     withdrawalRequests    WithdrawalRequest[]    @relation("UserWithdrawals")
 
+ 
 
     // ✅ Wallet relation
     walletId String? @unique
@@ -129,40 +130,41 @@
 
     vendor User @relation(fields: [vendorId], references: [id])
   }
-  model Booking {
-    id            String        @id @default(auto()) @map("_id") @db.ObjectId
-    clientId      String        @db.ObjectId
-    vendorId      String        @db.ObjectId
-    serviceId     String
-    serviceName   String
-    date          DateTime
-    time          String
-    price         Float
-    status        BookingStatus
-    totalAmount   Float
-    paymentStatus PaymentStatus @default(PENDING)
-    paymentMethod String
-    serviceLocation     String?
-    fullAddress         String?
-    landmark            String?
-    referencePhoto      String?
-    specialInstruction  String? 
-    reference           String?
+    model Booking {
+      id            String        @id @default(auto()) @map("_id") @db.ObjectId
+      serviceId     String
+      serviceName   String
+      date          DateTime
+      time          String
+      price         Float
+      status        BookingStatus
+      totalAmount   Float
+      paymentStatus PaymentStatus @default(PENDING)
+      paymentMethod String
+      serviceLocation     String?
+      fullAddress         String?
+      landmark            String?
+      referencePhoto      String?
+      specialInstruction  String? 
+      reference           String?
 
-    client User @relation("ClientBooking", fields: [clientId], references: [id])
-    vendor User @relation("VendorBooking", fields: [vendorId], references: [id])
-    service       VendorService  @relation(fields: [serviceId], references: [id]) 
+        clientId String?
+  client   User?   @relation("ClientBooking", fields: [clientId], references: [id])
 
-
-    clientCompleted  Boolean        @default(false)
-    vendorCompleted  Boolean        @default(false)
-
-    review Review? @relation("BookingToReview")
-    dispute Dispute? 
+  vendorId String
+  vendor   User @relation("VendorBooking", fields: [vendorId], references: [id])
+        service       VendorService  @relation(fields: [serviceId], references: [id]) 
 
 
-    createdAt     DateTime    @default(now())
-  }
+      clientCompleted  Boolean        @default(false)
+      vendorCompleted  Boolean        @default(false)
+
+      review Review? @relation("BookingToReview")
+      dispute Dispute? 
+
+
+      createdAt     DateTime    @default(now())
+    }
 
   model Product {
     id            String         @id @default(auto()) @map("_id") @db.ObjectId

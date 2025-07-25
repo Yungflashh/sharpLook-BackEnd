@@ -78,7 +78,7 @@ export const updateBookingStatus = async (
   if (!booking) throw new Error("Booking not found");
 
   if (status === BookingStatus.REJECTED && booking.paymentStatus === PaymentStatus.LOCKED) {
-    const wallet = await getUserWallet(booking.clientId);
+    const wallet = await getUserWallet(booking.clientId!);
     if (!wallet) throw new Error("Client wallet not found");
 
     if (!refundReference) throw new Error("Refund reference required");
@@ -221,6 +221,7 @@ export const getUserBookings = async (
 
 export const homeServiceCreateBooking = async (
   clientId: string,
+  vendorId: string, 
   serviceId: string,
   paymentMethod: string,
   serviceName: string,
@@ -242,6 +243,7 @@ export const homeServiceCreateBooking = async (
 
   const baseData: any = {
     clientId,
+    vendorId, // ✅ INCLUDE HERE
     serviceId,
     serviceName,
     totalAmount,
@@ -263,6 +265,7 @@ export const homeServiceCreateBooking = async (
 
 
 
+
 export const acceptBooking = async (vendorId: string, bookingId: string) => {
   const updated = await prisma.booking.updateMany({
     where: { id: bookingId, status: BookingStatus.PENDING },
@@ -273,9 +276,11 @@ export const acceptBooking = async (vendorId: string, bookingId: string) => {
 
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
 
+  if (!booking!.clientId) throw new Error("Missing clientId for notification");
   await prisma.notification.create({
     data: {
-      userId: booking!.clientId,
+     userId: booking!.clientId ?? undefined,
+
       message: `Your booking "${booking!.serviceName}" has been accepted!`,
       type: "BOOKING",
      

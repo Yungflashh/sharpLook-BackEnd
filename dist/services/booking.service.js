@@ -182,10 +182,11 @@ const getUserBookings = async (userId, role) => {
     });
 };
 exports.getUserBookings = getUserBookings;
-const homeServiceCreateBooking = async (clientId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, homeDetails) => {
+const homeServiceCreateBooking = async (clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, homeDetails) => {
     const isHomeService = serviceType === "HOME_SERVICE";
     const baseData = {
         clientId,
+        vendorId, // ✅ INCLUDE HERE
         serviceId,
         serviceName,
         totalAmount,
@@ -211,9 +212,11 @@ const acceptBooking = async (vendorId, bookingId) => {
     if (updated.count === 0)
         throw new Error("Booking not found, unauthorized, or already accepted");
     const booking = await prisma_1.default.booking.findUnique({ where: { id: bookingId } });
+    if (!booking.clientId)
+        throw new Error("Missing clientId for notification");
     await prisma_1.default.notification.create({
         data: {
-            userId: booking.clientId,
+            userId: booking.clientId ?? undefined,
             message: `Your booking "${booking.serviceName}" has been accepted!`,
             type: "BOOKING",
         },
