@@ -193,7 +193,7 @@ export const getAllBookingsDetailed = async () => {
     include: {
       client: true,
       vendor: true,
-      review: true,
+      reviews: true,
     },
     orderBy: { createdAt: "desc" }
   });

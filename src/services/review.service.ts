@@ -13,25 +13,25 @@ export const createReview = async ({
   serviceId,
   type
 }: {
-  vendorId: string
-  clientId: string
-  rating: number
-  comment?: string
-  bookingId?: string
-  productId?: string
-  serviceId?: string
-  type: 'BOOKING' | 'PRODUCT' | 'SERVICE'
+  vendorId: string;
+  clientId: string;
+  rating: number;
+  comment?: string;
+  bookingId?: string;
+  productId?: string;
+  serviceId?: string;
+  type: 'BOOKING' | 'PRODUCT' | 'SERVICE';
 }) => {
   return await prisma.review.create({
     data: {
-      vendorId,
-      clientId,
+      vendor: { connect: { id: vendorId } },
+      client: { connect: { id: clientId } },
       rating,
       comment,
-      bookingId,
-      productId,
-      serviceId,
-      type
+      type,
+      booking: bookingId ? { connect: { id: bookingId } } : undefined,
+    product: { connect: { id: productId } },
+      service: serviceId ? { connect: { id: serviceId } } : undefined,
     }
   });
 };

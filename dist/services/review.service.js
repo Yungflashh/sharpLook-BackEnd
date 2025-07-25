@@ -9,14 +9,14 @@ const client_1 = require("@prisma/client");
 const createReview = async ({ vendorId, clientId, rating, comment, bookingId, productId, serviceId, type }) => {
     return await prisma_1.default.review.create({
         data: {
-            vendorId,
-            clientId,
+            vendor: { connect: { id: vendorId } },
+            client: { connect: { id: clientId } },
             rating,
             comment,
-            bookingId,
-            productId,
-            serviceId,
-            type
+            type,
+            booking: bookingId ? { connect: { id: bookingId } } : undefined,
+            product: { connect: { id: productId } },
+            service: serviceId ? { connect: { id: serviceId } } : undefined,
         }
     });
 };
