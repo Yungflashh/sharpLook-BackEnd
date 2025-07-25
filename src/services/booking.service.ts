@@ -172,14 +172,35 @@ export const getBookingById = async (bookingId: string) => {
     where: { id: bookingId },
   });
 };
-
-export const getUserBookings = async (userId: string, role: "CLIENT" | "VENDOR") => {
+export const getUserBookings = async (
+  userId: string,
+  role: "CLIENT" | "VENDOR"
+) => {
   const condition = role === "CLIENT" ? { clientId: userId } : { vendorId: userId };
   const include = role === "CLIENT" ? { vendor: true } : { client: true };
 
   return await prisma.booking.findMany({
     where: condition,
-    include,
+    include: {
+      ...include,
+      service: {
+        select: {
+          id: true,
+          serviceName: true,
+          serviceImage: true,
+          description: true,
+          reviews: {
+            select: {
+              id: true,
+              rating: true,
+              comment: true,
+              clientId: true,
+              createdAt: true
+            }
+          },
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 };

@@ -145,7 +145,26 @@ const getUserBookings = async (userId, role) => {
     const include = role === "CLIENT" ? { vendor: true } : { client: true };
     return await prisma_1.default.booking.findMany({
         where: condition,
-        include,
+        include: {
+            ...include,
+            service: {
+                select: {
+                    id: true,
+                    serviceName: true,
+                    serviceImage: true,
+                    description: true,
+                    reviews: {
+                        select: {
+                            id: true,
+                            rating: true,
+                            comment: true,
+                            clientId: true,
+                            createdAt: true
+                        }
+                    },
+                },
+            },
+        },
         orderBy: { createdAt: "desc" },
     });
 };
