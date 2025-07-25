@@ -2,10 +2,12 @@ import express from "express";
 import { verifyToken } from "../middlewares/auth.middleware";
 import * as BookingController from "../controllers/booking.controller";
 import {
-  createBookingHandler,
+  createHomeServiceBooking,
   acceptBookingHandler,
   payForBookingHandler,
 } from "../controllers/booking.controller"
+import { uploadReferencePhoto } from "../middlewares/upload.middleware";
+
 const router = express.Router();
 
 // Existing routes
@@ -16,7 +18,7 @@ router.patch("/:bookingId/status", verifyToken, BookingController.changeBookingS
 // New routes for marking booking completed by client or vendor
 router.patch("/:bookingId/complete/client", verifyToken, BookingController.markBookingCompletedByClient);
 router.patch("/:bookingId/complete/vendor", verifyToken, BookingController.markBookingCompletedByVendor);
-router.post("/", verifyToken, BookingController.createBookingHandler);
+router.post("/", verifyToken, BookingController.createHomeServiceBooking);
 router.patch("/:bookingId/accept", verifyToken, BookingController.acceptBookingHandler);
 router.patch("/:bookingId/pay", verifyToken, BookingController.payForBookingHandler);
 
@@ -27,7 +29,8 @@ router.patch("/:bookingId/pay", verifyToken, BookingController.payForBookingHand
 // Home service 
 
 // User creates booking
-router.post("/", verifyToken, createBookingHandler)
+router.post("/createHomeServiceBooking", verifyToken,   uploadReferencePhoto,
+ createHomeServiceBooking)
 
 // Vendor accepts booking
 router.patch("/:bookingId/accept", verifyToken, acceptBookingHandler)

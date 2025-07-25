@@ -32,11 +32,16 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.payForBookingHandler = exports.acceptBookingHandler = exports.createBookingHandler = exports.markBookingCompletedByVendor = exports.markBookingCompletedByClient = exports.changeBookingStatus = exports.getMyBookings = exports.bookVendor = void 0;
+exports.payForBookingHandler = exports.acceptBookingHandler = exports.createHomeServiceBooking = exports.markBookingCompletedByVendor = exports.markBookingCompletedByClient = exports.changeBookingStatus = exports.getMyBookings = exports.bookVendor = void 0;
 const BookingService = __importStar(require("../services/booking.service"));
 const notification_service_1 = require("../services/notification.service");
 const booking_service_1 = require("../services/booking.service");
+const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
+const prisma_1 = __importDefault(require("../config/prisma"));
 const bookVendor = async (req, res) => {
     const { vendorId, date, time, price, serviceName, serviceId, totalAmount, reference, paymentMethod } = req.body;
     // Corrected to match your service
@@ -164,17 +169,44 @@ const markBookingCompletedByVendor = async (req, res) => {
 };
 exports.markBookingCompletedByVendor = markBookingCompletedByVendor;
 // hpome servcie 
-const createBookingHandler = async (req, res) => {
+const createHomeServiceBooking = async (req, res) => {
     try {
-        const { serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, homeDetails, } = req.body;
-        const booking = await (0, booking_service_1.homeServiceCreateBooking)(req.user.id, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, homeDetails);
-        res.status(201).json({ success: true, message: "Booking created", data: booking });
+        const { clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, serviceLocation, fullAddress, landmark, specialInstruction, } = req.body;
+        let referencePhotoUrl = "";
+        if (req.file) {
+            const uploadResult = await (0, cloudinary_1.default)(req.file.buffer, req.file.mimetype);
+            referencePhotoUrl = uploadResult.secure_url;
+        }
+        const booking = await (0, booking_service_1.homeServiceCreateBooking)(clientId, vendorId, serviceId, paymentMethod, serviceName, Number(price), Number(totalAmount), time, date, reference, serviceType, {
+            serviceLocation,
+            fullAddress,
+            landmark,
+            referencePhoto: referencePhotoUrl,
+            specialInstruction,
+        });
+        const vendor = await prisma_1.default.vendorOnboarding.findUnique({
+            where: { id: vendorId },
+            select: {
+                user: {
+                    select: { id: true, firstName: true },
+                },
+            },
+        });
+        if (vendor?.user?.id) {
+            await (0, notification_service_1.createNotification)(vendor.user.id, `You have a new home service booking for ${serviceName} on ${date} at ${time}`);
+        }
+        await (0, notification_service_1.createNotification)(clientId, `Your booking for ${serviceName} on ${date} at ${time} was successful.`);
+        return res.status(201).json({
+            message: "Booking created successfully",
+            data: booking,
+        });
     }
     catch (err) {
-        res.status(400).json({ success: false, message: err.message || "Failed to create booking" });
+        console.error("Create booking error:", err);
+        return res.status(500).json({ error: err.message || "Server Error" });
     }
 };
-exports.createBookingHandler = createBookingHandler;
+exports.createHomeServiceBooking = createHomeServiceBooking;
 const acceptBookingHandler = async (req, res) => {
     try {
         const { bookingId } = req.params;

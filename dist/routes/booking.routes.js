@@ -40,6 +40,7 @@ const express_1 = __importDefault(require("express"));
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const BookingController = __importStar(require("../controllers/booking.controller"));
 const booking_controller_1 = require("../controllers/booking.controller");
+const upload_middleware_1 = require("../middlewares/upload.middleware");
 const router = express_1.default.Router();
 // Existing routes
 router.post("/bookVendor", auth_middleware_1.verifyToken, BookingController.bookVendor);
@@ -48,12 +49,12 @@ router.patch("/:bookingId/status", auth_middleware_1.verifyToken, BookingControl
 // New routes for marking booking completed by client or vendor
 router.patch("/:bookingId/complete/client", auth_middleware_1.verifyToken, BookingController.markBookingCompletedByClient);
 router.patch("/:bookingId/complete/vendor", auth_middleware_1.verifyToken, BookingController.markBookingCompletedByVendor);
-router.post("/", auth_middleware_1.verifyToken, BookingController.createBookingHandler);
+router.post("/", auth_middleware_1.verifyToken, BookingController.createHomeServiceBooking);
 router.patch("/:bookingId/accept", auth_middleware_1.verifyToken, BookingController.acceptBookingHandler);
 router.patch("/:bookingId/pay", auth_middleware_1.verifyToken, BookingController.payForBookingHandler);
 // Home service 
 // User creates booking
-router.post("/", auth_middleware_1.verifyToken, booking_controller_1.createBookingHandler);
+router.post("/createHomeServiceBooking", auth_middleware_1.verifyToken, upload_middleware_1.uploadReferencePhoto, booking_controller_1.createHomeServiceBooking);
 // Vendor accepts booking
 router.patch("/:bookingId/accept", auth_middleware_1.verifyToken, booking_controller_1.acceptBookingHandler);
 // Client pays for booking after vendor acceptance

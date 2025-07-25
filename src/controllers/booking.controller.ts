@@ -7,6 +7,9 @@ import {
   acceptBooking,
   payForAcceptedBooking,
 } from "../services/booking.service"
+import uploadToCloudinary from "../utils/cloudinary";
+import prisma from "../config/prisma";
+
 
 export const bookVendor = async (req: Request, res: Response) => {
   const {
@@ -116,7 +119,7 @@ export const changeBookingStatus = async (req: Request, res: Response) => {
       } else if (completedBy === "VENDOR") {
         updatedBooking = await BookingService.markBookingCompletedByVendor(bookingId, reference);
         await createNotification(
-          booking.clientId,
+          booking.clientId!,
           `Vendor marked booking for ${booking.serviceName} as completed.`
         );
       } else {
@@ -130,7 +133,7 @@ export const changeBookingStatus = async (req: Request, res: Response) => {
       updatedBooking = await BookingService.updateBookingStatus(bookingId, status as BookingStatus);
 
       await createNotification(
-        booking.clientId,
+        booking.clientId!,
         `Your booking for ${booking.serviceName} was ${status.toLowerCase()}.`
       );
 
@@ -188,9 +191,11 @@ export const markBookingCompletedByVendor = async (req: Request, res: Response) 
 // hpome servcie 
 
 
-export const createBookingHandler = async (req: Request, res: Response) => {
+export const createHomeServiceBooking = async (req: Request, res: Response) => {
   try {
     const {
+      clientId,
+      vendorId,
       serviceId,
       paymentMethod,
       serviceName,
@@ -200,29 +205,71 @@ export const createBookingHandler = async (req: Request, res: Response) => {
       date,
       reference,
       serviceType,
-      homeDetails,
-    } = req.body
+      serviceLocation,
+      fullAddress,
+      landmark,
+      specialInstruction,
+    } = req.body;
+
+    let referencePhotoUrl = "";
+
+    if (req.file) {
+      const uploadResult = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+      referencePhotoUrl = uploadResult.secure_url;
+    }
 
     const booking = await homeServiceCreateBooking(
-  req.user!.id,
-  serviceId,
-  paymentMethod,
-  serviceName,
-  price,
-  totalAmount,
-  time,
-  date,
-  reference,
-  serviceType,
-  homeDetails
-)
+      clientId,
+      vendorId,
+      serviceId,
+      paymentMethod,
+      serviceName,
+      Number(price),
+      Number(totalAmount),
+      time,
+      date,
+      reference,
+      serviceType,
+      {
+        serviceLocation,
+        fullAddress,
+        landmark,
+        referencePhoto: referencePhotoUrl,
+        specialInstruction,
+      }
+    );
 
-    res.status(201).json({ success: true, message: "Booking created", data: booking })
-  } catch (err: any) {
-    res.status(400).json({ success: false, message: err.message || "Failed to create booking" })
-  }
+    const vendor = await prisma.vendorOnboarding.findUnique({
+  where: { id: vendorId },
+  select: {
+    user: {
+      select: { id: true, firstName: true },
+    },
+  },
+});
+
+if (vendor?.user?.id) {
+  await createNotification(
+    vendor.user.id,
+    `You have a new home service booking for ${serviceName} on ${date} at ${time}`
+  );
 }
 
+
+
+await createNotification(
+  clientId,
+  `Your booking for ${serviceName} on ${date} at ${time} was successful.`
+);
+    return res.status(201).json({
+      message: "Booking created successfully",
+      data: booking,
+    });
+  } catch (err: any) {
+    console.error("Create booking error:", err);
+    return res.status(500).json({ error: err.message || "Server Error" });
+  }
+};
 export const acceptBookingHandler = async (req: Request, res: Response) => {
   try {
     const { bookingId } = req.params
