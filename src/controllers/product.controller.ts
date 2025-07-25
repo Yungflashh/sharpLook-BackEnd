@@ -146,7 +146,7 @@ export const editProduct = async (req: Request, res: Response) => {
 
 
 export const removeProduct = async (req: Request, res: Response) => {
-  const { productId } = req.params;
+  const { productId } = req.body;
 
   try {
     await deleteProduct(productId);

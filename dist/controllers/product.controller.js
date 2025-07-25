@@ -125,7 +125,7 @@ const editProduct = async (req, res) => {
 };
 exports.editProduct = editProduct;
 const removeProduct = async (req, res) => {
-    const { productId } = req.params;
+    const { productId } = req.body;
     try {
         await (0, product_service_2.deleteProduct)(productId);
         return res.status(200).json({
