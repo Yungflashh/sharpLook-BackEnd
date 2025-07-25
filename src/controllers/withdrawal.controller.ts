@@ -12,11 +12,31 @@ export const requestWithdrawal = async (req: Request, res: Response, next: NextF
     const userId = req.user!.id;
 
     const withdrawal = await requestWithdrawalService(userId, amount, reason, method, metadata);
-    res.status(201).json({ success: true, message: "Withdrawal request submitted", data: withdrawal });
-  } catch (err) {
-    next(err);
+
+    res.status(201).json({
+      success: true,
+      message: "Withdrawal request submitted",
+      data: withdrawal,
+    });
+
+  } catch (err: any) {
+    // Handle specific error manually
+    if (err.message === "Insufficient wallet balance") {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient wallet balance",
+      });
+    }
+
+    // For other errors
+    console.error("Withdrawal error:", err);
+    res.status(500).json({
+      success: false,
+      message: "An unexpected error occurred. Please try again later.",
+    });
   }
 };
+
 
 export const updateWithdrawalStatus = async (req: Request, res: Response, next: NextFunction) => {
   try {
