@@ -14,6 +14,7 @@
     email            String            @unique
     phone            String?
     password         String
+    location         String?
     role             Role
     powerGiven Boolean? @default(false)
 
@@ -159,7 +160,8 @@
       clientCompleted  Boolean        @default(false)
       vendorCompleted  Boolean        @default(false)
 
-      review Review? @relation("BookingToReview")
+      reviews Review[] @relation("BookingToReview")
+
       dispute Dispute? 
 
 
@@ -209,24 +211,32 @@
     user User @relation("UserNotifications", fields: [userId], references: [id])
   }
 
-  model Review {
-    id          String   @id @default(auto()) @map("_id") @db.ObjectId
-    bookingId String? @db.ObjectId @unique
-    productId   String?  @db.ObjectId
-    serviceId   String?  @db.ObjectId
-    vendorId    String   @db.ObjectId
-    clientId    String   @db.ObjectId
-    rating      Int
-    comment     String?
-    type        ReviewType
-    createdAt   DateTime @default(now())
+model Review {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
 
-    booking    Booking?        @relation("BookingToReview", fields: [bookingId], references: [id])
-    product    Product?        @relation("ProductToReview", fields: [productId], references: [id])
-    service    VendorService?  @relation("ServiceToReview", fields: [serviceId], references: [id])
-    vendor      User          @relation("VendorReview", fields: [vendorId], references: [id])
-    client      User          @relation("ClientReview", fields: [clientId], references: [id])
-  }
+  bookingId String?  @db.ObjectId 
+  productId   String?  @db.ObjectId
+  serviceId   String?  @db.ObjectId
+
+  vendorId    String   @db.ObjectId
+  clientId    String   @db.ObjectId
+
+  rating      Int
+  comment     String?
+  type        ReviewType
+  createdAt   DateTime @default(now())
+
+  // Relations
+  booking     Booking?        @relation("BookingToReview", fields: [bookingId], references: [id])
+  product     Product?        @relation("ProductToReview", fields: [productId], references: [id])
+  service     VendorService?  @relation("ServiceToReview", fields: [serviceId], references: [id])
+  vendor      User            @relation("VendorReview", fields: [vendorId], references: [id])
+  client      User            @relation("ClientReview", fields: [clientId], references: [id])
+
+  // ✅ Composite Unique Constraints
+
+}
+
 
   enum ReviewType {
     BOOKING

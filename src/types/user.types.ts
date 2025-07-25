@@ -10,4 +10,5 @@ export type EditableUserFields = Partial<Pick<
   | "preferredLatitude"
   | "preferredLongitude"
   | "preferredRadiusKm"
+  | "location"
 >>;
