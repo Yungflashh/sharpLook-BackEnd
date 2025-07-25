@@ -59,7 +59,7 @@ app.use("/api/v1/referrals", referral_routes_1.default);
 app.use("/api/v1/disputes", dispute_routes_1.default);
 app.use("/api/v1/distance", distance_routes_1.default);
 app.use("/api/v1/payment", payment_routes_1.default);
-app.use("/api/withdrawals", withdrawal_routes_1.default);
+app.use("/api/v1/withdrawals", withdrawal_routes_1.default);
 // For clients 
 app.use("/api/v1/client", clientService_routes_1.default);
 app.use("/api/v1/client", cart_routes_1.default);

@@ -70,7 +70,7 @@ app.use("/api/v1/referrals", referralRoutes)
 app.use("/api/v1/disputes", disputeRoutes);
 app.use("/api/v1/distance", distanceRoutes);
 app.use("/api/v1/payment", paymentRoutes);
-app.use("/api/withdrawals", withdrawalRoutes);
+app.use("/api/v1/withdrawals", withdrawalRoutes);
 
 
 
