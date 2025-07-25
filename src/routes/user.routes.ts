@@ -7,8 +7,8 @@ import { uploadSingle3 } from "../middlewares/upload.middleware"
 
 const router = Router()
 
-router.get("/updateProfile", verifyToken, getMyProfile)
-router.put("/me", verifyToken, updateMyProfile)
+router.get("/me", verifyToken, getMyProfile)
+router.put("/updateProfile", verifyToken, updateMyProfile)
 router.put(
   "/location",
   verifyToken,
