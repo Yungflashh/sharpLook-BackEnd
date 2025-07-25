@@ -147,21 +147,55 @@ export const updateVendorService = async (req: Request, res: Response) => {
   }
 };
 
+import { Prisma } from "@prisma/client";
+
+
+
 // ✅ Delete vendor service
 export const deleteAVendorService = async (req: Request, res: Response) => {
-  const { serviceId } = req.body;
+  const { serviceId } = req.params;
+
+  // 🔍 Validate serviceId
+  if (!serviceId || typeof serviceId !== "string" || serviceId.trim() === "") {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid or missing serviceId",
+      serviceId,
+    });
+  }
 
   try {
     await deleteVendorService(serviceId);
-    res.status(200).json({
+
+    return res.status(200).json({
       success: true,
       message: "Service deleted successfully",
+      serviceId,
     });
   } catch (err: any) {
-    res.status(500).json({
+    let statusCode = 500;
+    let errorMessage = "Failed to delete service";
+    let detailedError = err.message;
+
+    // 🧠 Prisma known error codes
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2025") {
+        // Record not found
+        errorMessage = `No service found with the provided ID`;
+        statusCode = 404;
+      } else if (err.code === "P2003") {
+        // Foreign key constraint failed
+        errorMessage = "Cannot delete service because it is linked to existing bookings.";
+        statusCode = 400;
+      }
+    }
+
+    return res.status(statusCode).json({
       success: false,
-      message: "Failed to delete service",
-      error: err.message,
+      message: errorMessage,
+      serviceId,
+      error: detailedError,
     });
   }
 };
+
