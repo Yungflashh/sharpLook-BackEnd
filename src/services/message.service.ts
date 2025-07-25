@@ -1,6 +1,5 @@
-import prisma from "../config/prisma"
+import prisma from "../config/prisma";
 
-// Save a new message
 export const saveMessage = async (
   senderId: string,
   receiverId: string,
@@ -14,18 +13,16 @@ export const saveMessage = async (
       roomId,
       message,
     },
-  })
-}
+  });
+};
 
-// Get all messages for a room
 export const getMessagesByRoomId = async (roomId: string) => {
   return await prisma.message.findMany({
     where: { roomId },
-     orderBy: { createdAt: "asc" },
-  })
-}
+    orderBy: { createdAt: "asc" },
+  });
+};
 
-// Mark messages as read by user
 export const markMessagesAsRead = async (roomId: string, userId: string) => {
   return await prisma.message.updateMany({
     where: {
@@ -36,14 +33,13 @@ export const markMessagesAsRead = async (roomId: string, userId: string) => {
     data: {
       read: true,
     },
-  })
-}
-
+  });
+};
 
 export const toggleMessageLike = async (messageId: string, userId: string) => {
   const message = await prisma.message.findUnique({
     where: { id: messageId },
-    select: { likedBy: true }
+    select: { likedBy: true },
   });
 
   if (!message) throw new Error("Message not found");
@@ -60,14 +56,12 @@ export const toggleMessageLike = async (messageId: string, userId: string) => {
   const updated = await prisma.message.update({
     where: { id: messageId },
     data: {
-      likedBy: { set: updatedLikedBy } // ✅ Prisma expects { set: string[] }
-    }
+      likedBy: { set: updatedLikedBy }, // ✅ Prisma expects { set: string[] }
+    },
   });
 
   return updated;
 };
-
-
 
 export const countUnreadMessages = async (userId: string) => {
   return await prisma.message.count({
@@ -75,5 +69,58 @@ export const countUnreadMessages = async (userId: string) => {
       receiverId: userId,
       read: false,
     },
-  })
-}
+  });
+};
+
+export const getChatListForUser = async (userId: string) => {
+  const rooms = await prisma.message.findMany({
+    where: {
+      OR: [{ senderId: userId }, { receiverId: userId }],
+    },
+    select: {
+      roomId: true,
+      senderId: true,
+      receiverId: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+    distinct: ["roomId"],
+  });
+
+  return rooms;
+};
+
+export const getChatPreviews = async (userId: string) => {
+  const rooms = await getChatListForUser(userId);
+
+  const previews = await Promise.all(
+    rooms.map(async (room) => {
+      const lastMessage = await prisma.message.findFirst({
+        where: { roomId: room.roomId },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return {
+        roomId: room.roomId,
+        lastMessage,
+      };
+    })
+  );
+
+  return previews;
+};
+
+
+export const deleteMessage = async (messageId: string) => {
+  return await prisma.message.delete({
+    where: { id: messageId },
+  });
+};
+
+export const editMessage = async (messageId: string, newText: string) => {
+  return await prisma.message.update({
+    where: { id: messageId },
+    data: { message: newText },
+  });
+};
+

@@ -4,7 +4,11 @@ import {
   getMessagesByRoomId,
   markMessagesAsRead,
   toggleMessageLike,
-  countUnreadMessages
+  countUnreadMessages,
+  getChatListForUser,
+  getChatPreviews,
+  deleteMessage,
+  editMessage,
 } from "../services/message.service"
 
 export const fetchMessages = async (req: Request, res: Response) => {
@@ -78,5 +82,50 @@ export const getUnreadMessageCount = async (req: Request, res: Response) => {
       success: false,
       message: err.message
     });
+  }
+};
+
+
+export const getChatList = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const chats = await getChatListForUser(userId);
+    return res.status(200).json({ success: true, data: chats });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: "Failed to fetch chat list" });
+  }
+};
+
+// 7. Get last message preview per room
+export const getChatPreviewsController = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const previews = await getChatPreviews(userId);
+    return res.status(200).json({ success: true, data: previews });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: "Failed to fetch previews" });
+  }
+};
+
+// 8. Delete a message
+export const deleteMessageController = async (req: Request, res: Response) => {
+  try {
+    const { messageId } = req.params;
+    await deleteMessage(messageId);
+    return res.status(200).json({ success: true, message: "Message deleted" });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: "Failed to delete message" });
+  }
+};
+
+// 9. Edit a message
+export const editMessageController = async (req: Request, res: Response) => {
+  try {
+    const { messageId } = req.params;
+    const { newText } = req.body;
+    const updated = await editMessage(messageId, newText);
+    return res.status(200).json({ success: true, data: updated });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: "Failed to edit message" });
   }
 };
