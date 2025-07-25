@@ -156,3 +156,24 @@ export const filterVendorsByService = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Failed to filter vendors", error: err.message })
   }
 }
+
+
+
+export const editVendorProfile = async (req: Request, res: Response) => {
+  const vendorId = req.user?.id;
+
+  try {
+    const { onboarding, availability } = await updateVendorProfile(vendorId!, req.body);
+
+    return res.status(200).json({
+      message: "Vendor profile updated successfully",
+      data: {
+        onboarding,
+        availability,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating vendor profile:", error);
+    return res.status(500).json({ error: "Failed to update vendor profile" });
+  }
+};

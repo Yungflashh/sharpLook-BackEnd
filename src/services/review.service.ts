@@ -125,3 +125,56 @@ export const getVendorReviews = async (vendorId: string, type?: string) => {
   });
 };
 
+export const getServiceReviewsByVendor = async (vendorId: string, serviceId: string) => {
+  return await prisma.review.findMany({
+    where: {
+      vendorId,
+      serviceId,
+    },
+    include: {
+      client: {
+        select: {
+          firstName: true,
+          lastName: true,
+          avatar: true,
+        },
+      },
+      service: {
+        select: {
+          id: true,
+          serviceName: true,
+          serviceImage: true,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+};
+
+
+
+export const getProductReviewsByVendor = async (vendorId: string, productId: string) => {
+  return await prisma.review.findMany({
+    where: {
+      vendorId,
+      productId,
+    },
+    include: {
+      client: {
+        select: {
+          firstName: true,
+          lastName: true,
+          avatar: true,
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          productName: true,
+          picture: true,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+};

@@ -7,7 +7,7 @@ const vendor_controller_1 = require("../controllers/vendor.controller");
 const product_controller_1 = require("../controllers/product.controller");
 const upload_middleware_1 = require("../middlewares/upload.middleware");
 const router = (0, express_1.Router)();
-router.get("/me", auth_middleware_1.verifyToken, user_controller_1.getMyProfile);
+router.get("/updateProfile", auth_middleware_1.verifyToken, user_controller_1.getMyProfile);
 router.put("/me", auth_middleware_1.verifyToken, user_controller_1.updateMyProfile);
 router.put("/location", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["CLIENT"]), user_controller_1.setClientLocationPreferences);
 router.get("/nearby-vendors", vendor_controller_1.getNearbyVendors);

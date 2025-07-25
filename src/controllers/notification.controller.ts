@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { getUserNotifications } from "../services/notification.service";
+import { Request, Response, NextFunction } from "express";
+import { getUserNotifications, deleteNotification } from "../services/notification.service";
 
 export const getNotifications = async (req: Request, res: Response) => {
   try {
@@ -16,5 +16,20 @@ export const getNotifications = async (req: Request, res: Response) => {
       success: false,
       message: err.message
     });
+  }
+};
+
+
+export const deleteNotificationController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { notificationId } = req.params;
+    await deleteNotification(notificationId);
+    res.status(200).json({ success: true, message: "Notification deleted successfully" });
+  } catch (error) {
+    next(error);
   }
 };

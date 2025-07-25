@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getVendorsByService = exports.getAllVendorServices = exports.findNearbyVendors = exports.updateServiceRadiusAndLocation = exports.getVendorAvailability = exports.setVendorAvailability = exports.getVendorSpecialties = exports.updateVendorSpecialties = exports.getPortfolioImages = exports.addPortfolioImages = void 0;
+exports.updateVendorProfile = exports.getVendorsByService = exports.getAllVendorServices = exports.findNearbyVendors = exports.updateServiceRadiusAndLocation = exports.getVendorAvailability = exports.setVendorAvailability = exports.getVendorSpecialties = exports.updateVendorSpecialties = exports.getPortfolioImages = exports.addPortfolioImages = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const distance_1 = require("../utils/distance");
 const addPortfolioImages = async (userId, imageUrls) => {
@@ -100,3 +100,10 @@ const getVendorsByService = async (service) => {
     });
 };
 exports.getVendorsByService = getVendorsByService;
+const updateVendorProfile = async (vendorId, data) => {
+    return await prisma_1.default.vendorOnboarding.update({
+        where: { id: vendorId },
+        data
+    });
+};
+exports.updateVendorProfile = updateVendorProfile;

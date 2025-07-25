@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getVendorReviews = exports.createReview = void 0;
+exports.getProductReviewsByVendor = exports.getServiceReviewsByVendor = exports.getVendorReviews = exports.createReview = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
 const createReview = async ({ vendorId, clientId, rating, comment, bookingId, productId, serviceId, type }) => {
@@ -105,3 +105,55 @@ const getVendorReviews = async (vendorId, type) => {
     });
 };
 exports.getVendorReviews = getVendorReviews;
+const getServiceReviewsByVendor = async (vendorId, serviceId) => {
+    return await prisma_1.default.review.findMany({
+        where: {
+            vendorId,
+            serviceId,
+        },
+        include: {
+            client: {
+                select: {
+                    firstName: true,
+                    lastName: true,
+                    avatar: true,
+                },
+            },
+            service: {
+                select: {
+                    id: true,
+                    serviceName: true,
+                    serviceImage: true,
+                },
+            },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+};
+exports.getServiceReviewsByVendor = getServiceReviewsByVendor;
+const getProductReviewsByVendor = async (vendorId, productId) => {
+    return await prisma_1.default.review.findMany({
+        where: {
+            vendorId,
+            productId,
+        },
+        include: {
+            client: {
+                select: {
+                    firstName: true,
+                    lastName: true,
+                    avatar: true,
+                },
+            },
+            product: {
+                select: {
+                    id: true,
+                    productName: true,
+                    picture: true,
+                },
+            },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+};
+exports.getProductReviewsByVendor = getProductReviewsByVendor;

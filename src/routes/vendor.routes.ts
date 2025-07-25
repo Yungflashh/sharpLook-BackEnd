@@ -7,7 +7,7 @@ import { uploadPortfolioImages,
          fetchAvailability, 
          updateAvailability,
         updateServiceRadius,
-     
+     editVendorProfile,
     fetchAllServiceCategories,
   filterVendorsByService } from "../controllers/vendor.controller"
 import { uploadMultiple } from "../middlewares/upload.middleware"
@@ -36,6 +36,12 @@ router.get("/getVendorAvailability", verifyToken, requireRole(["VENDOR"]),  fetc
 router.put("/update-service-radius",verifyToken,requireRole(["VENDOR"]),updateServiceRadius)
 router.get("/analytics/:vendorId", fetchVendorAnalytics);
 router.get("/earnings-graph", requireRole(["VENDOR"]), fetchVendorEarningsGraph);
+router.put(
+  "/profile/edit",
+  requireRole(["VENDOR"]),
+  editVendorProfile
+);
+
 
 
 

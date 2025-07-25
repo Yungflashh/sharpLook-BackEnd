@@ -19,6 +19,7 @@ import referralRoutes from "./routes/referral.routes"
 import adminRoutes from "./routes/admin.routes"
 import disputeRoutes from "./routes/dispute.routes";
 import paymentRoutes from "./routes/payment.routes"
+import withdrawalRoutes from "./routes/withdrawal.routes";
 
 
 
@@ -69,6 +70,7 @@ app.use("/api/v1/referrals", referralRoutes)
 app.use("/api/v1/disputes", disputeRoutes);
 app.use("/api/v1/distance", distanceRoutes);
 app.use("/api/v1/payment", paymentRoutes);
+app.use("/api/withdrawals", withdrawalRoutes);
 
 
 

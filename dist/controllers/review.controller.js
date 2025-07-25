@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchVendorReviews = exports.postReview = void 0;
+exports.handleGetProductReviewsByVendor = exports.handleGetServiceReviewsByVendor = exports.fetchVendorReviews = exports.postReview = void 0;
 const ReviewService = __importStar(require("../services/review.service"));
 const postReview = async (req, res) => {
     const { bookingId, productId, serviceId, vendorId, rating, comment, type } = req.body;
@@ -100,3 +100,33 @@ const fetchVendorReviews = async (req, res) => {
     }
 };
 exports.fetchVendorReviews = fetchVendorReviews;
+const handleGetServiceReviewsByVendor = async (req, res, next) => {
+    try {
+        const { vendorId, serviceId } = req.params;
+        const reviews = await ReviewService.getServiceReviewsByVendor(vendorId, serviceId);
+        return res.status(200).json({
+            success: true,
+            message: "Service reviews retrieved successfully",
+            data: reviews,
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.handleGetServiceReviewsByVendor = handleGetServiceReviewsByVendor;
+const handleGetProductReviewsByVendor = async (req, res, next) => {
+    try {
+        const { vendorId, productId } = req.params;
+        const reviews = await ReviewService.getProductReviewsByVendor(vendorId, productId);
+        return res.status(200).json({
+            success: true,
+            message: "Product reviews retrieved successfully",
+            data: reviews,
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.handleGetProductReviewsByVendor = handleGetProductReviewsByVendor;

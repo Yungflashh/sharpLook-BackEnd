@@ -20,3 +20,10 @@ export const getUserNotifications = async (userId: string) => {
     orderBy: { createdAt: "desc" },
   })
 }
+
+
+export const deleteNotification = async (notificationId: string) => {
+  return await prisma.notification.delete({
+    where: { id: notificationId },
+  });
+};

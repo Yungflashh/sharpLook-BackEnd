@@ -8,4 +8,5 @@ const notification_controller_1 = require("../controllers/notification.controlle
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = express_1.default.Router();
 router.get("/getNotifications", auth_middleware_1.verifyToken, notification_controller_1.getNotifications);
+router.delete("/delete/:notificationId", auth_middleware_1.verifyToken, notification_controller_1.deleteNotificationController);
 exports.default = router;

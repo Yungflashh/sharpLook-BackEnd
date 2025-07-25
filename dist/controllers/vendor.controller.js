@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.filterVendorsByService = exports.fetchAllServiceCategories = exports.getNearbyVendors = exports.updateServiceRadius = exports.fetchAvailability = exports.updateAvailability = exports.fetchPortfolioImages = exports.uploadPortfolioImages = exports.completeVendorProfile = void 0;
+exports.editVendorProfile = exports.filterVendorsByService = exports.fetchAllServiceCategories = exports.getNearbyVendors = exports.updateServiceRadius = exports.fetchAvailability = exports.updateAvailability = exports.fetchPortfolioImages = exports.uploadPortfolioImages = exports.completeVendorProfile = void 0;
 const vendorOnboarding_service_1 = require("../services/vendorOnboarding.service");
 const vendor_services_1 = require("../services/vendor.services");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
@@ -135,3 +135,21 @@ const filterVendorsByService = async (req, res) => {
     }
 };
 exports.filterVendorsByService = filterVendorsByService;
+const editVendorProfile = async (req, res) => {
+    const vendorId = req.user?.id;
+    try {
+        const { onboarding, availability } = await (0, vendorOnboarding_service_1.updateVendorProfile)(vendorId, req.body);
+        return res.status(200).json({
+            message: "Vendor profile updated successfully",
+            data: {
+                onboarding,
+                availability,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error updating vendor profile:", error);
+        return res.status(500).json({ error: "Failed to update vendor profile" });
+    }
+};
+exports.editVendorProfile = editVendorProfile;

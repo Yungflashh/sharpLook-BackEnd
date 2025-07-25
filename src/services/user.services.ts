@@ -1,17 +1,19 @@
 import  prisma  from "../config/prisma"
 import { uploadBufferToCloudinary } from "../utils/cloudinary";
+import { EditableUserFields } from "../types/user.types"
 
 
 export const getUserById = async (id: string) => {
   return await prisma.user.findUnique({ where: { id } })
 }
 
-export const updateUserProfile = async (id: string, data: Partial<any>) => {
+export const updateUserProfile = async (id: string, data: EditableUserFields) => {
   return await prisma.user.update({
     where: { id },
     data
-  })
-}
+  });
+};
+
 
 
 

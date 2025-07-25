@@ -1,5 +1,8 @@
+
 import prisma from "../config/prisma"
 import { haversineDistanceKm } from "../utils/distance"
+import { EditableVendorFields } from "../types/vendor.types";
+
 
 
 export const addPortfolioImages = async (userId: string, imageUrls: string[]) => {
@@ -122,3 +125,12 @@ export const getVendorsByService = async (service?: string) => {
     include: { user: true },
   })
 }
+
+
+
+export const updateVendorProfile = async (vendorId: string, data: EditableVendorFields) => {
+  return await prisma.vendorOnboarding.update({
+    where: { id: vendorId },
+    data
+  });
+};

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserNotifications = exports.createNotification = void 0;
+exports.deleteNotification = exports.getUserNotifications = exports.createNotification = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const createNotification = async (userId, message, type = "BOOKING") => {
     return await prisma_1.default.notification.create({
@@ -22,3 +22,9 @@ const getUserNotifications = async (userId) => {
     });
 };
 exports.getUserNotifications = getUserNotifications;
+const deleteNotification = async (notificationId) => {
+    return await prisma_1.default.notification.delete({
+        where: { id: notificationId },
+    });
+};
+exports.deleteNotification = deleteNotification;

@@ -23,6 +23,7 @@ const referral_routes_1 = __importDefault(require("./routes/referral.routes"));
 const admin_routes_1 = __importDefault(require("./routes/admin.routes"));
 const dispute_routes_1 = __importDefault(require("./routes/dispute.routes"));
 const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
+const withdrawal_routes_1 = __importDefault(require("./routes/withdrawal.routes"));
 // For clients
 const clientService_routes_1 = __importDefault(require("./routes/clientService.routes"));
 const cart_routes_1 = __importDefault(require("./routes/cart.routes"));
@@ -58,6 +59,7 @@ app.use("/api/v1/referrals", referral_routes_1.default);
 app.use("/api/v1/disputes", dispute_routes_1.default);
 app.use("/api/v1/distance", distance_routes_1.default);
 app.use("/api/v1/payment", payment_routes_1.default);
+app.use("/api/withdrawals", withdrawal_routes_1.default);
 // For clients 
 app.use("/api/v1/client", clientService_routes_1.default);
 app.use("/api/v1/client", cart_routes_1.default);

@@ -1,4 +1,4 @@
-import { Request, Response } from "express"
+import { Request, Response, NextFunction } from "express"
 import * as ReviewService from "../services/review.service"
 
 export const postReview = async (req: Request, res: Response) => {
@@ -69,5 +69,45 @@ export const fetchVendorReviews = async (req: Request, res: Response) => {
       success: false,
       message: err.message || "Failed to fetch vendor reviews",
     });
+  }
+};
+
+
+export const handleGetServiceReviewsByVendor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { vendorId, serviceId } = req.params;
+
+    const reviews = await ReviewService.getServiceReviewsByVendor(vendorId, serviceId);
+    return res.status(200).json({
+      success: true,
+      message: "Service reviews retrieved successfully",
+      data: reviews,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const handleGetProductReviewsByVendor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { vendorId, productId } = req.params;
+
+    const reviews = await ReviewService.getProductReviewsByVendor(vendorId, productId);
+    return res.status(200).json({
+      success: true,
+      message: "Product reviews retrieved successfully",
+      data: reviews,
+    });
+  } catch (error) {
+    next(error);
   }
 };
