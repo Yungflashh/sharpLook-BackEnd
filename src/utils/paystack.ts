@@ -3,6 +3,10 @@ import axios from "axios";
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY!;
 
 export const initializePayment = async (email: string, amount: number) => {
+     
+ 
+  console.log(typeof amount);
+  
   try {
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",

@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { getUserWallet, getWalletTransactions} from "../services/wallet.service"
-import { handlePaystackWebhook  } from "../services/payment.service"
-import { initializePayment  } from "../utils/paystack"
+import { handlePaystackWebhook , initiatePaystackPayment } from "../services/payment.service"
+// import { initializePayment  } from "../utils/paystack"
 
 export const getWalletDetails = async (req: Request, res: Response) => {
   try {
@@ -44,10 +44,18 @@ export const walletTransactions = async (req: Request, res: Response) => {
 
 
 export const fundWallet = async (req: Request, res: Response) => {
+  const userId = req.user!.id
   try {
     const { email, amount } = req.body
-    const payment = await initializePayment(email, amount)
-    res.status(200).json({ message: "Initialized", data: payment.data })
+
+    const paymentFor = "WALLET FUNDING"
+    console.log(typeof amount);
+    
+    const payment = await initiatePaystackPayment(userId,amount,paymentFor )
+
+    console.log(payment);
+    
+    res.status(200).json({ message: "Initialized", data: payment })
   } catch (error: unknown) {
     const err = error as Error
     res.status(400).json({ error: err.message })
@@ -66,6 +74,9 @@ export const verifyWalletFunding = async (req: Request, res: Response) => {
     }
 
     const result = await handlePaystackWebhook(reference)
+
+    console.log(result);
+    
     console.log("[verifyWalletFunding] Success:", result)
 
     res.status(200).json({ message: result })

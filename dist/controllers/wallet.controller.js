@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyWalletFunding = exports.fundWallet = exports.walletTransactions = exports.getWalletDetails = void 0;
 const wallet_service_1 = require("../services/wallet.service");
 const payment_service_1 = require("../services/payment.service");
-const paystack_1 = require("../utils/paystack");
+// import { initializePayment  } from "../utils/paystack"
 const getWalletDetails = async (req, res) => {
     try {
         // 1. Extract user ID
@@ -41,10 +41,14 @@ const walletTransactions = async (req, res) => {
 };
 exports.walletTransactions = walletTransactions;
 const fundWallet = async (req, res) => {
+    const userId = req.user.id;
     try {
         const { email, amount } = req.body;
-        const payment = await (0, paystack_1.initializePayment)(email, amount);
-        res.status(200).json({ message: "Initialized", data: payment.data });
+        const paymentFor = "WALLET FUNDING";
+        console.log(typeof amount);
+        const payment = await (0, payment_service_1.initiatePaystackPayment)(userId, amount, paymentFor);
+        console.log(payment);
+        res.status(200).json({ message: "Initialized", data: payment });
     }
     catch (error) {
         const err = error;
@@ -62,6 +66,7 @@ const verifyWalletFunding = async (req, res) => {
             return res.status(400).json({ error: message });
         }
         const result = await (0, payment_service_1.handlePaystackWebhook)(reference);
+        console.log(result);
         console.log("[verifyWalletFunding] Success:", result);
         res.status(200).json({ message: result });
     }
