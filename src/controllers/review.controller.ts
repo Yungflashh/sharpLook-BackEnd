@@ -45,12 +45,44 @@ export const postReview = async (req: Request, res: Response) => {
       data: review,
     });
   } catch (err: any) {
-    return res.status(400).json({
+    // ✅ Gracefully handle duplicate review error
+    if (
+      err.code === 'P2002' && // Prisma unique constraint violation
+      err.meta?.target?.includes('bookingId')
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already submitted a review for this booking.",
+      });
+    }
+
+    if (
+      err.code === 'P2002' &&
+      err.meta?.target?.includes('productId')
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already submitted a review for this product.",
+      });
+    }
+
+    if (
+      err.code === 'P2002' &&
+      err.meta?.target?.includes('serviceId')
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already submitted a review for this service.",
+      });
+    }
+
+    return res.status(500).json({
       success: false,
-      message: err.message || "Failed to post review",
+      message: "Failed to post review",
     });
   }
 };
+
 
 export const fetchVendorReviews = async (req: Request, res: Response) => {
   const {vendorId, type} = req.body;
