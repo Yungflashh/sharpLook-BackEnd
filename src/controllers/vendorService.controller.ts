@@ -149,7 +149,7 @@ export const updateVendorService = async (req: Request, res: Response) => {
 
 // ✅ Delete vendor service
 export const deleteAVendorService = async (req: Request, res: Response) => {
-  const { serviceId } = req.params;
+  const { serviceId } = req.body;
 
   try {
     await deleteVendorService(serviceId);

@@ -125,7 +125,7 @@ const updateVendorService = async (req, res) => {
 exports.updateVendorService = updateVendorService;
 // ✅ Delete vendor service
 const deleteAVendorService = async (req, res) => {
-    const { serviceId } = req.params;
+    const { serviceId } = req.body;
     try {
         await (0, vendorService_service_1.deleteVendorService)(serviceId);
         res.status(200).json({
