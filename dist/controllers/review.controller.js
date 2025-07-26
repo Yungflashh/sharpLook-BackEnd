@@ -130,7 +130,7 @@ const fetchVendorReviews = async (req, res) => {
 exports.fetchVendorReviews = fetchVendorReviews;
 const handleGetServiceReviewsByVendor = async (req, res, next) => {
     try {
-        const { vendorId, serviceId } = req.params;
+        const { vendorId, serviceId } = req.body;
         const reviews = await ReviewService.getServiceReviewsByVendor(vendorId, serviceId);
         return res.status(200).json({
             success: true,
@@ -145,7 +145,7 @@ const handleGetServiceReviewsByVendor = async (req, res, next) => {
 exports.handleGetServiceReviewsByVendor = handleGetServiceReviewsByVendor;
 const handleGetProductReviewsByVendor = async (req, res, next) => {
     try {
-        const { vendorId, productId } = req.params;
+        const { vendorId, productId } = req.body;
         const reviews = await ReviewService.getProductReviewsByVendor(vendorId, productId);
         return res.status(200).json({
             success: true,

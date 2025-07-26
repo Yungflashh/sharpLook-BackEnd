@@ -119,7 +119,7 @@ export const handleGetServiceReviewsByVendor = async (
   next: NextFunction
 ) => {
   try {
-    const { vendorId, serviceId } = req.params;
+    const { vendorId, serviceId } = req.body;
 
     const reviews = await ReviewService.getServiceReviewsByVendor(vendorId, serviceId);
     return res.status(200).json({
@@ -139,7 +139,7 @@ export const handleGetProductReviewsByVendor = async (
   next: NextFunction
 ) => {
   try {
-    const { vendorId, productId } = req.params;
+    const { vendorId, productId } = req.body;
 
     const reviews = await ReviewService.getProductReviewsByVendor(vendorId, productId);
     return res.status(200).json({

@@ -8,8 +8,8 @@ const router = express.Router()
 
 router.post("/postReview", verifyToken, postReview)
 router.post("/getAllReviews", fetchVendorReviews)
-router.get("/:vendorId/service/:serviceId", handleGetServiceReviewsByVendor);
-router.get("/:vendorId/product/:productId", handleGetProductReviewsByVendor);
+router.post("/service", handleGetServiceReviewsByVendor);
+router.post("/product", handleGetProductReviewsByVendor);
 
 export default router
 
