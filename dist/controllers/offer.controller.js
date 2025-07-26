@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.handleClientSelectVendor = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
+exports.handleCancelOffer = exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.handleClientSelectVendor = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
 const OfferService = __importStar(require("../services/offer.service"));
 const notification_service_1 = require("../services/notification.service");
 const handleCreateOffer = async (req, res) => {
@@ -74,3 +74,10 @@ const getNearbyOffersHandler = async (req, res) => {
     }
 };
 exports.getNearbyOffersHandler = getNearbyOffersHandler;
+const handleCancelOffer = async (req, res) => {
+    const clientId = req.user.id;
+    const { offerId } = req.params;
+    await OfferService.cancelOffer(offerId, clientId);
+    res.json({ success: true, message: "Offer cancelled" });
+};
+exports.handleCancelOffer = handleCancelOffer;

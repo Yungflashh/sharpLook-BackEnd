@@ -490,6 +490,8 @@ model ServiceOffer {
   acceptedBy   VendorOffer[]
    latitude     Float?
   longitude    Float?
+  expiresAt      DateTime?      // New: Expiry field
+
 
   client       User     @relation(fields: [clientId], references: [id], name: "UserServiceOffers")
 }
@@ -499,6 +501,8 @@ model VendorOffer {
   vendorId      String
   serviceOfferId String
   isAccepted    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
 
   vendor       User     @relation(fields: [vendorId], references: [id], name: "UserVendorOffers")
   serviceOffer  ServiceOffer @relation(fields: [serviceOfferId], references: [id])
@@ -507,5 +511,6 @@ model VendorOffer {
 enum OfferStatus {
   PENDING
   SELECTED
+  CANCELLED
   EXPIRED
 }

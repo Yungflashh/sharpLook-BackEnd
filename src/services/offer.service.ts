@@ -1,10 +1,14 @@
 import prisma from "../config/prisma";
 
 export const createServiceOffer = async (clientId: string, data: any) => {
+
+     const now = new Date();
+  const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
   return await prisma.serviceOffer.create({
     data: {
       clientId,
-      ...data
+      ...data,
+      expiresAt
     }
   });
 };
@@ -91,12 +95,15 @@ export const getNearbyOffersByCoordinates = async (vendorId: string) => {
     throw new Error("Vendor coordinates not found.");
   }
 
-  const allOffers = await prisma.serviceOffer.findMany({
-    where: { status: "PENDING" },
-    include: {
-      client: true,
-    },
-  });
+ const allOffers = await prisma.serviceOffer.findMany({
+  where: {
+    status: "PENDING",
+    expiresAt: { gte: new Date() }, 
+  },
+  include: {
+    client: true,
+  },
+});
 
   const nearbyOffers = allOffers.filter((offer: any) => {
     if (!offer.latitude || !offer.longitude) return false;
@@ -114,3 +121,10 @@ export const getNearbyOffersByCoordinates = async (vendorId: string) => {
   return nearbyOffers;
 };
 
+
+export const cancelOffer = async (offerId: string, clientId: string) => {
+  return await prisma.serviceOffer.updateMany({
+    where: { id: offerId, clientId },
+    data: { status: "CANCELLED" },
+  });
+};
