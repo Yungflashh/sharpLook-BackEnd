@@ -25,6 +25,7 @@ const dispute_routes_1 = __importDefault(require("./routes/dispute.routes"));
 const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
 const withdrawal_routes_1 = __importDefault(require("./routes/withdrawal.routes"));
 const category_routes_1 = __importDefault(require("./routes/category.routes"));
+const offer_routes_1 = __importDefault(require("./routes/offer.routes"));
 // For clients
 const clientService_routes_1 = __importDefault(require("./routes/clientService.routes"));
 const cart_routes_1 = __importDefault(require("./routes/cart.routes"));
@@ -62,6 +63,7 @@ app.use("/api/v1/distance", distance_routes_1.default);
 app.use("/api/v1/payment", payment_routes_1.default);
 app.use("/api/v1/withdrawals", withdrawal_routes_1.default);
 app.use("/api/v1/serviceCategory", category_routes_1.default);
+app.use("/api/v1/offers", offer_routes_1.default);
 // For clients 
 app.use("/api/v1/client", clientService_routes_1.default);
 app.use("/api/v1/client", cart_routes_1.default);

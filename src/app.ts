@@ -21,7 +21,7 @@ import disputeRoutes from "./routes/dispute.routes";
 import paymentRoutes from "./routes/payment.routes"
 import withdrawalRoutes from "./routes/withdrawal.routes";
 import categoryRoutes from "./routes/category.routes"
-
+import createOffersRoutes from "./routes/offer.routes"
 
 // For clients
 
@@ -72,6 +72,7 @@ app.use("/api/v1/distance", distanceRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/withdrawals", withdrawalRoutes);
 app.use("/api/v1/serviceCategory", categoryRoutes);
+app.use("/api/v1/offers", createOffersRoutes);
 
 
 
