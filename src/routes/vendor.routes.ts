@@ -37,7 +37,7 @@ router.put("/update-service-radius",verifyToken,requireRole(["VENDOR"]),updateSe
 router.get("/analytics/:vendorId", fetchVendorAnalytics);
 router.get("/earnings-graph", requireRole(["VENDOR"]), fetchVendorEarningsGraph);
 router.put(
-  "/profile/edit",
+  "/profile/edit",verifyToken,
   requireRole(["VENDOR"]),uploadMultiple,
   editVendorProfile
 );

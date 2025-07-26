@@ -141,7 +141,8 @@ const editVendorProfile = async (req, res) => {
         const userId = req.user?.id;
         if (!userId)
             return res.status(401).json({ error: "Unauthorized" });
-        const { availability, bio, businessName, location, phoneNumber, registerationNumber, } = req.body;
+        const { bio, businessName, location, phoneNumber, registerationNumber, } = req.body;
+        let { availability } = req.body;
         let uploadedPortfolioUrls = [];
         if (req.files && Array.isArray(req.files)) {
             // req.files is array of uploaded portfolio images
@@ -171,6 +172,14 @@ const editVendorProfile = async (req, res) => {
         });
         // Update/Create Availability
         let updatedAvailability = null;
+        if (typeof availability === "string") {
+            try {
+                availability = JSON.parse(availability);
+            }
+            catch (err) {
+                return res.status(400).json({ error: "Invalid availability format" });
+            }
+        }
         if (availability) {
             updatedAvailability = await prisma_1.default.vendorAvailability.upsert({
                 where: { vendorId: userId },

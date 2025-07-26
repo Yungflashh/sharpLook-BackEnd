@@ -166,7 +166,7 @@ export const editVendorProfile = async (req: Request, res: Response) => {
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     const {
-      availability,
+      
       bio,
       businessName,
       location,
@@ -174,6 +174,7 @@ export const editVendorProfile = async (req: Request, res: Response) => {
       registerationNumber,
     } = req.body;
 
+    let {availability} = req.body
     let uploadedPortfolioUrls: string[] = [];
 
     if (req.files && Array.isArray(req.files)) {
@@ -209,6 +210,15 @@ export const editVendorProfile = async (req: Request, res: Response) => {
 
     // Update/Create Availability
     let updatedAvailability = null;
+
+
+
+if (typeof availability === "string") {
+  try {
+    availability = JSON.parse(availability);
+  } catch (err) {
+    return res.status(400).json({ error: "Invalid availability format" });
+  }}
     if (availability) {
       updatedAvailability = await prisma.vendorAvailability.upsert({
         where: { vendorId: userId },
