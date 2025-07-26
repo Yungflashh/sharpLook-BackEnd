@@ -3,13 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getNearbyOffersByCoordinates = exports.selectVendorForOffer = exports.vendorAcceptOffer = exports.getVendorsForOffer = exports.createServiceOffer = void 0;
+exports.cancelOffer = exports.getNearbyOffersByCoordinates = exports.selectVendorForOffer = exports.vendorAcceptOffer = exports.getVendorsForOffer = exports.createServiceOffer = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const createServiceOffer = async (clientId, data) => {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
     return await prisma_1.default.serviceOffer.create({
         data: {
             clientId,
-            ...data
+            ...data,
+            expiresAt
         }
     });
 };
@@ -80,7 +83,10 @@ const getNearbyOffersByCoordinates = async (vendorId) => {
         throw new Error("Vendor coordinates not found.");
     }
     const allOffers = await prisma_1.default.serviceOffer.findMany({
-        where: { status: "PENDING" },
+        where: {
+            status: "PENDING",
+            expiresAt: { gte: new Date() },
+        },
         include: {
             client: true,
         },
@@ -94,3 +100,10 @@ const getNearbyOffersByCoordinates = async (vendorId) => {
     return nearbyOffers;
 };
 exports.getNearbyOffersByCoordinates = getNearbyOffersByCoordinates;
+const cancelOffer = async (offerId, clientId) => {
+    return await prisma_1.default.serviceOffer.updateMany({
+        where: { id: offerId, clientId },
+        data: { status: "CANCELLED" },
+    });
+};
+exports.cancelOffer = cancelOffer;

@@ -7,6 +7,7 @@ exports.editVendorProfile = exports.filterVendorsByService = exports.fetchAllSer
 const vendorOnboarding_service_1 = require("../services/vendorOnboarding.service");
 const vendor_services_1 = require("../services/vendor.services");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
+const prisma_1 = __importDefault(require("../config/prisma"));
 const completeVendorProfile = async (req, res) => {
     try {
         const vendorId = req.user.id;
@@ -136,14 +137,62 @@ const filterVendorsByService = async (req, res) => {
 };
 exports.filterVendorsByService = filterVendorsByService;
 const editVendorProfile = async (req, res) => {
-    const vendorId = req.user?.id;
     try {
-        const { onboarding, availability } = await (0, vendorOnboarding_service_1.updateVendorProfile)(vendorId, req.body);
+        const userId = req.user?.id;
+        if (!userId)
+            return res.status(401).json({ error: "Unauthorized" });
+        const { availability, bio, businessName, location, phoneNumber, registerationNumber, } = req.body;
+        let uploadedPortfolioUrls = [];
+        if (req.files && Array.isArray(req.files)) {
+            // req.files is array of uploaded portfolio images
+            const files = req.files;
+            const uploadPromises = files.map(file => (0, cloudinary_1.default)(file.buffer, file.mimetype));
+            const uploadResults = await Promise.all(uploadPromises);
+            uploadedPortfolioUrls = uploadResults.map(result => result.secure_url);
+        }
+        // Update User
+        const updatedUser = await prisma_1.default.user.update({
+            where: { id: userId },
+            data: {
+                phone: phoneNumber,
+            },
+        });
+        // Update VendorOnboarding
+        const updatedVendorOnboarding = await prisma_1.default.vendorOnboarding.update({
+            where: { userId },
+            data: {
+                bio,
+                businessName,
+                location,
+                registerationNumber,
+                // Only update portfolioImages if we have new uploaded images
+                portfolioImages: uploadedPortfolioUrls.length > 0 ? uploadedPortfolioUrls : undefined,
+            },
+        });
+        // Update/Create Availability
+        let updatedAvailability = null;
+        if (availability) {
+            updatedAvailability = await prisma_1.default.vendorAvailability.upsert({
+                where: { vendorId: userId },
+                update: {
+                    days: availability.days,
+                    fromTime: availability.fromTime,
+                    toTime: availability.toTime,
+                },
+                create: {
+                    vendorId: userId,
+                    days: availability.days,
+                    fromTime: availability.fromTime,
+                    toTime: availability.toTime,
+                },
+            });
+        }
         return res.status(200).json({
             message: "Vendor profile updated successfully",
             data: {
-                onboarding,
-                availability,
+                user: updatedUser,
+                onboarding: updatedVendorOnboarding,
+                availability: updatedAvailability,
             },
         });
     }

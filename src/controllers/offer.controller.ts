@@ -47,3 +47,11 @@ export const getNearbyOffersHandler = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const handleCancelOffer = async (req: Request, res: Response) => {
+  const clientId = req.user!.id;
+  const { offerId } = req.params;
+
+  await OfferService.cancelOffer(offerId, clientId);
+  res.json({ success: true, message: "Offer cancelled" });
+};

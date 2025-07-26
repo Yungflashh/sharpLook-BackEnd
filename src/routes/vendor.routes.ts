@@ -38,7 +38,7 @@ router.get("/analytics/:vendorId", fetchVendorAnalytics);
 router.get("/earnings-graph", requireRole(["VENDOR"]), fetchVendorEarningsGraph);
 router.put(
   "/profile/edit",
-  requireRole(["VENDOR"]),
+  requireRole(["VENDOR"]),uploadMultiple,
   editVendorProfile
 );
 

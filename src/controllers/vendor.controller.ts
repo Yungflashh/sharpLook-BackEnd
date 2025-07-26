@@ -11,7 +11,7 @@ import {
   getVendorsByService
 } from "../services/vendor.services"
 import uploadToCloudinary from "../utils/cloudinary"
-
+import prisma from "../config/prisma"
 export const completeVendorProfile = async (req: Request, res: Response) => {
   try {
     const vendorId = req.user!.id;
@@ -159,17 +159,79 @@ export const filterVendorsByService = async (req: Request, res: Response) => {
 
 
 
-export const editVendorProfile = async (req: Request, res: Response) => {
-  const vendorId = req.user?.id;
 
+export const editVendorProfile = async (req: Request, res: Response) => {
   try {
-    const { onboarding, availability } = await updateVendorProfile(vendorId!, req.body);
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const {
+      availability,
+      bio,
+      businessName,
+      location,
+      phoneNumber,
+      registerationNumber,
+    } = req.body;
+
+    let uploadedPortfolioUrls: string[] = [];
+
+    if (req.files && Array.isArray(req.files)) {
+      // req.files is array of uploaded portfolio images
+      const files = req.files as Express.Multer.File[];
+
+      const uploadPromises = files.map(file => uploadToCloudinary(file.buffer, file.mimetype));
+      const uploadResults = await Promise.all(uploadPromises);
+
+      uploadedPortfolioUrls = uploadResults.map(result => result.secure_url);
+    }
+
+    // Update User
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        phone: phoneNumber,
+      },
+    });
+
+    // Update VendorOnboarding
+    const updatedVendorOnboarding = await prisma.vendorOnboarding.update({
+      where: { userId },
+      data: {
+        bio,
+        businessName,
+        location,
+        registerationNumber,
+        // Only update portfolioImages if we have new uploaded images
+        portfolioImages: uploadedPortfolioUrls.length > 0 ? uploadedPortfolioUrls : undefined,
+      },
+    });
+
+    // Update/Create Availability
+    let updatedAvailability = null;
+    if (availability) {
+      updatedAvailability = await prisma.vendorAvailability.upsert({
+        where: { vendorId: userId },
+        update: {
+          days: availability.days,
+          fromTime: availability.fromTime,
+          toTime: availability.toTime,
+        },
+        create: {
+          vendorId: userId,
+          days: availability.days,
+          fromTime: availability.fromTime,
+          toTime: availability.toTime,
+        },
+      });
+    }
 
     return res.status(200).json({
       message: "Vendor profile updated successfully",
       data: {
-        onboarding,
-        availability,
+        user: updatedUser,
+        onboarding: updatedVendorOnboarding,
+        availability: updatedAvailability,
       },
     });
   } catch (error) {
@@ -177,3 +239,4 @@ export const editVendorProfile = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Failed to update vendor profile" });
   }
 };
+
