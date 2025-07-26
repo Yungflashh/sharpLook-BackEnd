@@ -8,6 +8,7 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const referral_controller_1 = require("../controllers/referral.controller");
 const router = express_1.default.Router();
 router.get("/referralHistory", auth_middleware_1.verifyToken, referral_controller_1.getReferralHistory);
+router.get("/analytics", auth_middleware_1.verifyToken, referral_controller_1.handleReferralAnalytics);
 exports.default = router;
 // export const updateBookingStatus = async (bookingId: string, status: BookingStatus) => {
 //   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });

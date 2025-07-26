@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getReferralHistory = void 0;
+exports.handleReferralAnalytics = exports.getReferralHistory = void 0;
 const referral_service_1 = require("../services/referral.service");
 const getReferralHistory = async (req, res) => {
     try {
@@ -21,3 +21,18 @@ const getReferralHistory = async (req, res) => {
     }
 };
 exports.getReferralHistory = getReferralHistory;
+const handleReferralAnalytics = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const analytics = await (0, referral_service_1.getReferralAnalytics)(userId);
+        return res.status(200).json({
+            success: true,
+            message: "Referral analytics retrieved successfully",
+            data: analytics,
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.handleReferralAnalytics = handleReferralAnalytics;
