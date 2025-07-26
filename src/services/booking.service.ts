@@ -52,7 +52,7 @@ export const createBooking = async (
       serviceId,
       totalAmount,
       paymentMethod,
-      paymentStatus: PaymentStatus.PENDING,
+      paymentStatus: PaymentStatus.LOCKED,
       serviceName,
       date: new Date(date), // Match format of the other branch
       time,
@@ -150,15 +150,7 @@ const finalizeBookingPayment = async (
   reference: string
 ): Promise<Booking> => {
   if (booking.paymentStatus !== PaymentStatus.LOCKED) {
-
-    await prisma.booking.update({
-    where: { id: booking.id },
-
-   
-    data: {
-      status: BookingStatus.COMPLETED,
-    },
-  })
+    
   throw new Error("Booking payment is not locked or already finalized");
 
   }
