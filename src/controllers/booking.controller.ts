@@ -211,65 +211,127 @@ export const createHomeServiceBooking = async (req: Request, res: Response) => {
       specialInstruction,
     } = req.body;
 
-    let referencePhotoUrl = "";
-
-    if (req.file) {
-      const uploadResult = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
-      referencePhotoUrl = uploadResult.secure_url;
+    // Validate required fields
+    if (
+      !clientId ||
+      !vendorId ||
+      !serviceId ||
+      !paymentMethod ||
+      !serviceName ||
+      !price ||
+      !totalAmount ||
+      !time ||
+      !date ||
+      !serviceLocation ||
+      !fullAddress
+    ) {
+      return res.status(400).json({
+        error: "Missing required fields. Please fill all mandatory fields.",
+      });
     }
 
-    const booking = await homeServiceCreateBooking(
-      clientId,
-      vendorId,
-      serviceId,
-      paymentMethod,
-      serviceName,
-      Number(price),
-      Number(totalAmount),
-      time,
-      date,
-      reference,
-      serviceType,
-      {
-        serviceLocation,
-        fullAddress,
-        landmark,
-        referencePhoto: referencePhotoUrl,
-        specialInstruction,
+    let referencePhotoUrl = "";
+
+    // Upload image if file is present
+    if (req.file) {
+      try {
+        const uploadResult = await uploadToCloudinary(
+          req.file.buffer,
+          req.file.mimetype
+        );
+        referencePhotoUrl = uploadResult.secure_url;
+      } catch (uploadErr: any) {
+        console.error("Image upload error:", uploadErr);
+        return res.status(500).json({
+          error: "Failed to upload reference photo. Please try again.",
+        });
       }
-    );
+    }
 
-    const vendor = await prisma.vendorOnboarding.findUnique({
-  where: { id: vendorId },
-  select: {
-    user: {
-      select: { id: true, firstName: true },
-    },
-  },
-});
+    // Create booking
+    let booking;
+    try {
+      booking = await homeServiceCreateBooking(
+        clientId,
+        vendorId,
+        serviceId,
+        paymentMethod,
+        serviceName,
+        Number(price),
+        Number(totalAmount),
+        time,
+        date,
+        reference,
+        serviceType,
+        {
+          serviceLocation,
+          fullAddress,
+          landmark,
+          referencePhoto: referencePhotoUrl,
+          specialInstruction,
+        }
+      );
+    } catch (bookingErr: any) {
+      console.error("Booking creation failed:", bookingErr);
+      return res.status(500).json({
+        error: "Failed to create booking. Please try again later.",
+      });
+    }
 
-if (vendor?.user?.id) {
-  await createNotification(
-    vendor.user.id,
-    `You have a new home service booking for ${serviceName} on ${date} at ${time}`
-  );
-}
+    // Get vendor's user ID
+    let vendor;
+    try {
+      vendor = await prisma.vendorOnboarding.findUnique({
+        where: { id: vendorId },
+        select: {
+          user: {
+            select: { id: true, firstName: true },
+          },
+        },
+      });
+    } catch (vendorFetchErr: any) {
+      console.error("Failed to fetch vendor data:", vendorFetchErr);
+      return res.status(500).json({
+        error: "Failed to fetch vendor information.",
+      });
+    }
 
+    // Notify vendor if available
+    if (vendor?.user?.id) {
+      try {
+        await createNotification(
+          vendor.user.id,
+          `You have a new home service booking for ${serviceName} on ${date} at ${time}`
+        );
+      } catch (notifyVendorErr: any) {
+        console.warn("Vendor notification failed:", notifyVendorErr);
+        // continue silently or log
+      }
+    }
 
+    // Notify client
+    try {
+      await createNotification(
+        clientId,
+        `Your booking for ${serviceName} on ${date} at ${time} was successful.`
+      );
+    } catch (notifyClientErr: any) {
+      console.warn("Client notification failed:", notifyClientErr);
+      // continue silently or log
+    }
 
-await createNotification(
-  clientId,
-  `Your booking for ${serviceName} on ${date} at ${time} was successful.`
-);
     return res.status(201).json({
       message: "Booking created successfully",
       data: booking,
     });
   } catch (err: any) {
     console.error("Create booking error:", err);
-    return res.status(500).json({ error: err.message || "Server Error" });
+    return res.status(500).json({
+      error: err.message || "An unexpected server error occurred.",
+    });
   }
 };
+
 export const acceptBookingHandler = async (req: Request, res: Response) => {
   try {
     const { bookingId } = req.params

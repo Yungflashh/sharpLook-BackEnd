@@ -95,6 +95,16 @@ export const registerUser = async (
 
     console.log("🎉 Crediting new user's wallet:", userWallet.id);
     await creditWallet(userWallet.id, 100);
+
+    await prisma.referral.create({
+    data: {
+      referredById: referredByUser.id,
+      referredUserId: user.id,
+      amountEarned: 100,
+    },
+  });
+
+
   } else {
     console.log("ℹ️ No valid referrer to credit.");
   }
