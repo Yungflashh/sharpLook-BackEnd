@@ -16,8 +16,8 @@ router.get("/getBookings", verifyToken, BookingController.getMyBookings);
 router.patch("/:bookingId/status", verifyToken, BookingController.changeBookingStatus);
 
 // New routes for marking booking completed by client or vendor
-router.patch("/:bookingId/complete/client", verifyToken, BookingController.markBookingCompletedByClient);
-router.patch("/:bookingId/complete/vendor", verifyToken, BookingController.markBookingCompletedByVendor);
+router.patch("/complete/client", verifyToken, BookingController.markBookingCompletedByClient);
+router.patch("/complete/vendor", verifyToken, BookingController.markBookingCompletedByVendor);
 router.post("/", verifyToken, BookingController.createHomeServiceBooking);
 router.patch("/:bookingId/accept", verifyToken, BookingController.acceptBookingHandler);
 router.patch("/:bookingId/pay", verifyToken, BookingController.payForBookingHandler);

@@ -120,6 +120,12 @@ const markBookingCompletedByVendor = async (bookingId, creditReference // refere
 exports.markBookingCompletedByVendor = markBookingCompletedByVendor;
 const finalizeBookingPayment = async (booking, reference) => {
     if (booking.paymentStatus !== client_1.PaymentStatus.LOCKED) {
+        await prisma_1.default.booking.update({
+            where: { id: booking.id },
+            data: {
+                status: client_1.BookingStatus.COMPLETED,
+            },
+        });
         throw new Error("Booking payment is not locked or already finalized");
     }
     const vendorWallet = await (0, wallet_service_1.getUserWallet)(booking.vendorId);
