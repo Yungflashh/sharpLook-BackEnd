@@ -150,8 +150,19 @@ const finalizeBookingPayment = async (
   reference: string
 ): Promise<Booking> => {
   if (booking.paymentStatus !== PaymentStatus.LOCKED) {
-    throw new Error("Booking payment is not locked or already finalized");
+
+    await prisma.booking.update({
+    where: { id: booking.id },
+
+   
+    data: {
+      status: BookingStatus.COMPLETED,
+    },
+  })
+  throw new Error("Booking payment is not locked or already finalized");
+
   }
+  
 
   const vendorWallet = await getUserWallet(booking.vendorId);
   if (!vendorWallet) throw new Error("Vendor wallet not found");
