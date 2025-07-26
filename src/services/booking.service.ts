@@ -188,7 +188,34 @@ export const getUserBookings = async (
   role: "CLIENT" | "VENDOR"
 ) => {
   const condition = role === "CLIENT" ? { clientId: userId } : { vendorId: userId };
-  const includeUser = role === "CLIENT" ? { vendor: true } : { client: true };
+  const includeUser =
+    role === "CLIENT"
+      ? {
+          vendor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              vendorOnboarding: {
+                select: {
+                  businessName: true,
+                  location: true,
+                },
+              },
+            },
+          },
+        }
+      : {
+          client: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+            
+            },
+          },
+        };
 
   return await prisma.booking.findMany({
     where: condition,
@@ -206,28 +233,18 @@ export const getUserBookings = async (
               rating: true,
               comment: true,
               clientId: true,
-              createdAt: true
-            }
+              createdAt: true,
+            },
           },
         },
       },
-      vendor: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          vendorOnboarding: {
-            select: {
-              businessName: true,
-              location: true
-            }
-          }
-        }
-      }
     },
     orderBy: { createdAt: "desc" },
   });
 };
+
+
+
 
 
 export const homeServiceCreateBooking = async (
