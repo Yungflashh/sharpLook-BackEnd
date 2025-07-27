@@ -14,9 +14,7 @@ const calculateDistance = async (req, res) => {
         return res.status(400).json({ error: "Invalid input data." });
     }
     try {
-        // Normalize vendorIds into an array
         const vendorIdArray = Array.isArray(vendorIds) ? vendorIds : [vendorIds];
-        // Fetch vendor coordinates
         const vendors = await prisma_1.default.vendorOnboarding.findMany({
             where: {
                 userId: {
