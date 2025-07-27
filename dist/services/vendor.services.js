@@ -66,8 +66,16 @@ const findNearbyVendors = async (clientLat, clientLon) => {
             longitude: { not: null },
             serviceRadiusKm: { not: null },
         },
-        include: { user: true },
+        include: {
+            user: {
+                include: {
+                    vendorServices: true, // ✅ Vendor's services
+                    products: true, // ✅ Vendor's products
+                },
+            },
+        },
     });
+    // Filter by distance
     return allVendors.filter((vendor) => {
         const { latitude, longitude, serviceRadiusKm } = vendor;
         const distance = (0, distance_1.haversineDistanceKm)(clientLat, clientLon, latitude, longitude);

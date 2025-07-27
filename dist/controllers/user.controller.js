@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateAvatar = exports.getAVendorDetails = exports.fetchTopVendors = exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
 const user_services_1 = require("../services/user.services");
-// 🧑‍💼 Get Logged-in User Profile
 const getMyProfile = async (req, res) => {
     try {
         const user = await (0, user_services_1.getUserById)(req.user.id);
@@ -13,7 +12,6 @@ const getMyProfile = async (req, res) => {
     }
 };
 exports.getMyProfile = getMyProfile;
-// 🛠️ Update Logged-in User Profile
 const updateMyProfile = async (req, res) => {
     try {
         const updated = await (0, user_services_1.updateUserProfile)(req.user.id, req.body);
@@ -28,7 +26,6 @@ const updateMyProfile = async (req, res) => {
     }
 };
 exports.updateMyProfile = updateMyProfile;
-// 📍 Set Location Preferences for Nearby Vendor Filtering
 const setClientLocationPreferences = async (req, res) => {
     const { latitude, longitude, radiusKm } = req.body;
     const userId = req.user?.id;
@@ -51,7 +48,6 @@ const setClientLocationPreferences = async (req, res) => {
     }
 };
 exports.setClientLocationPreferences = setClientLocationPreferences;
-// ⭐ Get Top Rated Vendors (optional limit query param)
 const fetchTopVendors = async (req, res) => {
     console.log("🔍 Received request to fetch top vendors");
     const limit = parseInt(req.query.limit) || 10;
