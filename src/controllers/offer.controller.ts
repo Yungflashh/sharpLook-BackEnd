@@ -3,27 +3,95 @@ import * as OfferService from "../services/offer.service";
 import { notifyNearbyVendors } from "../services/notification.service";
 import { uploadBufferToCloudinary } from "../utils/cloudinary";
 
+
+
 export const handleCreateOffer = async (req: Request, res: Response) => {
-  const data = req.body;
-  const clientId = req.user!.id;
+  try {
+    const data = req.body;
+    const clientId = req.user?.id;
 
-  
-  let serviceImageUrl = "";
+    // Ensure client is authenticated
+    if (!clientId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized. Client not authenticated.",
+      });
+    }
 
-  if (req.file) {
-    // Upload to Cloudinary
-    const result = await uploadBufferToCloudinary(req.file.buffer, "SharpLook/ServiceOffers");
-    serviceImageUrl = result.secure_url;
+    // Basic input validation
+    const requiredFields = [
+      "serviceName",
+      "serviceType",
+      "offerAmount",
+      "date",
+      "time",
+    ];
+    for (const field of requiredFields) {
+      if (!data[field]) {
+        return res.status(400).json({
+          success: false,
+          message: `Missing required field: ${field}`,
+        });
+      }
+    }
+
+    // Validate offerAmount
+    if (isNaN(Number(data.offerAmount)) || Number(data.offerAmount) <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Offer amount must be a valid positive number.",
+      });
+    }
+
+    // Validate date and time
+    const offerDate = new Date(data.date);
+    if (isNaN(offerDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date format.",
+      });
+    }
+
+    // Handle image upload if present
+    let serviceImageUrl = "";
+    if (req.file) {
+      try {
+        const result = await uploadBufferToCloudinary(req.file.buffer, "SharpLook/ServiceOffers");
+        serviceImageUrl = result.secure_url;
+      } catch (uploadErr) {
+        console.error("Cloudinary upload error:", uploadErr);
+        return res.status(500).json({
+          success: false,
+          message: "Image upload failed. Please try again.",
+        });
+      }
+    }
+
+    const offer = await OfferService.createServiceOffer(
+      clientId,
+      data,
+      serviceImageUrl
+    );
+
+    // Notify vendors nearby
+    try {
+      await notifyNearbyVendors(offer);
+    } catch (notifyErr) {
+      console.warn("Failed to notify vendors, but offer was created.");
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Service offer created successfully.",
+      data: offer,
+    });
+  } catch (err) {
+    console.error("Offer creation error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
   }
-
-  let serviceImage = serviceImageUrl
-
-  const offer = await OfferService.createServiceOffer(clientId, data, serviceImage);
-
-
-  await notifyNearbyVendors(offer); 
-
-  res.json({ success: true, data: offer });
 };
 
 export const handleVendorAccept = async (req: Request, res: Response) => {
