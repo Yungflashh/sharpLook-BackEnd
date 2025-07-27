@@ -1,17 +1,44 @@
 import prisma from "../config/prisma";
 
-export const createServiceOffer = async (clientId: string, data: any) => {
+export const createServiceOffer = async (
+  clientId: string,
+  data: any,
+  serviceImage: string
+) => {
+  const requiredFields = [
+    "serviceName",
+    "serviceType",
+    "offerAmount",
+    "date",
+    "time",
+  ];
 
-     const now = new Date();
+  for (const field of requiredFields) {
+    if (!data[field]) {
+      throw new Error(`Missing required field: ${field}`);
+    }
+  }
+
+  const now = new Date();
   const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
+
   return await prisma.serviceOffer.create({
     data: {
       clientId,
-      ...data,
-      expiresAt
-    }
+      serviceName: data.serviceName,
+      serviceType: data.serviceType,
+      offerAmount: Number(data.offerAmount),
+      date: data.date,
+      time: data.time,
+      latitude: data.latitude ? parseFloat(data.latitude) : undefined,
+      longitude: data.longitude ? parseFloat(data.longitude) : undefined,
+      serviceImage,
+      expiresAt,
+    },
   });
 };
+
+
 
 export const getVendorsForOffer = async (offerId: string) => {
   return await prisma.vendorOffer.findMany({
@@ -126,5 +153,25 @@ export const cancelOffer = async (offerId: string, clientId: string) => {
   return await prisma.serviceOffer.updateMany({
     where: { id: offerId, clientId },
     data: { status: "CANCELLED" },
+  });
+};
+
+
+export const getAllAvailableOffers = async () => {
+  return prisma.serviceOffer.findMany({
+    where: {
+      status: "PENDING", // or whatever your "open" status is
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      client: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
   });
 };
