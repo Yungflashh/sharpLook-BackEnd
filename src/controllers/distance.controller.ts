@@ -20,10 +20,10 @@ export const calculateDistance = async (req: Request, res: Response) => {
   }
 
   try {
-    // Normalize vendorIds into an array
+    
     const vendorIdArray = Array.isArray(vendorIds) ? vendorIds : [vendorIds];
 
-    // Fetch vendor coordinates
+    
     const vendors = await prisma.vendorOnboarding.findMany({
       where: {
         userId: {

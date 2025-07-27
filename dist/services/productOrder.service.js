@@ -18,7 +18,7 @@ const checkoutCart = async (userId, reference) => {
                 include: {
                     product: {
                         include: {
-                            vendor: true, // to get vendor info for notification/email
+                            vendor: true,
                         },
                     },
                 },
@@ -33,18 +33,40 @@ const checkoutCart = async (userId, reference) => {
     const totalAmount = cartItems.reduce((sum, item) => {
         return sum + item.product.price * item.quantity;
     }, 0);
-    if (user.wallet.balance < totalAmount)
+    if (!reference && user.wallet.balance < totalAmount) {
         throw new Error("Insufficient wallet balance");
-    return await prisma_1.default.$transaction(async (tx) => {
-        // Debit wallet with reference
-        await (0, wallet_service_1.debitWallet)(user.wallet.id, totalAmount, "Cart checkout", reference);
-        // Prepare vendor-wise product grouping
-        const vendorMap = {};
-        const orderItems = [];
+    }
+    const vendorMap = {};
+    const orderItems = [];
+    for (const item of cartItems) {
+        const vendor = item.product.vendor;
+        const vendorId = vendor.id;
+        orderItems.push({
+            productId: item.productId,
+            productName: item.product.productName,
+            quantity: item.quantity,
+            price: item.product.price,
+        });
+        if (!vendorMap[vendorId]) {
+            vendorMap[vendorId] = {
+                vendorEmail: vendor.email,
+                vendorName: `${vendor.firstName} ${vendor.lastName}`,
+                items: [],
+            };
+        }
+        vendorMap[vendorId].items.push({
+            productName: item.product.productName,
+            quantity: item.quantity,
+            price: item.product.price,
+            total: item.quantity * item.product.price,
+        });
+    }
+    // Now perform DB operations inside the transaction only
+    const order = await prisma_1.default.$transaction(async (tx) => {
+        if (!reference) {
+            await (0, wallet_service_1.debitWallet)(user.wallet.id, totalAmount, "Cart checkout", "WALLET-CHECKOUT");
+        }
         for (const item of cartItems) {
-            const vendor = item.product.vendor;
-            const vendorId = vendor.id;
-            // Update product stats
             await tx.product.update({
                 where: { id: item.productId },
                 data: {
@@ -52,54 +74,30 @@ const checkoutCart = async (userId, reference) => {
                     unitsSold: { increment: item.quantity },
                 },
             });
-            // Add to order record
-            orderItems.push({
-                productId: item.productId,
-                productName: item.product.productName,
-                quantity: item.quantity,
-                price: item.product.price,
-            });
-            // Group items by vendor for notification/email
-            if (!vendorMap[vendorId]) {
-                vendorMap[vendorId] = {
-                    vendorEmail: vendor.email,
-                    vendorName: `${vendor.firstName} ${vendor.lastName}`,
-                    items: [],
-                };
-            }
-            vendorMap[vendorId].items.push({
-                productName: item.product.productName,
-                quantity: item.quantity,
-                price: item.product.price,
-                total: item.quantity * item.product.price,
-            });
         }
-        // Create Order with reference included
         const order = await tx.order.create({
             data: {
                 userId,
                 items: orderItems,
                 total: totalAmount,
-                reference, // Save the payment/reference here
+                reference: reference ?? "WALLET-CHECKOUT",
             },
         });
-        // Clear cart
         await tx.cartItem.deleteMany({ where: { userId } });
-        // Notify each vendor
-        for (const [vendorId, data] of Object.entries(vendorMap)) {
-            const { vendorEmail, vendorName, items } = data;
-            const vendorTotal = items.reduce((sum, item) => sum + item.total, 0);
-            // In-app notification
-            await (0, notification_service_1.createNotification)(vendorId, `You've sold ${items.length} item(s) totaling ₦${vendorTotal}.`);
-            // Email notification
-            await (0, email_helper_1.sendVendorOrderEmail)(vendorEmail, {
-                name: vendorName,
-                items,
-                total: vendorTotal,
-            });
-        }
         return order;
     });
+    // Now send notifications/emails AFTER transaction completes
+    for (const [vendorId, data] of Object.entries(vendorMap)) {
+        const { vendorEmail, vendorName, items } = data;
+        const vendorTotal = items.reduce((sum, item) => sum + item.total, 0);
+        await (0, notification_service_1.createNotification)(vendorId, `You've sold ${items.length} item(s) totaling ₦${vendorTotal}.`);
+        await (0, email_helper_1.sendVendorOrderEmail)(vendorEmail, {
+            name: vendorName,
+            items,
+            total: vendorTotal,
+        });
+    }
+    return order;
 };
 exports.checkoutCart = checkoutCart;
 const getUserOrders = async (userId) => {
