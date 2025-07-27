@@ -45,37 +45,97 @@ const getVendorsForOffer = async (offerId) => {
 exports.getVendorsForOffer = getVendorsForOffer;
 const vendorAcceptOffer = async (vendorId, offerId) => {
     const existing = await prisma_1.default.vendorOffer.findFirst({
-        where: { vendorId, serviceOfferId: offerId }
+        where: { vendorId, serviceOfferId: offerId },
     });
     if (existing) {
         throw new Error("You’ve already accepted this offer.");
     }
-    return await prisma_1.default.vendorOffer.create({
+    // ✅ Check if the offer is still open
+    const offer = await prisma_1.default.serviceOffer.findUnique({
+        where: { id: offerId },
+        select: {
+            clientId: true,
+            serviceName: true,
+            serviceType: true,
+            serviceImage: true,
+            status: true, // <-- Make sure to check this
+        },
+    });
+    if (!offer)
+        throw new Error("Offer not found");
+    if (offer.status !== "PENDING") {
+        throw new Error("This offer is no longer accepting vendors.");
+    }
+    // Get vendor info
+    const vendor = await prisma_1.default.user.findUnique({
+        where: { id: vendorId },
+        select: {
+            firstName: true,
+            lastName: true,
+        },
+    });
+    if (!vendor)
+        throw new Error("Vendor not found");
+    // Create the vendor-offer link
+    const newAcceptance = await prisma_1.default.vendorOffer.create({
         data: {
             vendorId,
-            serviceOfferId: offerId
-        }
+            serviceOfferId: offerId,
+        },
     });
+    // Notify the client
+    await prisma_1.default.notification.create({
+        data: {
+            userId: offer.clientId,
+            type: "OFFER_ACCEPTED",
+            message: `${vendor.firstName} ${vendor.lastName} has accepted your service offer: ${offer.serviceName}`,
+        },
+    });
+    return newAcceptance;
 };
 exports.vendorAcceptOffer = vendorAcceptOffer;
 const selectVendorForOffer = async (offerId, selectedVendorId) => {
-    // Update offer status
-    await prisma_1.default.serviceOffer.update({
-        where: { id: offerId },
-        data: { status: "SELECTED" }
-    });
-    // Mark the selected vendor
-    await prisma_1.default.vendorOffer.updateMany({
-        where: { serviceOfferId: offerId },
-        data: { isAccepted: false }
-    });
-    await prisma_1.default.vendorOffer.updateMany({
-        where: {
-            serviceOfferId: offerId,
-            vendorId: selectedVendorId
-        },
-        data: { isAccepted: true }
-    });
+    try {
+        // Update offer status to "SELECTED"
+        const updatedOffer = await prisma_1.default.serviceOffer.update({
+            where: { id: offerId },
+            data: { status: "SELECTED" },
+        });
+        console.log("Offer after update:", updatedOffer);
+        // Reset all vendor isAccepted to false
+        await prisma_1.default.vendorOffer.updateMany({
+            where: { serviceOfferId: offerId },
+            data: { isAccepted: false },
+        });
+        // Set the selected vendor's isAccepted to true
+        await prisma_1.default.vendorOffer.updateMany({
+            where: {
+                serviceOfferId: offerId,
+                vendorId: selectedVendorId,
+            },
+            data: { isAccepted: true },
+        });
+        // Get offer info
+        const offer = await prisma_1.default.serviceOffer.findUnique({
+            where: { id: offerId },
+            select: {
+                serviceName: true,
+            },
+        });
+        // Send notification to the selected vendor
+        await prisma_1.default.notification.create({
+            data: {
+                userId: selectedVendorId,
+                type: "VENDOR_SELECTED",
+                message: `You’ve been selected for the service: ${offer?.serviceName}`,
+            },
+        });
+        return { success: true, message: "Vendor selected and notified." };
+    }
+    catch (error) {
+        console.error("Error selecting vendor:", error);
+        return { success: false, message: "Something went wrong during vendor selection." };
+    }
 };
 exports.selectVendorForOffer = selectVendorForOffer;
 const EARTH_RADIUS_KM = 6371;

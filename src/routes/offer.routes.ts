@@ -6,8 +6,8 @@ import { uploadSingle2 } from "../middlewares/upload.middleware";
 const router = express.Router();
 
 router.post("/createOffer", verifyToken, uploadSingle2, OfferController.handleCreateOffer);
-router.post("/:offerId/accept", verifyToken, OfferController.handleVendorAccept);
-router.get("/:offerId/vendors", verifyToken, OfferController.handleGetVendorsForOffer);
+router.post("/accept", verifyToken, OfferController.handleVendorAccept);
+router.post("/vendors", verifyToken, OfferController.handleGetVendorsForOffer);
 router.post("/select-vendor", verifyToken, OfferController.handleClientSelectVendor);
 router.get("/nearbyOffers", verifyToken, OfferController.getNearbyOffersHandler);
 router.get("/allOffers", verifyToken, OfferController.getAllAvailableOffersHandler);

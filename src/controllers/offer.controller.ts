@@ -27,12 +27,28 @@ export const handleCreateOffer = async (req: Request, res: Response) => {
 };
 
 export const handleVendorAccept = async (req: Request, res: Response) => {
-  const vendorId = req.user!.id;
-  const { offerId } = req.params;
+  try {
+    const vendorId = req.user!.id;
+    const { offerId } = req.body;
 
-  const result = await OfferService.vendorAcceptOffer(vendorId, offerId);
-  res.json({ success: true, message: "Offer accepted", data: result });
+    const acceptance = await OfferService.vendorAcceptOffer(vendorId, offerId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Offer accepted successfully. Client has been notified.",
+      data: acceptance,
+    });
+
+  } catch (error: any) {
+    console.error("Controller error:", error);
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong.",
+    });
+  }
 };
+
 
 export const handleClientSelectVendor = async (req: Request, res: Response) => {
   const { offerId, vendorId } = req.body;
@@ -42,7 +58,7 @@ export const handleClientSelectVendor = async (req: Request, res: Response) => {
 };
 
 export const handleGetVendorsForOffer = async (req: Request, res: Response) => {
-  const { offerId } = req.params;
+  const { offerId } = req.body;
 
   const vendors = await OfferService.getVendorsForOffer(offerId);
   res.json({ success: true, data: vendors });

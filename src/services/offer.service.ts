@@ -46,46 +46,114 @@ export const getVendorsForOffer = async (offerId: string) => {
     include: { vendor: true }
   });
 };
-
 export const vendorAcceptOffer = async (vendorId: string, offerId: string) => {
-    const existing = await prisma.vendorOffer.findFirst({
-  where: { vendorId, serviceOfferId: offerId }
-});
-if (existing) {
-  throw new Error("You’ve already accepted this offer.");
-}
+  const existing = await prisma.vendorOffer.findFirst({
+    where: { vendorId, serviceOfferId: offerId },
+  });
 
+  if (existing) {
+    throw new Error("You’ve already accepted this offer.");
+  }
 
+  // ✅ Check if the offer is still open
+  const offer = await prisma.serviceOffer.findUnique({
+    where: { id: offerId },
+    select: {
+      clientId: true,
+      serviceName: true,
+      serviceType: true,
+      serviceImage: true,
+      status: true, // <-- Make sure to check this
+    },
+  });
 
-  return await prisma.vendorOffer.create({
+  if (!offer) throw new Error("Offer not found");
+  if (offer.status !== "PENDING") {
+    throw new Error("This offer is no longer accepting vendors.");
+  }
+
+  // Get vendor info
+  const vendor = await prisma.user.findUnique({
+    where: { id: vendorId },
+    select: {
+      firstName: true,
+      lastName: true,
+    },
+  });
+
+  if (!vendor) throw new Error("Vendor not found");
+
+  // Create the vendor-offer link
+  const newAcceptance = await prisma.vendorOffer.create({
     data: {
       vendorId,
-      serviceOfferId: offerId
-    }
+      serviceOfferId: offerId,
+    },
   });
+
+  // Notify the client
+  await prisma.notification.create({
+    data: {
+      userId: offer.clientId,
+      type: "OFFER_ACCEPTED",
+      message: `${vendor.firstName} ${vendor.lastName} has accepted your service offer: ${offer.serviceName}`,
+    },
+  });
+
+  return newAcceptance;
 };
+
+
 
 export const selectVendorForOffer = async (offerId: string, selectedVendorId: string) => {
-  // Update offer status
-  await prisma.serviceOffer.update({
-    where: { id: offerId },
-    data: { status: "SELECTED" }
-  });
+  try {
+    // Update offer status to "SELECTED"
+   const updatedOffer = await prisma.serviceOffer.update({
+  where: { id: offerId },
+  data: { status: "SELECTED" },
+});
+console.log("Offer after update:", updatedOffer);
 
-  // Mark the selected vendor
-  await prisma.vendorOffer.updateMany({
-    where: { serviceOfferId: offerId },
-    data: { isAccepted: false }
-  });
 
-  await prisma.vendorOffer.updateMany({
-    where: {
-      serviceOfferId: offerId,
-      vendorId: selectedVendorId
-    },
-    data: { isAccepted: true }
-  });
+    // Reset all vendor isAccepted to false
+    await prisma.vendorOffer.updateMany({
+      where: { serviceOfferId: offerId },
+      data: { isAccepted: false },
+    });
+
+    // Set the selected vendor's isAccepted to true
+    await prisma.vendorOffer.updateMany({
+      where: {
+        serviceOfferId: offerId,
+        vendorId: selectedVendorId,
+      },
+      data: { isAccepted: true },
+    });
+
+    // Get offer info
+    const offer = await prisma.serviceOffer.findUnique({
+      where: { id: offerId },
+      select: {
+        serviceName: true,
+      },
+    });
+
+    // Send notification to the selected vendor
+    await prisma.notification.create({
+      data: {
+        userId: selectedVendorId,
+        type: "VENDOR_SELECTED",
+        message: `You’ve been selected for the service: ${offer?.serviceName}`,
+      },
+    });
+
+    return { success: true, message: "Vendor selected and notified." };
+  } catch (error) {
+    console.error("Error selecting vendor:", error);
+    return { success: false, message: "Something went wrong during vendor selection." };
+  }
 };
+
 
 
 
