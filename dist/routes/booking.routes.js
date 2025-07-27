@@ -45,12 +45,12 @@ const router = express_1.default.Router();
 // Existing routes
 router.post("/bookVendor", auth_middleware_1.verifyToken, BookingController.bookVendor);
 router.get("/getBookings", auth_middleware_1.verifyToken, BookingController.getMyBookings);
-router.patch("/:bookingId/status", auth_middleware_1.verifyToken, BookingController.changeBookingStatus);
+router.patch("/status", auth_middleware_1.verifyToken, BookingController.changeBookingStatus);
 // New routes for marking booking completed by client or vendor
 router.patch("/complete/client", auth_middleware_1.verifyToken, BookingController.markBookingCompletedByClient);
 router.patch("/complete/vendor", auth_middleware_1.verifyToken, BookingController.markBookingCompletedByVendor);
 router.post("/", auth_middleware_1.verifyToken, BookingController.createHomeServiceBooking);
-router.patch("/:bookingId/accept", auth_middleware_1.verifyToken, BookingController.acceptBookingHandler);
+router.patch("/accept", auth_middleware_1.verifyToken, BookingController.acceptBookingHandler);
 router.patch("/:bookingId/pay", auth_middleware_1.verifyToken, BookingController.payForBookingHandler);
 // Home service 
 // User creates booking

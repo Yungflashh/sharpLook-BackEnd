@@ -13,13 +13,13 @@ const router = express.Router();
 // Existing routes
 router.post("/bookVendor", verifyToken, BookingController.bookVendor);
 router.get("/getBookings", verifyToken, BookingController.getMyBookings);
-router.patch("/:bookingId/status", verifyToken, BookingController.changeBookingStatus);
+router.patch("/status", verifyToken, BookingController.changeBookingStatus);
 
 // New routes for marking booking completed by client or vendor
 router.patch("/complete/client", verifyToken, BookingController.markBookingCompletedByClient);
 router.patch("/complete/vendor", verifyToken, BookingController.markBookingCompletedByVendor);
 router.post("/", verifyToken, BookingController.createHomeServiceBooking);
-router.patch("/:bookingId/accept", verifyToken, BookingController.acceptBookingHandler);
+router.patch("/accept", verifyToken, BookingController.acceptBookingHandler);
 router.patch("/:bookingId/pay", verifyToken, BookingController.payForBookingHandler);
 
 

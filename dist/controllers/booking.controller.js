@@ -270,7 +270,7 @@ const createHomeServiceBooking = async (req, res) => {
 exports.createHomeServiceBooking = createHomeServiceBooking;
 const acceptBookingHandler = async (req, res) => {
     try {
-        const { bookingId } = req.params;
+        const { bookingId } = req.body;
         const vendorId = req.user.id;
         const booking = await (0, booking_service_1.acceptBooking)(vendorId, bookingId);
         // TODO: Notify client about acceptance (e.g., socket or push notification)
