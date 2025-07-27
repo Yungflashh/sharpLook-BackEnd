@@ -15,6 +15,6 @@ router.post("/login", auth_controller_1.login);
 router.post("/send-otp", auth_controller_2.sendOtp);
 router.post("/verify-otp", auth_controller_2.verifyOtp);
 router.post("/request-password-reset", auth_controller_1.requestReset);
-router.post("/reset-password/:token", auth_controller_1.reset);
+router.post("/reset-password", auth_controller_1.reset);
 router.post("/register-vendor", upload_middleware_1.uploadSingle, vendorOnboarding_controller_1.registerVendor);
 exports.default = router;
