@@ -38,7 +38,7 @@ const getTopRatedVendors = async (limit = 10) => {
             vendorAvailabilities: true,
             promotions: true,
             wallet: true,
-            products: true, // ✅ Include vendor products here
+            products: true,
         },
     });
     const sorted = topVendors
