@@ -334,7 +334,7 @@ export const createHomeServiceBooking = async (req: Request, res: Response) => {
 
 export const acceptBookingHandler = async (req: Request, res: Response) => {
   try {
-    const { bookingId } = req.params
+    const { bookingId } = req.body
     const vendorId = req.user!.id
 
     const booking = await acceptBooking(vendorId, bookingId)
