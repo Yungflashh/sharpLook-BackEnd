@@ -44,7 +44,7 @@ export const getTopRatedVendors = async (limit: number = 10) => {
       vendorAvailabilities: true,
       promotions: true,
       wallet: true,
-      products: true, // ✅ Include vendor products here
+      products: true, 
     },
   });
 

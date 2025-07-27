@@ -10,7 +10,6 @@ import {
 
 
 
-// 🧑‍💼 Get Logged-in User Profile
 export const getMyProfile = async (req: Request, res: Response) => {
   try {
     const user = await getUserById(req.user!.id)
@@ -20,7 +19,6 @@ export const getMyProfile = async (req: Request, res: Response) => {
   }
 }
 
-// 🛠️ Update Logged-in User Profile
 export const updateMyProfile = async (req: Request, res: Response) => {
   try {
     const updated = await updateUserProfile(req.user!.id, req.body)
@@ -34,7 +32,6 @@ export const updateMyProfile = async (req: Request, res: Response) => {
   }
 }
 
-// 📍 Set Location Preferences for Nearby Vendor Filtering
 export const setClientLocationPreferences = async (
   req: Request,
   res: Response
@@ -66,7 +63,6 @@ export const setClientLocationPreferences = async (
   }
 }
 
-// ⭐ Get Top Rated Vendors (optional limit query param)
 export const fetchTopVendors = async (req: Request, res: Response) => {
   console.log("🔍 Received request to fetch top vendors")
 
