@@ -81,9 +81,17 @@ export const findNearbyVendors = async (
       longitude: { not: null },
       serviceRadiusKm: { not: null },
     },
-    include: { user: true },
+    include: {
+      user: {
+        include: {
+          vendorServices: true, // ✅ Vendor's services
+          products: true,       // ✅ Vendor's products
+        },
+      },
+    },
   })
 
+  // Filter by distance
   return allVendors.filter((vendor: any) => {
     const { latitude, longitude, serviceRadiusKm } = vendor
     const distance = haversineDistanceKm(
@@ -95,6 +103,7 @@ export const findNearbyVendors = async (
     return distance <= serviceRadiusKm!
   })
 }
+
 export const getAllVendorServices = async () => {
 
  
