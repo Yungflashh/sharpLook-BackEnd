@@ -45,17 +45,32 @@ const notifyNearbyVendors = async (offer) => {
     });
     const filtered = vendors.filter((vendor) => {
         const coords = vendor.vendorOnboarding;
-        if (!coords.latitude || !coords.longitude)
+        if (!coords?.latitude || !coords?.longitude)
             return false;
         const distance = (0, distance_1.haversineDistanceKm)(coords.latitude, coords.longitude, offer.latitude, offer.longitude);
         return distance <= 10;
     });
-    const notifications = filtered.map((vendor) => ({
-        userId: vendor.id,
-        type: "OFFER",
-        message: `New service offer: ${offer.serviceName} - ₦${offer.offerAmount}`,
-        metadata: { offerId: offer.id },
-    }));
-    await prisma_1.default.notification.createMany({ data: notifications });
+    if (filtered.length > 0) {
+        const notifications = filtered.map((vendor) => ({
+            userId: vendor.id,
+            type: "NEW_OFFER",
+            message: `New service offer near you: ${offer.serviceName}`,
+            metadata: { offerId: offer.id },
+        }));
+        await prisma_1.default.notification.createMany({
+            data: notifications,
+        });
+    }
+    else {
+        console.log("No nearby vendors found for offer:", offer.id);
+        // Notify the user who created the offer
+        await prisma_1.default.notification.create({
+            data: {
+                userId: offer.clientId, // Make sure `offer.clientId` exists
+                type: "NO_VENDOR_FOUND",
+                message: `No nearby vendors were found for your service offer: ${offer.serviceName}`,
+            },
+        });
+    }
 };
 exports.notifyNearbyVendors = notifyNearbyVendors;

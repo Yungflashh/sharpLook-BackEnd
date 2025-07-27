@@ -1,15 +1,27 @@
 import { Request, Response } from "express";
 import * as OfferService from "../services/offer.service";
 import { notifyNearbyVendors } from "../services/notification.service";
+import { uploadBufferToCloudinary } from "../utils/cloudinary";
 
 export const handleCreateOffer = async (req: Request, res: Response) => {
   const data = req.body;
   const clientId = req.user!.id;
 
-  const offer = await OfferService.createServiceOffer(clientId, data);
+  
+  let serviceImageUrl = "";
+
+  if (req.file) {
+    // Upload to Cloudinary
+    const result = await uploadBufferToCloudinary(req.file.buffer, "SharpLook/ServiceOffers");
+    serviceImageUrl = result.secure_url;
+  }
+
+  let serviceImage = serviceImageUrl
+
+  const offer = await OfferService.createServiceOffer(clientId, data, serviceImage);
 
 
-  await notifyNearbyVendors(offer); // You’ll write this function
+  await notifyNearbyVendors(offer); 
 
   res.json({ success: true, data: offer });
 };
@@ -54,4 +66,14 @@ export const handleCancelOffer = async (req: Request, res: Response) => {
 
   await OfferService.cancelOffer(offerId, clientId);
   res.json({ success: true, message: "Offer cancelled" });
+};
+
+
+export const getAllAvailableOffersHandler = async (req: Request, res: Response) => {
+  try {
+    const offers = await OfferService.getAllAvailableOffers(); // you'll write this in the service
+    res.status(200).json({ success: true, data: offers });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };

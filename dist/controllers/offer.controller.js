@@ -33,14 +33,22 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleCancelOffer = exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.handleClientSelectVendor = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
+exports.getAllAvailableOffersHandler = exports.handleCancelOffer = exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.handleClientSelectVendor = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
 const OfferService = __importStar(require("../services/offer.service"));
 const notification_service_1 = require("../services/notification.service");
+const cloudinary_1 = require("../utils/cloudinary");
 const handleCreateOffer = async (req, res) => {
     const data = req.body;
     const clientId = req.user.id;
-    const offer = await OfferService.createServiceOffer(clientId, data);
-    await (0, notification_service_1.notifyNearbyVendors)(offer); // You’ll write this function
+    let serviceImageUrl = "";
+    if (req.file) {
+        // Upload to Cloudinary
+        const result = await (0, cloudinary_1.uploadBufferToCloudinary)(req.file.buffer, "SharpLook/ServiceOffers");
+        serviceImageUrl = result.secure_url;
+    }
+    let serviceImage = serviceImageUrl;
+    const offer = await OfferService.createServiceOffer(clientId, data, serviceImage);
+    await (0, notification_service_1.notifyNearbyVendors)(offer);
     res.json({ success: true, data: offer });
 };
 exports.handleCreateOffer = handleCreateOffer;
@@ -81,3 +89,13 @@ const handleCancelOffer = async (req, res) => {
     res.json({ success: true, message: "Offer cancelled" });
 };
 exports.handleCancelOffer = handleCancelOffer;
+const getAllAvailableOffersHandler = async (req, res) => {
+    try {
+        const offers = await OfferService.getAllAvailableOffers(); // you'll write this in the service
+        res.status(200).json({ success: true, data: offers });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+exports.getAllAvailableOffersHandler = getAllAvailableOffersHandler;

@@ -3,17 +3,36 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cancelOffer = exports.getNearbyOffersByCoordinates = exports.selectVendorForOffer = exports.vendorAcceptOffer = exports.getVendorsForOffer = exports.createServiceOffer = void 0;
+exports.getAllAvailableOffers = exports.cancelOffer = exports.getNearbyOffersByCoordinates = exports.selectVendorForOffer = exports.vendorAcceptOffer = exports.getVendorsForOffer = exports.createServiceOffer = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
-const createServiceOffer = async (clientId, data) => {
+const createServiceOffer = async (clientId, data, serviceImage) => {
+    const requiredFields = [
+        "serviceName",
+        "serviceType",
+        "offerAmount",
+        "date",
+        "time",
+    ];
+    for (const field of requiredFields) {
+        if (!data[field]) {
+            throw new Error(`Missing required field: ${field}`);
+        }
+    }
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
     return await prisma_1.default.serviceOffer.create({
         data: {
             clientId,
-            ...data,
-            expiresAt
-        }
+            serviceName: data.serviceName,
+            serviceType: data.serviceType,
+            offerAmount: Number(data.offerAmount),
+            date: data.date,
+            time: data.time,
+            latitude: data.latitude ? parseFloat(data.latitude) : undefined,
+            longitude: data.longitude ? parseFloat(data.longitude) : undefined,
+            serviceImage,
+            expiresAt,
+        },
     });
 };
 exports.createServiceOffer = createServiceOffer;
@@ -107,3 +126,22 @@ const cancelOffer = async (offerId, clientId) => {
     });
 };
 exports.cancelOffer = cancelOffer;
+const getAllAvailableOffers = async () => {
+    return prisma_1.default.serviceOffer.findMany({
+        where: {
+            status: "PENDING", // or whatever your "open" status is
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+        include: {
+            client: {
+                select: {
+                    firstName: true,
+                    lastName: true,
+                },
+            },
+        },
+    });
+};
+exports.getAllAvailableOffers = getAllAvailableOffers;
