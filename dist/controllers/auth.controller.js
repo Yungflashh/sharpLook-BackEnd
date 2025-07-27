@@ -135,8 +135,7 @@ const requestReset = async (req, res) => {
 };
 exports.requestReset = requestReset;
 const reset = async (req, res) => {
-    const { email, newPassword } = req.body;
-    const { token } = req.params;
+    const { email, newPassword, token } = req.body;
     console.log("➡️ Password reset attempt:", { email, token });
     try {
         await (0, auth_service_1.resetPassword)(email, token, newPassword);

@@ -175,8 +175,8 @@ export const requestReset = async (req: Request, res: Response) => {
 };
 
 export const reset = async (req: Request, res: Response) => {
-  const { email, newPassword } = req.body;
-  const { token } = req.params;
+  const { email, newPassword, token } = req.body;
+  
   console.log("➡️ Password reset attempt:", { email, token });
 
   try {

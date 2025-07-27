@@ -18,7 +18,7 @@ router.post("/login", login)
 router.post("/send-otp", sendOtp)
 router.post("/verify-otp", verifyOtp)
 router.post("/request-password-reset", requestReset)
-router.post("/reset-password/:token", reset)
+router.post("/reset-password", reset)
 router.post("/register-vendor", uploadSingle, registerVendor)
 
 export default router
