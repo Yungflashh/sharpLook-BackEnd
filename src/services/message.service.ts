@@ -79,9 +79,29 @@ export const getChatListForUser = async (userId: string) => {
     },
     select: {
       roomId: true,
-      senderId: true,
-      receiverId: true,
       createdAt: true,
+      sender: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          role: true,
+          avatar: true
+        },
+      },
+      receiver: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          role: true,
+          avatar: true
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
     distinct: ["roomId"],
