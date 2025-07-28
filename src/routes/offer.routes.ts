@@ -13,5 +13,7 @@ router.get("/nearbyOffers", verifyToken, OfferController.getNearbyOffersHandler)
 router.get("/allOffers", verifyToken, OfferController.getAllAvailableOffersHandler);
 router.get("/myOffers",verifyToken ,OfferController.getMyOffers);
 router.patch("/tip", verifyToken,OfferController.tipOffer);
+router.post("/cancel", verifyToken, OfferController.handleCancelOffer);
+
 
 export default router;

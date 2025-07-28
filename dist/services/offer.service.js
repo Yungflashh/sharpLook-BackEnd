@@ -211,6 +211,61 @@ const getClientOffers = async (clientId) => {
     return await prisma_1.default.serviceOffer.findMany({
         where: { clientId },
         orderBy: { createdAt: "desc" },
+        include: {
+            vendorOffers: {
+                include: {
+                    vendor: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            phone: true,
+                            vendorOnboarding: {
+                                select: {
+                                    businessName: true,
+                                    latitude: true,
+                                    longitude: true,
+                                },
+                            },
+                            vendorAvailabilities: {
+                                select: {
+                                    days: true,
+                                    fromTime: true,
+                                    toTime: true,
+                                },
+                            },
+                            vendorReviews: {
+                                where: {
+                                    OR: [
+                                        { type: 'VENDOR' },
+                                        { type: 'SERVICE' },
+                                    ],
+                                },
+                                select: {
+                                    type: true,
+                                    rating: true,
+                                    comment: true,
+                                    createdAt: true,
+                                    service: {
+                                        select: {
+                                            serviceName: true,
+                                        },
+                                    },
+                                    client: {
+                                        select: {
+                                            id: true,
+                                            firstName: true,
+                                            lastName: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
     });
 };
 exports.getClientOffers = getClientOffers;

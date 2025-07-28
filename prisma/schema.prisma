@@ -483,38 +483,41 @@ model ServiceCategory {
 
 
 model ServiceOffer {
-  id           String   @id @default(uuid()) @map("_id")
-  clientId     String
-  serviceName  String
-  serviceType  String
-  serviceImage String
-  offerAmount  Float
-  date         DateTime
-  time         String
-  status       OfferStatus @default(PENDING)
-  createdAt    DateTime    @default(now())
-  acceptedBy   VendorOffer[]
+  id            String         @id @default(uuid()) @map("_id")
+  clientId      String
+  serviceName   String
+  serviceType   String
+  serviceImage  String
+  offerAmount   Float
+  date          DateTime
+  time          String
+  status        OfferStatus    @default(PENDING)
+  createdAt     DateTime       @default(now())
   fullAddress   String?
   landMark      String?
-   latitude     Float?
-  longitude    Float?
-  expiresAt      DateTime?      // New: Expiry field
+  latitude      Float?
+  longitude     Float?
+  expiresAt     DateTime?
 
-
-  client       User     @relation(fields: [clientId], references: [id], name: "UserServiceOffers")
+  // Relations
+  client        User           @relation(fields: [clientId], references: [id], name: "UserServiceOffers")
+  vendorOffers  VendorOffer[]  @relation("AllVendorOffers")
+  acceptedBy    VendorOffer[]  @relation("AcceptedVendorOffers")
 }
 
 model VendorOffer {
-  id           String   @id @default(uuid()) @map("_id")
-  vendorId      String
-  serviceOfferId String
-  isAccepted    Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  id               String         @id @default(uuid()) @map("_id")
+  vendorId         String
+  serviceOfferId   String
+  isAccepted       Boolean        @default(false)
+  createdAt        DateTime       @default(now())
 
-
-  vendor       User     @relation(fields: [vendorId], references: [id], name: "UserVendorOffers")
-  serviceOffer  ServiceOffer @relation(fields: [serviceOfferId], references: [id])
+  // Relations
+  vendor           User           @relation(fields: [vendorId], references: [id], name: "UserVendorOffers")
+  serviceOffer     ServiceOffer   @relation("AllVendorOffers", fields: [serviceOfferId], references: [id])
+  acceptedOffer    ServiceOffer?  @relation("AcceptedVendorOffers", fields: [serviceOfferId], references: [id])
 }
+
 
 enum OfferStatus {
   PENDING

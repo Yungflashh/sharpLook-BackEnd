@@ -246,13 +246,68 @@ export const getAllAvailableOffers = async () => {
   });
 };
 
-
 export const getClientOffers = async (clientId: string) => {
   return await prisma.serviceOffer.findMany({
     where: { clientId },
     orderBy: { createdAt: "desc" },
+    include: {
+      vendorOffers: {
+        include: {
+          vendor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              vendorOnboarding: {
+                select: {
+                  businessName: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              vendorAvailabilities: {
+                select: {
+                  days: true,
+                  fromTime: true,
+                  toTime: true,
+                },
+              },
+              vendorReviews: {
+                where: {
+                  OR: [
+                    { type: 'VENDOR' },
+                    { type: 'SERVICE' },
+                  ],
+                },
+                select: {
+                  type: true,
+                  rating: true,
+                  comment: true,
+                  createdAt: true,
+                  service: {
+                    select: {
+                      serviceName: true,
+                    },
+                  },
+                  client: {
+                    select: {
+                      id: true,
+                      firstName: true,
+                      lastName: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 };
+
 
 export const addTipToOffer = async (clientId: string, offerId: string, tipAmount: number) => {
   const offer = await prisma.serviceOffer.findUnique({
