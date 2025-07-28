@@ -33,7 +33,11 @@ const productOrder_route_1 = __importDefault(require("./routes/productOrder.rout
 const distance_routes_1 = __importDefault(require("./routes/distance.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
+// Instead of: app.use(cors())
+app.use((0, cors_1.default)({
+    origin: "http://localhost:5173",
+    credentials: true, // if you're using cookies or sessions
+}));
 app.use((req, res, next) => {
     const contentType = req.headers['content-type'] || '';
     if (contentType.includes('application/json')) {
