@@ -45,3 +45,6 @@ export const verifyPayment = async (reference: string) => {
     throw new Error("Failed to verify payment");
   }
 };
+
+
+export const generateReference = () => `REF-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
