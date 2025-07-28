@@ -498,6 +498,14 @@ model ServiceOffer {
   latitude      Float?
   longitude     Float?
   expiresAt     DateTime?
+  serviceId     String?
+    totalAmount       Float?
+  paymentMethod     String?
+  reference         String?
+  homeLocation      String?
+  landmark          String?
+  referencePhoto    String?
+  specialInstruction String?
 
   // Relations
   client        User           @relation(fields: [clientId], references: [id], name: "UserServiceOffers")

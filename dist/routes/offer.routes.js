@@ -44,7 +44,7 @@ const router = express_1.default.Router();
 router.post("/createOffer", auth_middleware_1.verifyToken, upload_middleware_1.uploadSingle2, OfferController.handleCreateOffer);
 router.post("/accept", auth_middleware_1.verifyToken, OfferController.handleVendorAccept);
 router.post("/vendors", auth_middleware_1.verifyToken, OfferController.handleGetVendorsForOffer);
-router.post("/select-vendor", auth_middleware_1.verifyToken, OfferController.handleClientSelectVendor);
+router.post("/select-vendor", auth_middleware_1.verifyToken, OfferController.selectVendorController);
 router.get("/nearbyOffers", auth_middleware_1.verifyToken, OfferController.getNearbyOffersHandler);
 router.get("/allOffers", auth_middleware_1.verifyToken, OfferController.getAllAvailableOffersHandler);
 router.get("/myOffers", auth_middleware_1.verifyToken, OfferController.getMyOffers);

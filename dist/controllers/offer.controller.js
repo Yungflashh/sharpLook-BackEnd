@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tipOffer = exports.getMyOffers = exports.getAllAvailableOffersHandler = exports.handleCancelOffer = exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.handleClientSelectVendor = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
+exports.tipOffer = exports.getMyOffers = exports.getAllAvailableOffersHandler = exports.handleCancelOffer = exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.selectVendorController = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
 const OfferService = __importStar(require("../services/offer.service"));
 const notification_service_1 = require("../services/notification.service");
 const cloudinary_1 = require("../utils/cloudinary");
@@ -139,12 +139,20 @@ const handleVendorAccept = async (req, res) => {
     }
 };
 exports.handleVendorAccept = handleVendorAccept;
-const handleClientSelectVendor = async (req, res) => {
-    const { offerId, vendorId } = req.body;
-    await OfferService.selectVendorForOffer(offerId, vendorId);
-    res.json({ success: true, message: "Vendor selected" });
+const selectVendorController = async (req, res) => {
+    const { offerId, selectedVendorId } = req.body;
+    if (!offerId || !selectedVendorId) {
+        return res.status(400).json({ success: false, message: "Missing fields." });
+    }
+    const result = await OfferService.selectVendorForOffer(offerId, selectedVendorId);
+    if (result.success) {
+        return res.status(200).json(result);
+    }
+    else {
+        return res.status(500).json(result);
+    }
 };
-exports.handleClientSelectVendor = handleClientSelectVendor;
+exports.selectVendorController = selectVendorController;
 const handleGetVendorsForOffer = async (req, res) => {
     const { offerId } = req.body;
     const vendors = await OfferService.getVendorsForOffer(offerId);
