@@ -489,6 +489,8 @@ model ServiceOffer {
   status       OfferStatus @default(PENDING)
   createdAt    DateTime    @default(now())
   acceptedBy   VendorOffer[]
+  fullAddress   String?
+  landMark      String?
    latitude     Float?
   longitude    Float?
   expiresAt      DateTime?      // New: Expiry field

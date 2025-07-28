@@ -3,13 +3,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllAvailableOffers = exports.cancelOffer = exports.getNearbyOffersByCoordinates = exports.selectVendorForOffer = exports.vendorAcceptOffer = exports.getVendorsForOffer = exports.createServiceOffer = void 0;
+exports.addTipToOffer = exports.getClientOffers = exports.getAllAvailableOffers = exports.cancelOffer = exports.getNearbyOffersByCoordinates = exports.selectVendorForOffer = exports.vendorAcceptOffer = exports.getVendorsForOffer = exports.createServiceOffer = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const createServiceOffer = async (clientId, data, serviceImage) => {
     const requiredFields = [
         "serviceName",
         "serviceType",
         "offerAmount",
+        "fullAddress",
+        "landMark",
         "date",
         "time",
     ];
@@ -205,3 +207,25 @@ const getAllAvailableOffers = async () => {
     });
 };
 exports.getAllAvailableOffers = getAllAvailableOffers;
+const getClientOffers = async (clientId) => {
+    return await prisma_1.default.serviceOffer.findMany({
+        where: { clientId },
+        orderBy: { createdAt: "desc" },
+    });
+};
+exports.getClientOffers = getClientOffers;
+const addTipToOffer = async (clientId, offerId, tipAmount) => {
+    const offer = await prisma_1.default.serviceOffer.findUnique({
+        where: { id: offerId },
+    });
+    if (!offer)
+        throw new Error("Offer not found");
+    if (offer.clientId !== clientId)
+        throw new Error("Unauthorized action");
+    const newAmount = Number(offer.offerAmount) + Number(tipAmount);
+    return await prisma_1.default.serviceOffer.update({
+        where: { id: offerId },
+        data: { offerAmount: newAmount },
+    });
+};
+exports.addTipToOffer = addTipToOffer;

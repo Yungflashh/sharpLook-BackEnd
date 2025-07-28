@@ -9,6 +9,8 @@ export const createServiceOffer = async (
     "serviceName",
     "serviceType",
     "offerAmount",
+     "fullAddress",
+    "landMark",
     "date",
     "time",
   ];
@@ -241,5 +243,29 @@ export const getAllAvailableOffers = async () => {
         },
       },
     },
+  });
+};
+
+
+export const getClientOffers = async (clientId: string) => {
+  return await prisma.serviceOffer.findMany({
+    where: { clientId },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+export const addTipToOffer = async (clientId: string, offerId: string, tipAmount: number) => {
+  const offer = await prisma.serviceOffer.findUnique({
+    where: { id: offerId },
+  });
+
+  if (!offer) throw new Error("Offer not found");
+  if (offer.clientId !== clientId) throw new Error("Unauthorized action");
+
+  const newAmount = Number(offer.offerAmount) + Number(tipAmount);
+
+  return await prisma.serviceOffer.update({
+    where: { id: offerId },
+    data: { offerAmount: newAmount },
   });
 };

@@ -23,6 +23,8 @@ export const handleCreateOffer = async (req: Request, res: Response) => {
       "serviceName",
       "serviceType",
       "offerAmount",
+      "fullAddress",
+      "landMark",
       "date",
       "time",
     ];
@@ -157,6 +159,34 @@ export const getAllAvailableOffersHandler = async (req: Request, res: Response) 
   try {
     const offers = await OfferService.getAllAvailableOffers(); // you'll write this in the service
     res.status(200).json({ success: true, data: offers });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
+export const getMyOffers = async (req: Request, res: Response) => {
+  try {
+    const clientId = req.user!.id;
+    const offers = await OfferService.getClientOffers(clientId);
+    res.json({ success: true, offers });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const tipOffer = async (req: Request, res: Response) => {
+  try {
+    const clientId = req.user!.id;
+    const {offerId, tipAmount } = req.body;
+
+    if (!tipAmount || isNaN(tipAmount)) {
+      return res.status(400).json({ message: "Invalid tip amount" });
+    }
+
+    const updatedOffer = await OfferService.addTipToOffer(clientId, offerId, Number(tipAmount));
+    res.json({ success: true, message: "Tip added successfully", offer: updatedOffer });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

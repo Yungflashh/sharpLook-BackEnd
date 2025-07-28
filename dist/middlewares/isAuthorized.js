@@ -14,11 +14,14 @@ exports.isAuthorized = isAuthorized;
 const requireAdminRole = (adminRoles = []) => {
     return (req, res, next) => {
         const user = req.user;
-        if (user?.role !== 'ADMIN' && user?.role !== 'SUPERADMIN') {
+        if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
             return res.status(403).json({ message: 'Admins only' });
         }
-        if (adminRoles.length && !adminRoles.includes(user.adminRole)) {
-            return res.status(403).json({ message: 'Forbidden: Not enough admin privileges' });
+        if (adminRoles.length > 0 &&
+            (!user.adminRole || !adminRoles.includes(user.adminRole))) {
+            return res
+                .status(403)
+                .json({ message: 'Forbidden: Not enough admin privileges' });
         }
         next();
     };

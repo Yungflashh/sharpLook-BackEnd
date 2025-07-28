@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken"
 interface JwtPayload {
   id: string
   role: string
+  adminRole: string
 }
 
     export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
