@@ -8,7 +8,7 @@ const router = express.Router();
 router.post("/createOffer", verifyToken, uploadSingle2, OfferController.handleCreateOffer);
 router.post("/accept", verifyToken, OfferController.handleVendorAccept);
 router.post("/vendors", verifyToken, OfferController.handleGetVendorsForOffer);
-router.post("/select-vendor", verifyToken, OfferController.selectVendorController);
+// router.post("/select-vendor", verifyToken, uploadSingle2, OfferController.selectVendorController);
 router.get("/nearbyOffers", verifyToken, OfferController.getNearbyOffersHandler);
 router.get("/allOffers", verifyToken, OfferController.getAllAvailableOffersHandler);
 router.get("/myOffers",verifyToken ,OfferController.getMyOffers);

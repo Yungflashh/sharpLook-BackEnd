@@ -96,6 +96,10 @@
     preferredLongitude Float?
     preferredRadiusKm  Int?
 
+    
+  serviceOfferBookingsAsClient ServiceOfferBooking[] @relation("ServiceOfferBookingClient")
+  serviceOfferBookingsAsVendor ServiceOfferBooking[] @relation("ServiceOfferBookingVendor")
+
     isBanned  Boolean  @default(false)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -152,6 +156,7 @@
       referencePhoto      String?
       specialInstruction  String? 
       reference           String?
+  
 
         clientId String?
   client   User?   @relation("ClientBooking", fields: [clientId], references: [id])
@@ -483,7 +488,7 @@ model ServiceCategory {
 
 
 model ServiceOffer {
-  id            String         @id @default(uuid()) @map("_id")
+    id                  String         @id @default(auto()) @map("_id") @db.ObjectId
   clientId      String
   serviceName   String
   serviceType   String
@@ -511,10 +516,11 @@ model ServiceOffer {
   client        User           @relation(fields: [clientId], references: [id], name: "UserServiceOffers")
   vendorOffers  VendorOffer[]  @relation("AllVendorOffers")
   acceptedBy    VendorOffer[]  @relation("AcceptedVendorOffers")
+    bookings           ServiceOfferBooking[] 
 }
 
 model VendorOffer {
-  id               String         @id @default(uuid()) @map("_id")
+    id                  String         @id @default(auto()) @map("_id") @db.ObjectId
   vendorId         String
   serviceOfferId   String
   isAccepted       Boolean        @default(false)
@@ -532,4 +538,30 @@ enum OfferStatus {
   SELECTED
   CANCELLED
   EXPIRED
+}
+model ServiceOfferBooking {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  client           User            @relation("ServiceOfferBookingClient", fields: [clientId], references: [id])
+  clientId         String          @db.ObjectId
+
+  vendor           User            @relation("ServiceOfferBookingVendor", fields: [vendorId], references: [id])
+  vendorId         String          @db.ObjectId
+
+  serviceOfferId   String
+  serviceOffer     ServiceOffer    @relation(fields: [serviceOfferId], references: [id])
+
+  serviceName      String
+  price            Float
+  totalAmount      Float
+  time             String
+  date             DateTime
+
+  paymentMethod    String
+  paymentStatus    PaymentStatus
+  reference        String
+  referencePhoto   String?
+
+  status           BookingStatus   @default(PENDING)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 }

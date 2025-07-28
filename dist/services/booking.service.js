@@ -8,7 +8,7 @@ const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
 const wallet_service_1 = require("./wallet.service");
 const paystack_1 = require("../utils/paystack"); // if Paystack used
-const createBooking = async (clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference) => {
+const createBooking = async (clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, referencePhoto) => {
     if (paymentMethod === "SHARP-PAY") {
         const wallet = await (0, wallet_service_1.getUserWallet)(clientId);
         if (!wallet || wallet.balance < price) {
@@ -29,6 +29,7 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
                 price,
                 status: client_1.BookingStatus.PENDING,
                 reference,
+                referencePhoto
             },
             include: {
                 vendor: true,
@@ -49,6 +50,7 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
             time,
             price,
             status: client_1.BookingStatus.PENDING,
+            referencePhoto,
         },
         include: {
             vendor: true,
