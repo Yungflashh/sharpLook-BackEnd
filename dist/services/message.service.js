@@ -111,21 +111,23 @@ const getChatListForUser = async (userId) => {
         orderBy: { createdAt: "desc" },
         distinct: ["roomId"],
     });
-    // Map to replace names for vendors
+    const formatUser = (user) => ({
+        id: user.id,
+        name: user.role === "VENDOR" && user.vendorOnboarding?.businessName
+            ? user.vendorOnboarding.businessName
+            : `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        role: user.role,
+    });
     return rooms.map((room) => {
-        const formatUser = (user) => ({
-            id: user.id,
-            name: user.role === "VENDOR" && user.vendorOnboarding?.businessName
-                ? user.vendorOnboarding.businessName
-                : `${user.firstName} ${user.lastName}`,
-            email: user.email,
-            phone: user.phone,
-            avatar: user.avatar,
-            role: user.role,
-        });
+        const isSender = room.sender.id === userId;
+        const chatPartner = isSender ? room.receiver : room.sender;
         return {
             roomId: room.roomId,
             createdAt: room.createdAt,
+            chatPartner: formatUser(chatPartner), // <- this is what frontend should display
             sender: formatUser(room.sender),
             receiver: formatUser(room.receiver),
         };
