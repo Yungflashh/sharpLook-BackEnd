@@ -1,4 +1,6 @@
 import prisma from "../config/prisma";
+import * as bookingService from "../services/booking.service"
+import { BookingStatus, PaymentStatus, Booking } from "@prisma/client";
 
 export const createServiceOffer = async (
   clientId: string,
@@ -185,6 +187,7 @@ console.log("Offer after update:", updatedOffer);
     return { success: false, message: "Something went wrong during vendor selection." };
   }
 };
+
 
 
 
