@@ -164,7 +164,7 @@ const getNearbyOffersHandler = async (req, res) => {
 exports.getNearbyOffersHandler = getNearbyOffersHandler;
 const handleCancelOffer = async (req, res) => {
     const clientId = req.user.id;
-    const { offerId } = req.params;
+    const { offerId } = req.body;
     await OfferService.cancelOffer(offerId, clientId);
     res.json({ success: true, message: "Offer cancelled" });
 };
