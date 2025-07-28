@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllAvailableOffersHandler = exports.handleCancelOffer = exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.handleClientSelectVendor = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
+exports.tipOffer = exports.getMyOffers = exports.getAllAvailableOffersHandler = exports.handleCancelOffer = exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.handleClientSelectVendor = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
 const OfferService = __importStar(require("../services/offer.service"));
 const notification_service_1 = require("../services/notification.service");
 const cloudinary_1 = require("../utils/cloudinary");
@@ -53,6 +53,8 @@ const handleCreateOffer = async (req, res) => {
             "serviceName",
             "serviceType",
             "offerAmount",
+            "fullAddress",
+            "landMark",
             "date",
             "time",
         ];
@@ -177,3 +179,29 @@ const getAllAvailableOffersHandler = async (req, res) => {
     }
 };
 exports.getAllAvailableOffersHandler = getAllAvailableOffersHandler;
+const getMyOffers = async (req, res) => {
+    try {
+        const clientId = req.user.id;
+        const offers = await OfferService.getClientOffers(clientId);
+        res.json({ success: true, offers });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+exports.getMyOffers = getMyOffers;
+const tipOffer = async (req, res) => {
+    try {
+        const clientId = req.user.id;
+        const { offerId, tipAmount } = req.body;
+        if (!tipAmount || isNaN(tipAmount)) {
+            return res.status(400).json({ message: "Invalid tip amount" });
+        }
+        const updatedOffer = await OfferService.addTipToOffer(clientId, offerId, Number(tipAmount));
+        res.json({ success: true, message: "Tip added successfully", offer: updatedOffer });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+exports.tipOffer = tipOffer;

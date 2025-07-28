@@ -47,4 +47,6 @@ router.post("/vendors", auth_middleware_1.verifyToken, OfferController.handleGet
 router.post("/select-vendor", auth_middleware_1.verifyToken, OfferController.handleClientSelectVendor);
 router.get("/nearbyOffers", auth_middleware_1.verifyToken, OfferController.getNearbyOffersHandler);
 router.get("/allOffers", auth_middleware_1.verifyToken, OfferController.getAllAvailableOffersHandler);
+router.get("/myOffers", OfferController.getMyOffers);
+router.patch("/tip", OfferController.tipOffer);
 exports.default = router;

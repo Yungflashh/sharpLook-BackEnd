@@ -11,5 +11,7 @@ router.post("/vendors", verifyToken, OfferController.handleGetVendorsForOffer);
 router.post("/select-vendor", verifyToken, OfferController.handleClientSelectVendor);
 router.get("/nearbyOffers", verifyToken, OfferController.getNearbyOffersHandler);
 router.get("/allOffers", verifyToken, OfferController.getAllAvailableOffersHandler);
+router.get("/myOffers", OfferController.getMyOffers);
+router.patch("/tip", OfferController.tipOffer);
 
 export default router;
