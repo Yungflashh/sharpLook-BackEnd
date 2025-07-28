@@ -80,8 +80,8 @@ router.use(verifyToken);
 
 // // SUPER ADMIN ONLY 
 router.delete("/users/:userId", requireAdminRole(Role.SUPERADMIN), AdminController.deleteUser);
-// router.patch("/users/:userId/promote", requireAdminRole(Role.SUPERADMIN), AdminController.promoteToAdmin);
-// router.get("/stats", requireAdminRole(Role.SUPERADMIN), AdminController.getPlatformStats);
+router.patch("/users/:userId/promote", requireAdminRole(Role.SUPERADMIN), AdminController.promoteToAdmin);
+router.get("/stats", requireAdminRole(Role.SUPERADMIN), AdminController.getPlatformStats);
 
 
 
