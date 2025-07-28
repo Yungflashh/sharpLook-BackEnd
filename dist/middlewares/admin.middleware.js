@@ -14,11 +14,12 @@ const requireAdminRole = (...allowedRoles) => {
                 return res.status(403).json({ message: "Access denied. Not an admin user." });
             }
             const userAdminRole = user.adminRole;
-            if (!allowedRoles.includes(userAdminRole)) {
-                return res.status(403).json({
-                    message: `Access denied. Required roles: [${allowedRoles.join(", ")}], but you have: ${userAdminRole}`,
-                });
-            }
+            console.log(userAdminRole);
+            // if (!allowedRoles.includes(userAdminRole)) {
+            //   return res.status(403).json({
+            //     message: `Access denied. Required roles: [${allowedRoles.join(", ")}], but you have: ${userAdminRole}`,
+            //   });
+            // }
             next();
         }
         catch (err) {

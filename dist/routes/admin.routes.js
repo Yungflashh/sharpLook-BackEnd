@@ -88,8 +88,8 @@ router.use(auth_middleware_1.verifyToken);
 // ---------------*****************************************-------------------------------&*********
 // // SUPER ADMIN ONLY 
 router.delete("/users/:userId", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.deleteUser);
-// router.patch("/users/:userId/promote", requireAdminRole(Role.SUPERADMIN), AdminController.promoteToAdmin);
-// router.get("/stats", requireAdminRole(Role.SUPERADMIN), AdminController.getPlatformStats);
+router.patch("/users/:userId/promote", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.promoteToAdmin);
+router.get("/stats", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.getPlatformStats);
 // // ADMIN AND SUPERADMIN
 // // Users
 router.get("/users", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllUsers);

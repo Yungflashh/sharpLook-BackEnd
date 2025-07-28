@@ -52,7 +52,6 @@ const vendorAcceptOffer = async (vendorId, offerId) => {
     if (existing) {
         throw new Error("You’ve already accepted this offer.");
     }
-    // ✅ Check if the offer is still open
     const offer = await prisma_1.default.serviceOffer.findUnique({
         where: { id: offerId },
         select: {
@@ -60,7 +59,7 @@ const vendorAcceptOffer = async (vendorId, offerId) => {
             serviceName: true,
             serviceType: true,
             serviceImage: true,
-            status: true, // <-- Make sure to check this
+            status: true,
         },
     });
     if (!offer)
@@ -68,24 +67,29 @@ const vendorAcceptOffer = async (vendorId, offerId) => {
     if (offer.status !== "PENDING") {
         throw new Error("This offer is no longer accepting vendors.");
     }
-    // Get vendor info
     const vendor = await prisma_1.default.user.findUnique({
         where: { id: vendorId },
         select: {
+            id: true,
             firstName: true,
             lastName: true,
+            email: true,
+            phone: true,
+            vendorOnboarding: true,
+            vendorServices: true,
+            vendorReviews: true,
+            vendorAvailabilities: true,
+            products: true,
         },
     });
     if (!vendor)
         throw new Error("Vendor not found");
-    // Create the vendor-offer link
-    const newAcceptance = await prisma_1.default.vendorOffer.create({
+    await prisma_1.default.vendorOffer.create({
         data: {
             vendorId,
             serviceOfferId: offerId,
         },
     });
-    // Notify the client
     await prisma_1.default.notification.create({
         data: {
             userId: offer.clientId,
@@ -93,7 +97,11 @@ const vendorAcceptOffer = async (vendorId, offerId) => {
             message: `${vendor.firstName} ${vendor.lastName} has accepted your service offer: ${offer.serviceName}`,
         },
     });
-    return newAcceptance;
+    return {
+        message: "Offer accepted successfully",
+        vendorDetails: vendor,
+        offerDetails: offer,
+    };
 };
 exports.vendorAcceptOffer = vendorAcceptOffer;
 const selectVendorForOffer = async (offerId, selectedVendorId) => {

@@ -57,7 +57,6 @@ export const vendorAcceptOffer = async (vendorId: string, offerId: string) => {
     throw new Error("You’ve already accepted this offer.");
   }
 
-  // ✅ Check if the offer is still open
   const offer = await prisma.serviceOffer.findUnique({
     where: { id: offerId },
     select: {
@@ -65,7 +64,7 @@ export const vendorAcceptOffer = async (vendorId: string, offerId: string) => {
       serviceName: true,
       serviceType: true,
       serviceImage: true,
-      status: true, // <-- Make sure to check this
+      status: true,
     },
   });
 
@@ -74,26 +73,31 @@ export const vendorAcceptOffer = async (vendorId: string, offerId: string) => {
     throw new Error("This offer is no longer accepting vendors.");
   }
 
-  // Get vendor info
   const vendor = await prisma.user.findUnique({
     where: { id: vendorId },
     select: {
+      id: true,
       firstName: true,
       lastName: true,
+      email: true,
+      phone: true,
+      vendorOnboarding: true,
+      vendorServices: true,
+      vendorReviews: true,
+      vendorAvailabilities: true,
+      products: true,
     },
   });
 
   if (!vendor) throw new Error("Vendor not found");
 
-  // Create the vendor-offer link
-  const newAcceptance = await prisma.vendorOffer.create({
+  await prisma.vendorOffer.create({
     data: {
       vendorId,
       serviceOfferId: offerId,
     },
   });
 
-  // Notify the client
   await prisma.notification.create({
     data: {
       userId: offer.clientId,
@@ -102,7 +106,11 @@ export const vendorAcceptOffer = async (vendorId: string, offerId: string) => {
     },
   });
 
-  return newAcceptance;
+  return {
+    message: "Offer accepted successfully",
+    vendorDetails: vendor,
+    offerDetails: offer,
+  };
 };
 
 
