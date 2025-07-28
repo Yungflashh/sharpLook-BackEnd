@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.addTipToOffer = exports.getClientOffers = exports.getAllAvailableOffers = exports.cancelOffer = exports.getNearbyOffersByCoordinates = exports.selectVendorForOffer = exports.vendorAcceptOffer = exports.getVendorsForOffer = exports.createServiceOffer = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const serviceOfferBookingService = __importStar(require("../services/offerBooking.service"));
+const notification_service_1 = require("./notification.service");
 const createServiceOffer = async (clientId, data, serviceImage) => {
     const requiredFields = [
         "serviceName",
@@ -107,9 +108,12 @@ const getVendorsForOffer = async (offerId) => {
     };
 };
 exports.getVendorsForOffer = getVendorsForOffer;
-const vendorAcceptOffer = async (vendorId, offerId) => {
+const vendorAcceptOffer = async (vendorId, offerId, price) => {
     const existing = await prisma_1.default.vendorOffer.findFirst({
-        where: { vendorId, serviceOfferId: offerId },
+        where: {
+            vendorId,
+            serviceOfferId: offerId,
+        },
     });
     if (existing) {
         throw new Error("You’ve already accepted this offer.");
@@ -119,51 +123,20 @@ const vendorAcceptOffer = async (vendorId, offerId) => {
         select: {
             clientId: true,
             serviceName: true,
-            serviceType: true,
-            serviceImage: true,
-            status: true,
         },
     });
     if (!offer)
         throw new Error("Offer not found");
-    if (offer.status !== "PENDING") {
-        throw new Error("This offer is no longer accepting vendors.");
-    }
-    const vendor = await prisma_1.default.user.findUnique({
-        where: { id: vendorId },
-        select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            vendorOnboarding: true,
-            vendorServices: true,
-            vendorReviews: true,
-            vendorAvailabilities: true,
-            products: true,
-        },
-    });
-    if (!vendor)
-        throw new Error("Vendor not found");
+    const { clientId, serviceName } = offer;
+    await (0, notification_service_1.createNotification)(clientId, `A vendor has accepted your request for ${serviceName}.`);
     await prisma_1.default.vendorOffer.create({
         data: {
             vendorId,
             serviceOfferId: offerId,
+            price, // 👈 Store the price here
         },
     });
-    await prisma_1.default.notification.create({
-        data: {
-            userId: offer.clientId,
-            type: "OFFER_ACCEPTED",
-            message: `${vendor.firstName} ${vendor.lastName} has accepted your service offer: ${offer.serviceName}`,
-        },
-    });
-    return {
-        message: "Offer accepted successfully",
-        vendorDetails: vendor,
-        offerDetails: offer,
-    };
+    // ...
 };
 exports.vendorAcceptOffer = vendorAcceptOffer;
 const selectVendorForOffer = async (offerId, selectedVendorId, reference, paymentMethod) => {

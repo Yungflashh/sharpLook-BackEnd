@@ -114,8 +114,8 @@ exports.handleCreateOffer = handleCreateOffer;
 const handleVendorAccept = async (req, res) => {
     try {
         const vendorId = req.user.id;
-        const { offerId } = req.body;
-        const acceptance = await OfferService.vendorAcceptOffer(vendorId, offerId);
+        const { offerId, price } = req.body;
+        const acceptance = await OfferService.vendorAcceptOffer(vendorId, offerId, price);
         return res.status(200).json({
             success: true,
             message: "Offer accepted successfully. Client has been notified.",
@@ -133,6 +133,7 @@ const handleVendorAccept = async (req, res) => {
 exports.handleVendorAccept = handleVendorAccept;
 const selectVendorController = async (req, res) => {
     const { offerId, selectedVendorId, reference, paymentMethod } = req.body;
+    const clientId = req.user.id;
     console.log("this is body data", req.body);
     // Basic input validation
     const requiredFields = [
@@ -151,6 +152,8 @@ const selectVendorController = async (req, res) => {
     }
     const result = await OfferService.selectVendorForOffer(offerId, selectedVendorId, reference, paymentMethod);
     if (result.success) {
+        await (0, notification_service_1.createNotification)(clientId, `Your booking for a service Offer has been placed successfully.`);
+        await (0, notification_service_1.createNotification)(selectedVendorId, `The Service offer you accepted has been acknowledged and requested`);
         return res.status(200).json(result);
     }
     else {
