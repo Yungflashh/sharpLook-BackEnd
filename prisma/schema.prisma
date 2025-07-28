@@ -401,6 +401,11 @@ model Review {
     VENDOR
     ADMIN
     SUPERADMIN
+    MODERATOR
+    ANALYST
+    FINANCE_ADMIN
+    CONTENT_MANAGER
+    SUPPORT
   }
 
   enum BookingStatus {

@@ -4,12 +4,12 @@ import {
   handleGetServiceCategories,
 } from "../controllers/category.controller";
 import { verifyToken } from "../middlewares/auth.middleware";
-import { isAuthorized } from "../middlewares/isAuthorized";
+import { requireAdminRole } from "../middlewares/admin.middleware";
 import { Role } from '@prisma/client';
 
 const router = express.Router();
 
-router.post("/addAService", verifyToken, isAuthorized(Role.ADMIN, Role.SUPERADMIN), handleCreateServiceCategory);
+router.post("/addAService", verifyToken, requireAdminRole(Role.ADMIN, Role.SUPERADMIN), handleCreateServiceCategory);
 router.get("/getAllServices", verifyToken, handleGetServiceCategories);
 
 export default router;
