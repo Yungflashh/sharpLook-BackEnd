@@ -12,32 +12,23 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
     if (paymentMethod === "SHARP-PAY") {
         const wallet = await (0, wallet_service_1.getUserWallet)(clientId);
         if (!wallet || wallet.balance < price) {
-            throw new Error("Insufficient wallet balance");
+            return {
+                success: false,
+                message: "Insufficient wallet balance",
+            };
         }
         await (0, wallet_service_1.debitWallet)(wallet.id, price, "Booking Payment", reference);
-        return await prisma_1.default.booking.create({
-            data: {
-                clientId,
-                vendorId,
-                serviceId,
-                totalAmount,
-                paymentMethod,
-                paymentStatus: client_1.PaymentStatus.LOCKED,
-                serviceName,
-                date: new Date(date),
-                time,
-                price,
-                status: client_1.BookingStatus.PENDING,
-                reference,
-                referencePhoto
-            },
-            include: {
-                vendor: true,
-                service: true,
-            },
-        });
     }
-    return await prisma_1.default.booking.create({
+    else {
+        // For other payment methods, reference must be provided
+        if (!reference || reference.trim() === "") {
+            return {
+                success: false,
+                message: "Payment reference is required for this payment method",
+            };
+        }
+    }
+    const booking = await prisma_1.default.booking.create({
         data: {
             clientId,
             vendorId,
@@ -46,10 +37,11 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
             paymentMethod,
             paymentStatus: client_1.PaymentStatus.LOCKED,
             serviceName,
-            date: new Date(date), // Match format of the other branch
+            date: new Date(date),
             time,
             price,
             status: client_1.BookingStatus.PENDING,
+            reference,
             referencePhoto,
         },
         include: {
@@ -57,6 +49,11 @@ const createBooking = async (clientId, vendorId, serviceId, paymentMethod, servi
             service: true,
         },
     });
+    return {
+        success: true,
+        message: "Booking created successfully",
+        data: booking,
+    };
 };
 exports.createBooking = createBooking;
 const updateBookingStatus = async (bookingId, status, refundReference // <-- optional reference for refund
@@ -197,25 +194,69 @@ const getUserBookings = async (userId, role) => {
 };
 exports.getUserBookings = getUserBookings;
 const homeServiceCreateBooking = async (clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, homeDetails) => {
-    const isHomeService = serviceType === "HOME_SERVICE";
-    const baseData = {
-        clientId,
-        vendorId, // ✅ INCLUDE HERE
-        serviceId,
-        serviceName,
-        totalAmount,
-        paymentMethod,
-        date: new Date(date),
-        time,
-        price,
-        reference: reference || null,
-        status: client_1.BookingStatus.PENDING,
-        paymentStatus: client_1.PaymentStatus.PENDING,
-    };
-    if (isHomeService && homeDetails) {
-        Object.assign(baseData, homeDetails);
+    try {
+        const isHomeService = serviceType === "HOME_SERVICE";
+        const baseData = {
+            clientId,
+            vendorId,
+            serviceId,
+            serviceName,
+            totalAmount,
+            paymentMethod,
+            date: new Date(date),
+            time,
+            price,
+            reference: reference || null,
+            status: client_1.BookingStatus.PENDING,
+            paymentStatus: client_1.PaymentStatus.LOCKED,
+            referencePhoto: homeDetails?.referencePhoto || null,
+        };
+        if (isHomeService && homeDetails) {
+            Object.assign(baseData, {
+                serviceLocation: homeDetails.serviceLocation,
+                fullAddress: homeDetails.fullAddress,
+                landmark: homeDetails.landmark,
+                specialInstruction: homeDetails.specialInstruction,
+            });
+        }
+        if (paymentMethod === "SHARP-PAY") {
+            const wallet = await (0, wallet_service_1.getUserWallet)(clientId);
+            if (!wallet || wallet.balance < price) {
+                return {
+                    success: false,
+                    message: "Insufficient wallet balance",
+                };
+            }
+            await (0, wallet_service_1.debitWallet)(wallet.id, price, "Booking Payment", reference);
+        }
+        else {
+            // Non-wallet payments must have a reference
+            if (!reference || reference.trim() === "") {
+                return {
+                    success: false,
+                    message: "Payment reference is required for this payment method",
+                };
+            }
+        }
+        const booking = await prisma_1.default.booking.create({
+            data: baseData,
+            include: {
+                vendor: true,
+                service: true,
+            },
+        });
+        return {
+            success: true,
+            message: "Booking created successfully",
+            data: booking,
+        };
     }
-    return await prisma_1.default.booking.create({ data: baseData });
+    catch (error) {
+        return {
+            success: false,
+            message: error.message || "Something went wrong",
+        };
+    }
 };
 exports.homeServiceCreateBooking = homeServiceCreateBooking;
 const acceptBooking = async (vendorId, bookingId) => {

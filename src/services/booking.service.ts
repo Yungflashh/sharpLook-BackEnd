@@ -14,40 +14,29 @@ export const createBooking = async (
   time: string,
   date: string,
   reference: string,
-  referencePhoto : string
+  referencePhoto: string
 ) => {
   if (paymentMethod === "SHARP-PAY") {
     const wallet = await getUserWallet(clientId);
     if (!wallet || wallet.balance < price) {
-      throw new Error("Insufficient wallet balance");
+      return {
+        success: false,
+        message: "Insufficient wallet balance",
+      };
     }
 
     await debitWallet(wallet.id, price, "Booking Payment", reference);
-
-    return await prisma.booking.create({
-      data: {
-        clientId,
-        vendorId,
-        serviceId,
-        totalAmount,
-        paymentMethod,
-        paymentStatus: PaymentStatus.LOCKED,
-        serviceName,
-        date: new Date(date),
-        time,
-        price,
-        status: BookingStatus.PENDING,
-        reference,
-        referencePhoto
-      },
-      include: {
-        vendor: true,
-        service: true,
-      },
-    });
+  } else {
+    // For other payment methods, reference must be provided
+    if (!reference || reference.trim() === "") {
+      return {
+        success: false,
+        message: "Payment reference is required for this payment method",
+      };
+    }
   }
 
-  return await prisma.booking.create({
+  const booking = await prisma.booking.create({
     data: {
       clientId,
       vendorId,
@@ -56,10 +45,11 @@ export const createBooking = async (
       paymentMethod,
       paymentStatus: PaymentStatus.LOCKED,
       serviceName,
-      date: new Date(date), // Match format of the other branch
+      date: new Date(date),
       time,
       price,
       status: BookingStatus.PENDING,
+      reference,
       referencePhoto,
     },
     include: {
@@ -67,8 +57,13 @@ export const createBooking = async (
       service: true,
     },
   });
-};
 
+  return {
+    success: true,
+    message: "Booking created successfully",
+    data: booking,
+  };
+};
 
 
 
@@ -238,13 +233,9 @@ export const getUserBookings = async (
   });
 };
 
-
-
-
-
 export const homeServiceCreateBooking = async (
   clientId: string,
-  vendorId: string, 
+  vendorId: string,
   serviceId: string,
   paymentMethod: string,
   serviceName: string,
@@ -262,29 +253,77 @@ export const homeServiceCreateBooking = async (
     specialInstruction?: string;
   }
 ) => {
-  const isHomeService = serviceType === "HOME_SERVICE";
+  try {
+    const isHomeService = serviceType === "HOME_SERVICE";
 
-  const baseData: any = {
-    clientId,
-    vendorId, // ✅ INCLUDE HERE
-    serviceId,
-    serviceName,
-    totalAmount,
-    paymentMethod,
-    date: new Date(date),
-    time,
-    price,
-    reference: reference || null,
-    status: BookingStatus.PENDING,
-    paymentStatus: PaymentStatus.PENDING,
-  };
+    const baseData: any = {
+      clientId,
+      vendorId,
+      serviceId,
+      serviceName,
+      totalAmount,
+      paymentMethod,
+      date: new Date(date),
+      time,
+      price,
+      reference: reference || null,
+      status: BookingStatus.PENDING,
+      paymentStatus: PaymentStatus.LOCKED,
+      referencePhoto: homeDetails?.referencePhoto || null,
+    };
 
-  if (isHomeService && homeDetails) {
-    Object.assign(baseData, homeDetails);
+    if (isHomeService && homeDetails) {
+      Object.assign(baseData, {
+        serviceLocation: homeDetails.serviceLocation,
+        fullAddress: homeDetails.fullAddress,
+        landmark: homeDetails.landmark,
+        specialInstruction: homeDetails.specialInstruction,
+      });
+    }
+
+    if (paymentMethod === "SHARP-PAY") {
+      const wallet = await getUserWallet(clientId);
+      if (!wallet || wallet.balance < price) {
+        return {
+          success: false,
+          message: "Insufficient wallet balance",
+        };
+      }
+
+      await debitWallet(wallet.id, price, "Booking Payment", reference);
+    } else {
+      // Non-wallet payments must have a reference
+      if (!reference || reference.trim() === "") {
+        return {
+          success: false,
+          message: "Payment reference is required for this payment method",
+        };
+      }
+    }
+
+    const booking = await prisma.booking.create({
+      data: baseData,
+      include: {
+        vendor: true,
+        service: true,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Booking created successfully",
+      data: booking,
+    };
+
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    };
   }
-
-  return await prisma.booking.create({ data: baseData });
 };
+
+
 
 
 

@@ -113,44 +113,36 @@ export const handleVendorAccept = async (req: Request, res: Response) => {
 };
 
 
-// export const selectVendorController = async (req: Request, res: Response) => {
-//   try {
-//     const { offerId, selectedVendorId, reference, paymentMethod } = req.body;
 
-//     console.log("📦 Incoming Select Vendor Body:", req.body);
+export const selectVendorController = async (req: Request, res: Response) => {
+  const { offerId, selectedVendorId, reference, paymentMethod } = req.body;
 
-//     // Validate required fields
-//     const requiredFields = ["offerId", "selectedVendorId", "reference", "paymentMethod"];
-//     for (const field of requiredFields) {
-//       if (!req.body[field]) {
-//         return res.status(400).json({
-//           success: false,
-//           message: `Missing required field: ${field}`,
-//         });
-//       }
-//     }
+  console.log("this is body data" , req.body);
+  
+      // Basic input validation
+    const requiredFields = [
+      "offerId",
+      "selectedVendorId",
+      "reference",
+      "paymentMethod"
+    ];
+    for (const field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({
+          success: false,
+          message: `Missing required field: ${field}`,
+        });
+      }
+    }
 
-//     // Call the service logic
-//     const result = await OfferService.selectVendorForOffer(
-//       offerId,
-//       selectedVendorId,
-//       reference,
-//       paymentMethod
-//     );
 
-//     if (result.success) {
-//       return res.status(200).json(result);
-//     } else {
-//       return res.status(500).json(result);
-//     }
-//   } catch (error: unknown) {
-//     console.error("❌ Controller Error in selectVendorController:", error);
-//     return res.status(500).json({
-//       success: false,
-//       message: error instanceof Error ? error.message : "Internal server error",
-//     });
-//   }
-// };
+  const result = await OfferService.selectVendorForOffer(offerId, selectedVendorId, reference, paymentMethod);
+  if (result.success) {
+    return res.status(200).json(result);
+  } else {
+    return res.status(500).json(result);
+  }
+};
 export const handleGetVendorsForOffer = async (req: Request, res: Response) => {
   const { offerId } = req.body;
 

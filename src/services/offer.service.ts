@@ -2,7 +2,7 @@ import prisma from "../config/prisma";
 import * as bookingService from "../services/booking.service"
 import { BookingStatus, PaymentStatus, Booking } from "@prisma/client";
 
-// import * as serviceOfferBookingService from "../services/offerBooking.service";
+import * as serviceOfferBookingService from "../services/offerBooking.service";
 
 
 
@@ -150,110 +150,132 @@ export const vendorAcceptOffer = async (vendorId: string, offerId: string) => {
 };
 
 
+export const selectVendorForOffer = async (
+  offerId: string,
+  selectedVendorId: string,
+  reference: string,
+  paymentMethod: string
+) => {
+  try {
+    // 1. Update offer with selection and payment info
+    await prisma.serviceOffer.update({
+      where: { id: offerId },
+      data: {
+        status: "SELECTED",
+        reference,
+        paymentMethod,
+      },
+    });
 
-// export const selectVendorForOffer  = async (
-//   offerId: string,
-//   selectedVendorId: string,
-//   reference: string,
-//   paymentMethod: string
-// ) => {
-//   try {
-//     // 1. Update offer with selection and payment info
-//     await prisma.serviceOffer.update({
-//       where: { id: offerId },
-//       data: {
-//         status: "SELECTED",
-//         reference,
-//         paymentMethod,
-//       },
-//     });
+    // 2. Reset all vendorOffer.isAccepted to false
+    await prisma.vendorOffer.updateMany({
+      where: { serviceOfferId: offerId },
+      data: { isAccepted: false },
+    });
 
-//     // 2. Reset all vendorOffer.isAccepted to false
-//     await prisma.vendorOffer.updateMany({
-//       where: { serviceOfferId: offerId },
-//       data: { isAccepted: false },
-//     });
+    // 3. Mark selected vendor's offer as accepted
+    await prisma.vendorOffer.updateMany({
+      where: {
+        serviceOfferId: offerId,
+        vendorId: selectedVendorId,
+      },
+      data: { isAccepted: true },
+    });
 
-//     // 3. Mark selected vendor's offer as accepted
-//     await prisma.vendorOffer.updateMany({
-//       where: {
-//         serviceOfferId: offerId,
-//         vendorId: selectedVendorId,
-//       },
-//       data: { isAccepted: true },
-//     });
+    // 4. Fetch full offer
+    const offer = await prisma.serviceOffer.findUnique({
+      where: { id: offerId },
+    });
 
-//     // 4. Fetch full offer
-//     const offer = await prisma.serviceOffer.findUnique({
-//       where: { id: offerId },
-//     });
+    if (!offer) throw new Error("Offer not found");
 
-//     if (!offer) throw new Error("Offer not found");
+    const {
+      id: serviceOfferId,
+      clientId,
+      serviceType,
+      offerAmount,
+      totalAmount,
+      serviceName,
+      date,
+      time,
+      referencePhoto,
+      specialInstruction,
+      serviceImage,
+      homeLocation,
+      fullAddress,
+      landMark,
+    } = offer;
 
-//     const {
-//       clientId,
-//       serviceType,
-//       offerAmount,
-//       totalAmount,
-//       serviceName,
-//       date,
-//       time,
-//       referencePhoto,
-//       specialInstruction,
-//       serviceImage,
-//       homeLocation,
-//       fullAddress,
-//       landMark,
-//     } = offer;
+    if (!reference) throw new Error("Missing payment reference");
 
-//     if (!reference) throw new Error("Missing payment reference");
+    const finalPaymentMethod = paymentMethod || "CASH";
 
-//     const finalPaymentMethod = paymentMethod || "CASH";
+    // 5. Get price from vendorOffer
+    const vendorOffer = await prisma.vendorOffer.findFirst({
+      where: {
+        serviceOfferId: offerId,
+        vendorId: selectedVendorId,
+      },
+    });
 
-//     // 5. Create service-offer-based booking (no serviceId involved)
-//   await serviceOfferBookingService.createOfferBooking({
-//   clientId,
-//   vendorId: selectedVendorId,
-//   offerId,
-//   serviceOfferId, // <-- Make sure you have this value
-//   price,          // <-- And this too
-//   paymentMethod,
-//   serviceName,
-//   serviceType,
-//   offerAmount,
-//   totalAmount,
-//   date,
-//   time,
-//   reference,
-//   serviceImage,
-//   locationDetails,
-// });
+    if (!vendorOffer || !vendorOffer.price) {
+      throw new Error("Vendor's offer price not found");
+    }
+
+    const price = vendorOffer.price;
+
+    if (totalAmount == null) throw new Error("totalAmount is missing");
 
 
-//     // 6. Notify vendor
-//     await prisma.notification.create({
-//       data: {
-//         userId: selectedVendorId,
-//         type: "VENDOR_SELECTED",
-//         message: `You’ve been selected for the service: ${serviceName}`,
-//       },
-//     });
+    // 6. Create booking
+    await serviceOfferBookingService.createOfferBooking({
+      clientId,
+      vendorId: selectedVendorId,
+      offerId,
+      serviceOfferId,
+      paymentMethod: finalPaymentMethod,
+      serviceName,
+      serviceType,
+      offerAmount,
+      totalAmount: totalAmount ?? 0,
+      price,
+      date: date.toISOString(),
+      time,
+      reference,
+      serviceImage,
+   referencePhoto: referencePhoto ?? undefined,
+locationDetails: {
+  homeLocation: homeLocation ?? undefined,
+  fullAddress: fullAddress ?? undefined,
+  landMark: landMark ?? undefined,
+  referencePhoto: referencePhoto ?? undefined,
+  specialInstruction: specialInstruction ?? undefined,
+}
 
-//     return {
-//       success: true,
-//       message: "Vendor selected and service offer booking created successfully.",
-//     };
-//   } catch (error: unknown) {
-//     console.error("❌ Error in selectVendorForOffer:", error);
-//     return {
-//       success: false,
-//       message:
-//         error instanceof Error ? error.message : "Error selecting vendor",
-//     };
-//   }
-// };
+    });
 
+    // 7. Notify vendor
+    await prisma.notification.create({
+      data: {
+        userId: selectedVendorId,
+        type: "VENDOR_SELECTED",
+        message: `You’ve been selected for the service: ${serviceName}`,
+      },
+    });
 
+    return {
+      success: true,
+      message: "Vendor selected and service offer booking created successfully.",
+    };
+  } catch (error: unknown) {
+    console.error("❌ Error in selectVendorForOffer:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Error selecting vendor",
+    };
+  }
+};
 
 
 

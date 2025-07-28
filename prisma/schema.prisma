@@ -522,6 +522,7 @@ model ServiceOffer {
 model VendorOffer {
     id                  String         @id @default(auto()) @map("_id") @db.ObjectId
   vendorId         String
+  price             Float?
   serviceOfferId   String
   isAccepted       Boolean        @default(false)
   createdAt        DateTime       @default(now())
