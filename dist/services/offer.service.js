@@ -40,6 +40,8 @@ exports.addTipToOffer = exports.getClientOffers = exports.getAllAvailableOffers 
 const prisma_1 = __importDefault(require("../config/prisma"));
 const serviceOfferBookingService = __importStar(require("../services/offerBooking.service"));
 const notification_service_1 = require("./notification.service");
+const wallet_service_1 = require("../services/wallet.service");
+const paystack_1 = require("../utils/paystack");
 const createServiceOffer = async (clientId, data, serviceImage) => {
     const requiredFields = [
         "serviceName",
@@ -170,9 +172,12 @@ const selectVendorForOffer = async (offerId, selectedVendorId, reference, paymen
         if (!offer)
             throw new Error("Offer not found");
         const { id: serviceOfferId, clientId, serviceType, offerAmount, totalAmount, serviceName, date, time, referencePhoto, specialInstruction, serviceImage, homeLocation, fullAddress, landMark, } = offer;
-        if (!reference)
-            throw new Error("Missing payment reference");
+        if (!totalAmount)
+            throw new Error("Total amount missing");
+        if (!selectedVendorId)
+            throw new Error("Selected vendor ID missing");
         const finalPaymentMethod = paymentMethod || "CASH";
+        const finalReference = reference || (0, paystack_1.generateReference)();
         // 5. Get price from vendorOffer
         const vendorOffer = await prisma_1.default.vendorOffer.findFirst({
             where: {
@@ -184,9 +189,26 @@ const selectVendorForOffer = async (offerId, selectedVendorId, reference, paymen
             throw new Error("Vendor's offer price not found");
         }
         const price = vendorOffer.price;
-        if (totalAmount == null)
-            throw new Error("totalAmount is missing");
-        // 6. Create booking
+        // 6. Handle SHARP-PAY wallet deduction
+        if (finalPaymentMethod === "SHARP-PAY") {
+            const wallet = await (0, wallet_service_1.getUserWallet)(clientId);
+            if (!wallet || wallet.balance < price) {
+                return {
+                    success: false,
+                    message: "Insufficient wallet balance",
+                };
+            }
+            await (0, wallet_service_1.debitWallet)(wallet.id, price, "Offer Booking Payment", finalReference);
+        }
+        else {
+            if (!reference || reference.trim() === "") {
+                return {
+                    success: false,
+                    message: "Payment reference is required for this payment method",
+                };
+            }
+        }
+        // 7. Create booking
         await serviceOfferBookingService.createOfferBooking({
             clientId,
             vendorId: selectedVendorId,
@@ -196,11 +218,11 @@ const selectVendorForOffer = async (offerId, selectedVendorId, reference, paymen
             serviceName,
             serviceType,
             offerAmount,
-            totalAmount: totalAmount ?? 0,
+            totalAmount,
             price,
             date: date.toISOString(),
             time,
-            reference,
+            reference: finalReference,
             serviceImage,
             referencePhoto: referencePhoto ?? undefined,
             locationDetails: {
@@ -209,9 +231,9 @@ const selectVendorForOffer = async (offerId, selectedVendorId, reference, paymen
                 landMark: landMark ?? undefined,
                 referencePhoto: referencePhoto ?? undefined,
                 specialInstruction: specialInstruction ?? undefined,
-            }
+            },
         });
-        // 7. Notify vendor
+        // 8. Notify vendor
         await prisma_1.default.notification.create({
             data: {
                 userId: selectedVendorId,

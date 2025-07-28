@@ -5,6 +5,9 @@ import { BookingStatus, PaymentStatus, Booking } from "@prisma/client";
 import * as serviceOfferBookingService from "../services/offerBooking.service";
 import { createNotification } from "./notification.service";
 
+import { getUserWallet, debitWallet } from "../services/wallet.service";
+import {generateReference} from "../utils/paystack"
+
 
 
 export const createServiceOffer = async (
@@ -129,6 +132,7 @@ export const vendorAcceptOffer = async (vendorId: string, offerId: string, price
 };
 
 
+
 export const selectVendorForOffer = async (
   offerId: string,
   selectedVendorId: string,
@@ -185,9 +189,12 @@ export const selectVendorForOffer = async (
       landMark,
     } = offer;
 
-    if (!reference) throw new Error("Missing payment reference");
+    if (!totalAmount) throw new Error("Total amount missing");
+    if (!selectedVendorId) throw new Error("Selected vendor ID missing");
 
     const finalPaymentMethod = paymentMethod || "CASH";
+
+    const finalReference = reference || generateReference();
 
     // 5. Get price from vendorOffer
     const vendorOffer = await prisma.vendorOffer.findFirst({
@@ -203,10 +210,27 @@ export const selectVendorForOffer = async (
 
     const price = vendorOffer.price;
 
-    if (totalAmount == null) throw new Error("totalAmount is missing");
+    // 6. Handle SHARP-PAY wallet deduction
+    if (finalPaymentMethod === "SHARP-PAY") {
+      const wallet = await getUserWallet(clientId);
+      if (!wallet || wallet.balance < price) {
+        return {
+          success: false,
+          message: "Insufficient wallet balance",
+        };
+      }
 
+      await debitWallet(wallet.id, price, "Offer Booking Payment", finalReference);
+    } else {
+      if (!reference || reference.trim() === "") {
+        return {
+          success: false,
+          message: "Payment reference is required for this payment method",
+        };
+      }
+    }
 
-    // 6. Create booking
+    // 7. Create booking
     await serviceOfferBookingService.createOfferBooking({
       clientId,
       vendorId: selectedVendorId,
@@ -216,24 +240,23 @@ export const selectVendorForOffer = async (
       serviceName,
       serviceType,
       offerAmount,
-      totalAmount: totalAmount ?? 0,
+      totalAmount,
       price,
       date: date.toISOString(),
       time,
-      reference,
+      reference: finalReference,
       serviceImage,
-   referencePhoto: referencePhoto ?? undefined,
-locationDetails: {
-  homeLocation: homeLocation ?? undefined,
-  fullAddress: fullAddress ?? undefined,
-  landMark: landMark ?? undefined,
-  referencePhoto: referencePhoto ?? undefined,
-  specialInstruction: specialInstruction ?? undefined,
-}
-
+      referencePhoto: referencePhoto ?? undefined,
+      locationDetails: {
+        homeLocation: homeLocation ?? undefined,
+        fullAddress: fullAddress ?? undefined,
+        landMark: landMark ?? undefined,
+        referencePhoto: referencePhoto ?? undefined,
+        specialInstruction: specialInstruction ?? undefined,
+      },
     });
 
-    // 7. Notify vendor
+    // 8. Notify vendor
     await prisma.notification.create({
       data: {
         userId: selectedVendorId,
