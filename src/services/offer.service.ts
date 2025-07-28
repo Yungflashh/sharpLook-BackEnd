@@ -3,6 +3,7 @@ import * as bookingService from "../services/booking.service"
 import { BookingStatus, PaymentStatus, Booking } from "@prisma/client";
 
 import * as serviceOfferBookingService from "../services/offerBooking.service";
+import { createNotification } from "./notification.service";
 
 
 
@@ -84,69 +85,47 @@ export const getVendorsForOffer = async (offerId: string) => {
   };
 };
 
-export const vendorAcceptOffer = async (vendorId: string, offerId: string) => {
+export const vendorAcceptOffer = async (vendorId: string, offerId: string, price: number) => {
   const existing = await prisma.vendorOffer.findFirst({
-    where: { vendorId, serviceOfferId: offerId },
+    where: {
+      vendorId,
+      serviceOfferId: offerId,
+    },
   });
 
   if (existing) {
     throw new Error("You’ve already accepted this offer.");
   }
 
-  const offer = await prisma.serviceOffer.findUnique({
-    where: { id: offerId },
-    select: {
-      clientId: true,
-      serviceName: true,
-      serviceType: true,
-      serviceImage: true,
-      status: true,
-    },
-  });
+    const offer = await prisma.serviceOffer.findUnique({
+      where: { id: offerId },
+      select: {
+        clientId: true,
+        serviceName: true,
+      },
+    });
 
-  if (!offer) throw new Error("Offer not found");
-  if (offer.status !== "PENDING") {
-    throw new Error("This offer is no longer accepting vendors.");
-  }
+       if (!offer) throw new Error("Offer not found");
 
-  const vendor = await prisma.user.findUnique({
-    where: { id: vendorId },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      phone: true,
-      vendorOnboarding: true,
-      vendorServices: true,
-      vendorReviews: true,
-      vendorAvailabilities: true,
-      products: true,
-    },
-  });
+    const { clientId, serviceName } = offer;
 
-  if (!vendor) throw new Error("Vendor not found");
+   
+
+
+    await createNotification(
+      clientId,
+      `A vendor has accepted your request for ${serviceName}.`
+    );
 
   await prisma.vendorOffer.create({
     data: {
       vendorId,
       serviceOfferId: offerId,
+      price, // 👈 Store the price here
     },
   });
 
-  await prisma.notification.create({
-    data: {
-      userId: offer.clientId,
-      type: "OFFER_ACCEPTED",
-      message: `${vendor.firstName} ${vendor.lastName} has accepted your service offer: ${offer.serviceName}`,
-    },
-  });
-
-  return {
-    message: "Offer accepted successfully",
-    vendorDetails: vendor,
-    offerDetails: offer,
-  };
+  // ...
 };
 
 
