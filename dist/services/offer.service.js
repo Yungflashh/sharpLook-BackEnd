@@ -39,10 +39,30 @@ const createServiceOffer = async (clientId, data, serviceImage) => {
 };
 exports.createServiceOffer = createServiceOffer;
 const getVendorsForOffer = async (offerId) => {
-    return await prisma_1.default.vendorOffer.findMany({
+    const vendors = await prisma_1.default.vendorOffer.findMany({
         where: { serviceOfferId: offerId },
-        include: { vendor: true }
+        include: {
+            vendor: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    vendorOnboarding: true,
+                    vendorServices: true,
+                    vendorReviews: true,
+                    vendorAvailabilities: true,
+                    products: true,
+                },
+            },
+        },
     });
+    return {
+        offerId,
+        totalVendors: vendors.length,
+        vendors: vendors.map((entry) => entry.vendor),
+    };
 };
 exports.getVendorsForOffer = getVendorsForOffer;
 const vendorAcceptOffer = async (vendorId, offerId) => {

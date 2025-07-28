@@ -43,11 +43,33 @@ export const createServiceOffer = async (
 
 
 export const getVendorsForOffer = async (offerId: string) => {
-  return await prisma.vendorOffer.findMany({
+  const vendors = await prisma.vendorOffer.findMany({
     where: { serviceOfferId: offerId },
-    include: { vendor: true }
+    include: {
+      vendor: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          vendorOnboarding: true,
+          vendorServices: true,
+          vendorReviews: true,
+          vendorAvailabilities: true,
+          products: true,
+        },
+      },
+    },
   });
+
+  return {
+    offerId,
+    totalVendors: vendors.length,
+    vendors: vendors.map((entry) => entry.vendor),
+  };
 };
+
 export const vendorAcceptOffer = async (vendorId: string, offerId: string) => {
   const existing = await prisma.vendorOffer.findFirst({
     where: { vendorId, serviceOfferId: offerId },
