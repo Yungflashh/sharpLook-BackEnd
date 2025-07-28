@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tipOffer = exports.getMyOffers = exports.getAllAvailableOffersHandler = exports.handleCancelOffer = exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
+exports.tipOffer = exports.getMyOffers = exports.getAllAvailableOffersHandler = exports.handleCancelOffer = exports.getNearbyOffersHandler = exports.handleGetVendorsForOffer = exports.selectVendorController = exports.handleVendorAccept = exports.handleCreateOffer = void 0;
 const OfferService = __importStar(require("../services/offer.service"));
 const notification_service_1 = require("../services/notification.service");
 const cloudinary_1 = require("../utils/cloudinary");
@@ -131,40 +131,33 @@ const handleVendorAccept = async (req, res) => {
     }
 };
 exports.handleVendorAccept = handleVendorAccept;
-// export const selectVendorController = async (req: Request, res: Response) => {
-//   try {
-//     const { offerId, selectedVendorId, reference, paymentMethod } = req.body;
-//     console.log("📦 Incoming Select Vendor Body:", req.body);
-//     // Validate required fields
-//     const requiredFields = ["offerId", "selectedVendorId", "reference", "paymentMethod"];
-//     for (const field of requiredFields) {
-//       if (!req.body[field]) {
-//         return res.status(400).json({
-//           success: false,
-//           message: `Missing required field: ${field}`,
-//         });
-//       }
-//     }
-//     // Call the service logic
-//     const result = await OfferService.selectVendorForOffer(
-//       offerId,
-//       selectedVendorId,
-//       reference,
-//       paymentMethod
-//     );
-//     if (result.success) {
-//       return res.status(200).json(result);
-//     } else {
-//       return res.status(500).json(result);
-//     }
-//   } catch (error: unknown) {
-//     console.error("❌ Controller Error in selectVendorController:", error);
-//     return res.status(500).json({
-//       success: false,
-//       message: error instanceof Error ? error.message : "Internal server error",
-//     });
-//   }
-// };
+const selectVendorController = async (req, res) => {
+    const { offerId, selectedVendorId, reference, paymentMethod } = req.body;
+    console.log("this is body data", req.body);
+    // Basic input validation
+    const requiredFields = [
+        "offerId",
+        "selectedVendorId",
+        "reference",
+        "paymentMethod"
+    ];
+    for (const field of requiredFields) {
+        if (!req.body[field]) {
+            return res.status(400).json({
+                success: false,
+                message: `Missing required field: ${field}`,
+            });
+        }
+    }
+    const result = await OfferService.selectVendorForOffer(offerId, selectedVendorId, reference, paymentMethod);
+    if (result.success) {
+        return res.status(200).json(result);
+    }
+    else {
+        return res.status(500).json(result);
+    }
+};
+exports.selectVendorController = selectVendorController;
 const handleGetVendorsForOffer = async (req, res) => {
     const { offerId } = req.body;
     const vendors = await OfferService.getVendorsForOffer(offerId);
