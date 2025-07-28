@@ -28,14 +28,7 @@ export const handleCreateOffer = async (req: Request, res: Response) => {
       "date",
       "time",
     ];
-    for (const field of requiredFields) {
-      if (!data[field]) {
-        return res.status(400).json({
-          success: false,
-          message: `Missing required field: ${field}`,
-        });
-      }
-    }
+ 
 
     // Validate offerAmount
     if (isNaN(Number(data.offerAmount)) || Number(data.offerAmount) <= 0) {
@@ -120,21 +113,44 @@ export const handleVendorAccept = async (req: Request, res: Response) => {
 };
 
 
+// export const selectVendorController = async (req: Request, res: Response) => {
+//   try {
+//     const { offerId, selectedVendorId, reference, paymentMethod } = req.body;
 
-export const selectVendorController = async (req: Request, res: Response) => {
-  const { offerId, selectedVendorId } = req.body;
+//     console.log("📦 Incoming Select Vendor Body:", req.body);
 
-  if (!offerId || !selectedVendorId) {
-    return res.status(400).json({ success: false, message: "Missing fields." });
-  }
+//     // Validate required fields
+//     const requiredFields = ["offerId", "selectedVendorId", "reference", "paymentMethod"];
+//     for (const field of requiredFields) {
+//       if (!req.body[field]) {
+//         return res.status(400).json({
+//           success: false,
+//           message: `Missing required field: ${field}`,
+//         });
+//       }
+//     }
 
-  const result = await OfferService.selectVendorForOffer(offerId, selectedVendorId);
-  if (result.success) {
-    return res.status(200).json(result);
-  } else {
-    return res.status(500).json(result);
-  }
-};
+//     // Call the service logic
+//     const result = await OfferService.selectVendorForOffer(
+//       offerId,
+//       selectedVendorId,
+//       reference,
+//       paymentMethod
+//     );
+
+//     if (result.success) {
+//       return res.status(200).json(result);
+//     } else {
+//       return res.status(500).json(result);
+//     }
+//   } catch (error: unknown) {
+//     console.error("❌ Controller Error in selectVendorController:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: error instanceof Error ? error.message : "Internal server error",
+//     });
+//   }
+// };
 export const handleGetVendorsForOffer = async (req: Request, res: Response) => {
   const { offerId } = req.body;
 

@@ -53,8 +53,22 @@ const bookVendor = async (req, res) => {
         });
     }
     const clientId = req.user?.id;
+    let referencePhoto = "";
+    // Upload image if file is present
+    if (req.file) {
+        try {
+            const uploadResult = await (0, cloudinary_1.default)(req.file.buffer, req.file.mimetype);
+            referencePhoto = uploadResult.secure_url;
+        }
+        catch (uploadErr) {
+            console.error("Image upload error:", uploadErr);
+            return res.status(500).json({
+                error: "Failed to upload reference photo. Please try again.",
+            });
+        }
+    }
     try {
-        const booking = await BookingService.createBooking(clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference);
+        const booking = await BookingService.createBooking(clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, referencePhoto);
         await (0, notification_service_1.createNotification)(vendorId, `You received a new booking request for ${serviceName} on ${date} at ${time}.`);
         await (0, notification_service_1.createNotification)(clientId, `Your booking for ${serviceName} has been placed successfully.`);
         return res.status(201).json({

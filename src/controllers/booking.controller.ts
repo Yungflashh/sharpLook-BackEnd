@@ -35,7 +35,24 @@ export const bookVendor = async (req: Request, res: Response) => {
   }
 
   const clientId = req.user?.id!;
+  
+    let referencePhoto = "";
 
+    // Upload image if file is present
+    if (req.file) {
+      try {
+        const uploadResult = await uploadToCloudinary(
+          req.file.buffer,
+          req.file.mimetype
+        );
+        referencePhoto = uploadResult.secure_url;
+      } catch (uploadErr: any) {
+        console.error("Image upload error:", uploadErr);
+        return res.status(500).json({
+          error: "Failed to upload reference photo. Please try again.",
+        });
+      }
+    }
   try {
     const booking = await BookingService.createBooking(
       clientId,
@@ -48,6 +65,7 @@ export const bookVendor = async (req: Request, res: Response) => {
       time,
       date,
       reference,
+      referencePhoto
     );
 
     await createNotification(

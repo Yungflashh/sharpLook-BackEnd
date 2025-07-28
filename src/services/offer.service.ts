@@ -2,6 +2,10 @@ import prisma from "../config/prisma";
 import * as bookingService from "../services/booking.service"
 import { BookingStatus, PaymentStatus, Booking } from "@prisma/client";
 
+// import * as serviceOfferBookingService from "../services/offerBooking.service";
+
+
+
 export const createServiceOffer = async (
   clientId: string,
   data: any,
@@ -15,6 +19,10 @@ export const createServiceOffer = async (
     "landMark",
     "date",
     "time",
+     "landMark",
+      "fullAddress",
+      "paymentMethod",
+      "totalAmount"
   ];
 
   for (const field of requiredFields) {
@@ -38,6 +46,10 @@ export const createServiceOffer = async (
       longitude: data.longitude ? parseFloat(data.longitude) : undefined,
       serviceImage,
       expiresAt,
+      landMark : data.landMark,
+      fullAddress : data.fullAddress,
+      paymentMethod: data.paymentMethod,
+      totalAmount : data.totalAmount ? parseFloat(data.totalAmount) : undefined,
     },
   });
 };
@@ -139,54 +151,108 @@ export const vendorAcceptOffer = async (vendorId: string, offerId: string) => {
 
 
 
-export const selectVendorForOffer = async (offerId: string, selectedVendorId: string) => {
-  try {
-    // Update offer status to "SELECTED"
-   const updatedOffer = await prisma.serviceOffer.update({
-  where: { id: offerId },
-  data: { status: "SELECTED" },
-});
-console.log("Offer after update:", updatedOffer);
+// export const selectVendorForOffer  = async (
+//   offerId: string,
+//   selectedVendorId: string,
+//   reference: string,
+//   paymentMethod: string
+// ) => {
+//   try {
+//     // 1. Update offer with selection and payment info
+//     await prisma.serviceOffer.update({
+//       where: { id: offerId },
+//       data: {
+//         status: "SELECTED",
+//         reference,
+//         paymentMethod,
+//       },
+//     });
+
+//     // 2. Reset all vendorOffer.isAccepted to false
+//     await prisma.vendorOffer.updateMany({
+//       where: { serviceOfferId: offerId },
+//       data: { isAccepted: false },
+//     });
+
+//     // 3. Mark selected vendor's offer as accepted
+//     await prisma.vendorOffer.updateMany({
+//       where: {
+//         serviceOfferId: offerId,
+//         vendorId: selectedVendorId,
+//       },
+//       data: { isAccepted: true },
+//     });
+
+//     // 4. Fetch full offer
+//     const offer = await prisma.serviceOffer.findUnique({
+//       where: { id: offerId },
+//     });
+
+//     if (!offer) throw new Error("Offer not found");
+
+//     const {
+//       clientId,
+//       serviceType,
+//       offerAmount,
+//       totalAmount,
+//       serviceName,
+//       date,
+//       time,
+//       referencePhoto,
+//       specialInstruction,
+//       serviceImage,
+//       homeLocation,
+//       fullAddress,
+//       landMark,
+//     } = offer;
+
+//     if (!reference) throw new Error("Missing payment reference");
+
+//     const finalPaymentMethod = paymentMethod || "CASH";
+
+//     // 5. Create service-offer-based booking (no serviceId involved)
+//   await serviceOfferBookingService.createOfferBooking({
+//   clientId,
+//   vendorId: selectedVendorId,
+//   offerId,
+//   serviceOfferId, // <-- Make sure you have this value
+//   price,          // <-- And this too
+//   paymentMethod,
+//   serviceName,
+//   serviceType,
+//   offerAmount,
+//   totalAmount,
+//   date,
+//   time,
+//   reference,
+//   serviceImage,
+//   locationDetails,
+// });
 
 
-    // Reset all vendor isAccepted to false
-    await prisma.vendorOffer.updateMany({
-      where: { serviceOfferId: offerId },
-      data: { isAccepted: false },
-    });
+//     // 6. Notify vendor
+//     await prisma.notification.create({
+//       data: {
+//         userId: selectedVendorId,
+//         type: "VENDOR_SELECTED",
+//         message: `You’ve been selected for the service: ${serviceName}`,
+//       },
+//     });
 
-    // Set the selected vendor's isAccepted to true
-    await prisma.vendorOffer.updateMany({
-      where: {
-        serviceOfferId: offerId,
-        vendorId: selectedVendorId,
-      },
-      data: { isAccepted: true },
-    });
+//     return {
+//       success: true,
+//       message: "Vendor selected and service offer booking created successfully.",
+//     };
+//   } catch (error: unknown) {
+//     console.error("❌ Error in selectVendorForOffer:", error);
+//     return {
+//       success: false,
+//       message:
+//         error instanceof Error ? error.message : "Error selecting vendor",
+//     };
+//   }
+// };
 
-    // Get offer info
-    const offer = await prisma.serviceOffer.findUnique({
-      where: { id: offerId },
-      select: {
-        serviceName: true,
-      },
-    });
-
-    // Send notification to the selected vendor
-    await prisma.notification.create({
-      data: {
-        userId: selectedVendorId,
-        type: "VENDOR_SELECTED",
-        message: `You’ve been selected for the service: ${offer?.serviceName}`,
-      },
-    });
-
-    return { success: true, message: "Vendor selected and notified." };
-  } catch (error) {
-    console.error("Error selecting vendor:", error);
-    return { success: false, message: "Something went wrong during vendor selection." };
-  }
-};
 
 
 

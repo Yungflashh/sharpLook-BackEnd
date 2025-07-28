@@ -13,7 +13,8 @@ export const createBooking = async (
   totalAmount: number,
   time: string,
   date: string,
-  reference: string
+  reference: string,
+  referencePhoto : string
 ) => {
   if (paymentMethod === "SHARP-PAY") {
     const wallet = await getUserWallet(clientId);
@@ -37,6 +38,7 @@ export const createBooking = async (
         price,
         status: BookingStatus.PENDING,
         reference,
+        referencePhoto
       },
       include: {
         vendor: true,
@@ -58,6 +60,7 @@ export const createBooking = async (
       time,
       price,
       status: BookingStatus.PENDING,
+      referencePhoto,
     },
     include: {
       vendor: true,
