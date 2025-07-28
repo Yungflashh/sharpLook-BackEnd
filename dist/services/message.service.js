@@ -83,7 +83,12 @@ const getChatListForUser = async (userId) => {
                     email: true,
                     phone: true,
                     role: true,
-                    avatar: true
+                    avatar: true,
+                    vendorOnboarding: {
+                        select: {
+                            businessName: true,
+                        },
+                    },
                 },
             },
             receiver: {
@@ -94,14 +99,37 @@ const getChatListForUser = async (userId) => {
                     email: true,
                     phone: true,
                     role: true,
-                    avatar: true
+                    avatar: true,
+                    vendorOnboarding: {
+                        select: {
+                            businessName: true,
+                        },
+                    },
                 },
             },
         },
         orderBy: { createdAt: "desc" },
         distinct: ["roomId"],
     });
-    return rooms;
+    // Map to replace names for vendors
+    return rooms.map((room) => {
+        const formatUser = (user) => ({
+            id: user.id,
+            name: user.role === "VENDOR" && user.vendorOnboarding?.businessName
+                ? user.vendorOnboarding.businessName
+                : `${user.firstName} ${user.lastName}`,
+            email: user.email,
+            phone: user.phone,
+            avatar: user.avatar,
+            role: user.role,
+        });
+        return {
+            roomId: room.roomId,
+            createdAt: room.createdAt,
+            sender: formatUser(room.sender),
+            receiver: formatUser(room.receiver),
+        };
+    });
 };
 exports.getChatListForUser = getChatListForUser;
 const getChatPreviews = async (userId) => {
