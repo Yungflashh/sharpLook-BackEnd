@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateAvatar = exports.getAVendorDetails = exports.fetchTopVendors = exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
+exports.handleDeleteAccount = exports.updateAvatar = exports.getAVendorDetails = exports.fetchTopVendors = exports.setClientLocationPreferences = exports.updateMyProfile = exports.getMyProfile = void 0;
 const user_services_1 = require("../services/user.services");
 const getMyProfile = async (req, res) => {
     try {
@@ -115,3 +115,15 @@ const updateAvatar = async (req, res) => {
     }
 };
 exports.updateAvatar = updateAvatar;
+const handleDeleteAccount = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const result = await (0, user_services_1.deleteUserAccount)(userId);
+        return res.status(200).json(result);
+    }
+    catch (error) {
+        console.error("Delete account error:", error.message);
+        return res.status(500).json({ error: error.message || "Internal Server Error" });
+    }
+};
+exports.handleDeleteAccount = handleDeleteAccount;

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUserAvatar = exports.getVendorDetails = exports.getTopRatedVendors = exports.updateClientLocationPreferences = exports.updateUserProfile = exports.getUserById = void 0;
+exports.deleteUserAccount = exports.updateUserAvatar = exports.getVendorDetails = exports.getTopRatedVendors = exports.updateClientLocationPreferences = exports.updateUserProfile = exports.getUserById = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const cloudinary_1 = require("../utils/cloudinary");
 const getUserById = async (id) => {
@@ -127,3 +127,19 @@ const updateUserAvatar = async (userId, fileBuffer) => {
     return user.avatar;
 };
 exports.updateUserAvatar = updateUserAvatar;
+const deleteUserAccount = async (userId) => {
+    // Ensure the user exists
+    const existingUser = await prisma_1.default.user.findUnique({ where: { id: userId } });
+    if (!existingUser) {
+        throw new Error("User not found.");
+    }
+    // Delete related entities if required (cascading logic can vary based on your needs)
+    // Example: Delete VendorOnboarding if exists
+    await prisma_1.default.vendorOnboarding.deleteMany({
+        where: { userId },
+    });
+    // You may want to soft delete instead (e.g., mark `isBanned = true` or `deletedAt = Date`)
+    await prisma_1.default.user.delete({ where: { id: userId } });
+    return { success: true, message: "Account deleted successfully." };
+};
+exports.deleteUserAccount = deleteUserAccount;

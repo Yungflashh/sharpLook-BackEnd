@@ -5,7 +5,8 @@ import {
   updateClientLocationPreferences,
   getTopRatedVendors,
  getVendorDetails,
- updateUserAvatar
+ updateUserAvatar,
+ deleteUserAccount
 } from "../services/user.services"
 
 
@@ -137,5 +138,19 @@ export const updateAvatar = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Avatar update error:", error);
     return res.status(500).json({ error: "Failed to update avatar" });
+  }
+};
+
+
+export const handleDeleteAccount = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id; 
+
+    const result = await deleteUserAccount(userId);
+
+    return res.status(200).json(result);
+  } catch (error: any) {
+    console.error("Delete account error:", error.message);
+    return res.status(500).json({ error: error.message || "Internal Server Error" });
   }
 };

@@ -8,8 +8,53 @@ exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHist
 const prisma_1 = __importDefault(require("../config/prisma"));
 const date_fns_1 = require("date-fns");
 const getAllUsers = async () => {
-    return await prisma_1.default.user.findMany({
-        select: { id: true, email: true, role: true, isEmailVerified: true },
+    const users = await prisma_1.default.user.findMany({
+        orderBy: { createdAt: "desc" },
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            role: true,
+            createdAt: true,
+            isEmailVerified: true,
+            isOtpVerified: true,
+            acceptedPersonalData: true,
+            powerGiven: true,
+            isBanned: true,
+            vendorOnboarding: {
+                select: {
+                    businessName: true,
+                    bio: true,
+                    location: true,
+                    serviceType: true,
+                    specialties: true,
+                    serviceRadiusKm: true,
+                    servicesOffered: true,
+                    profileImage: true,
+                    createdAt: true
+                }
+            },
+            vendorReviews: {
+                select: { rating: true }
+            }
+        }
+    });
+    // Map in average rating & review count for vendors
+    return users.map((user) => {
+        let averageRating = null;
+        let totalReviews = 0;
+        if (user.role === "VENDOR" && user.vendorReviews.length > 0) {
+            totalReviews = user.vendorReviews.length;
+            const sum = user.vendorReviews.reduce((acc, r) => acc + r.rating, 0);
+            averageRating = sum / totalReviews;
+        }
+        return {
+            ...user,
+            averageRating,
+            totalReviews
+        };
     });
 };
 exports.getAllUsers = getAllUsers;
@@ -275,19 +320,36 @@ const adjustWalletBalance = async (userId, amount) => {
 };
 exports.adjustWalletBalance = adjustWalletBalance;
 const getPlatformStats = async () => {
-    const [totalUsers, totalVendors, totalBookings, totalDisputes, totalTransactions] = await Promise.all([
+    const oneWeekAgo = (0, date_fns_1.subDays)(new Date(), 7);
+    const [totalUsers, totalVendors, totalBookings, totalDisputes, totalTransactions, totalProducts, inStockProducts, outOfStockProducts, totalUnitsSold, newProductsThisWeek, totalEmailVerified, totalPhoneVerified, totalAcceptedPersonalData] = await Promise.all([
         prisma_1.default.user.count(),
         prisma_1.default.user.count({ where: { role: "VENDOR" } }),
         prisma_1.default.booking.count(),
         prisma_1.default.dispute.count(),
-        prisma_1.default.transaction.count()
+        prisma_1.default.transaction.count(),
+        prisma_1.default.product.count(),
+        prisma_1.default.product.count({ where: { qtyAvailable: { gt: 0 } } }),
+        prisma_1.default.product.count({ where: { qtyAvailable: 0 } }),
+        prisma_1.default.product.aggregate({ _sum: { unitsSold: true } }),
+        prisma_1.default.product.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+        prisma_1.default.user.count({ where: { isEmailVerified: true } }),
+        prisma_1.default.user.count({ where: { isOtpVerified: true } }),
+        prisma_1.default.user.count({ where: { acceptedPersonalData: true } })
     ]);
     return {
         totalUsers,
         totalVendors,
         totalBookings,
         totalDisputes,
-        totalTransactions
+        totalTransactions,
+        totalProducts,
+        inStockProducts,
+        outOfStockProducts,
+        totalUnitsSold: totalUnitsSold._sum.unitsSold || 0,
+        newProductsThisWeek,
+        totalEmailVerified,
+        totalPhoneVerified,
+        totalAcceptedPersonalData
     };
 };
 exports.getPlatformStats = getPlatformStats;

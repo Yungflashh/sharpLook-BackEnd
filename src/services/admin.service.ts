@@ -5,10 +5,60 @@ import { subDays, subWeeks, subMonths, subYears } from "date-fns";
 
 
 export const getAllUsers = async () => {
-  return await prisma.user.findMany({
-    select: { id: true, email: true, role: true, isEmailVerified: true },
-  })
-}
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      role: true,
+      createdAt: true,
+      isEmailVerified: true,
+      isOtpVerified: true,
+      acceptedPersonalData: true,
+      powerGiven: true,
+      isBanned: true,
+
+      vendorOnboarding: {
+        select: {
+          businessName: true,
+          bio: true,
+          location: true,
+          serviceType: true,
+          specialties: true,
+          serviceRadiusKm: true,
+          servicesOffered: true,
+          profileImage: true,
+          createdAt: true
+        }
+      },
+
+      vendorReviews: {
+        select: { rating: true }
+      }
+    }
+  });
+
+  // Map in average rating & review count for vendors
+  return users.map((user) => {
+    let averageRating = null;
+    let totalReviews = 0;
+
+    if (user.role === "VENDOR" && user.vendorReviews.length > 0) {
+      totalReviews = user.vendorReviews.length;
+      const sum = user.vendorReviews.reduce((acc, r) => acc + r.rating, 0);
+      averageRating = sum / totalReviews;
+    }
+
+    return {
+      ...user,
+      averageRating,
+      totalReviews
+    };
+  });
+};
 
 export const getAllBookings = async () => {
   return await prisma.booking.findMany({
@@ -298,13 +348,41 @@ export const adjustWalletBalance = async (userId: string, amount: number) => {
 };
 
 
+
+
+
+
 export const getPlatformStats = async () => {
-  const [totalUsers, totalVendors, totalBookings, totalDisputes, totalTransactions] = await Promise.all([
+  const oneWeekAgo = subDays(new Date(), 7);
+
+  const [
+    totalUsers,
+    totalVendors,
+    totalBookings,
+    totalDisputes,
+    totalTransactions,
+    totalProducts,
+    inStockProducts,
+    outOfStockProducts,
+    totalUnitsSold,
+    newProductsThisWeek,
+    totalEmailVerified,
+    totalPhoneVerified,
+    totalAcceptedPersonalData
+  ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { role: "VENDOR" } }),
     prisma.booking.count(),
     prisma.dispute.count(),
-    prisma.transaction.count()
+    prisma.transaction.count(),
+    prisma.product.count(),
+    prisma.product.count({ where: { qtyAvailable: { gt: 0 } } }),
+    prisma.product.count({ where: { qtyAvailable: 0 } }),
+    prisma.product.aggregate({ _sum: { unitsSold: true } }),
+    prisma.product.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+    prisma.user.count({ where: { isEmailVerified: true } }),
+    prisma.user.count({ where: { isOtpVerified: true } }),
+    prisma.user.count({ where: { acceptedPersonalData: true } })
   ]);
 
   return {
@@ -312,6 +390,15 @@ export const getPlatformStats = async () => {
     totalVendors,
     totalBookings,
     totalDisputes,
-    totalTransactions
+    totalTransactions,
+    totalProducts,
+    inStockProducts,
+    outOfStockProducts,
+    totalUnitsSold: totalUnitsSold._sum.unitsSold || 0,
+    newProductsThisWeek,
+    totalEmailVerified,
+    totalPhoneVerified,
+    totalAcceptedPersonalData
   };
 };
+
