@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requestWithdrawal,getUserWithdrawals, getAllWithdrawals,updateWithdrawalStatus } from "../controllers/withdrawal.controller";
+import { requestWithdrawal,getUserWithdrawals, getAllWithdrawals,updateWithdrawalStatus, resolveAccountController, getAllBanks } from "../controllers/withdrawal.controller";
 import { verifyToken } from "../middlewares/auth.middleware";
 import { requireAdminRole } from "../middlewares/admin.middleware";
 import { Role } from '@prisma/client';
@@ -10,7 +10,7 @@ const router = Router();
 
 router.post("/requestWithdrawals", verifyToken, requestWithdrawal);
 
-
+router.post ("/verifyAcct", verifyToken, resolveAccountController)
 router.get("/myWithdrawals", verifyToken, getUserWithdrawals);
 
 
@@ -21,3 +21,5 @@ router.get("/all",  requireAdminRole(Role.ADMIN, Role.SUPERADMIN), getAllWithdra
 // ADMIN: Update withdrawal status
 router.patch("/:id/status",  requireAdminRole(Role.ADMIN, Role.SUPERADMIN), updateWithdrawalStatus);
 export default router;
+
+router.get ("/getBanksList", verifyToken, getAllBanks)

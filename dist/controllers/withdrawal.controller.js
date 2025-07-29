@@ -1,32 +1,36 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllWithdrawals = exports.getUserWithdrawals = exports.updateWithdrawalStatus = exports.requestWithdrawal = void 0;
+exports.getAllBanks = exports.resolveAccountController = exports.getAllWithdrawals = exports.getUserWithdrawals = exports.updateWithdrawalStatus = exports.requestWithdrawal = void 0;
 const withdrawal_service_1 = require("../services/withdrawal.service");
-const requestWithdrawal = async (req, res, next) => {
+const withdrawal_service_2 = require("../services/withdrawal.service");
+const paystack_1 = require("../utils/paystack");
+const requestWithdrawal = async (req, res) => {
     try {
-        const { amount, reason, method, metadata } = req.body;
-        const userId = req.user.id;
-        const withdrawal = await (0, withdrawal_service_1.requestWithdrawalService)(userId, amount, reason, method, metadata);
-        res.status(201).json({
-            success: true,
-            message: "Withdrawal request submitted",
-            data: withdrawal,
-        });
-    }
-    catch (err) {
-        // Handle specific error manually
-        if (err.message === "Insufficient wallet balance") {
-            return res.status(400).json({
-                success: false,
-                message: "Insufficient wallet balance",
-            });
+        const { amount, bankAccountNumber, bankCode, resolvedAccountName } = req.body;
+        const userId = req.user?.id || req.body.userId;
+        if (!userId || !amount || !bankAccountNumber || !bankCode) {
+            return res.status(400).json({ message: "Missing required fields" });
         }
-        // For other errors
-        console.error("Withdrawal error:", err);
-        res.status(500).json({
-            success: false,
-            message: "An unexpected error occurred. Please try again later.",
+        const result = await withdrawal_service_2.WithdrawalService.requestWithdrawal({
+            userId,
+            amount,
+            bankAccountNumber,
+            bankCode,
+            resolvedAccountName,
         });
+        return res.status(200).json(result);
+    }
+    catch (error) {
+        console.error("❌ Withdrawal error:", error);
+        let message = "Withdrawal failed";
+        // Custom Paystack or service-level messages
+        if (error.response?.data?.message) {
+            message = error.response.data.message;
+        }
+        else if (error.message) {
+            message = error.message;
+        }
+        return res.status(500).json({ message });
     }
 };
 exports.requestWithdrawal = requestWithdrawal;
@@ -62,3 +66,29 @@ const getAllWithdrawals = async (req, res, next) => {
     }
 };
 exports.getAllWithdrawals = getAllWithdrawals;
+const resolveAccountController = async (req, res) => {
+    try {
+        const { bankAccountNumber, bankCode } = req.body;
+        if (!bankAccountNumber || !bankCode) {
+            return res.status(400).json({ message: "bankAccountNumber and bankCode are required" });
+        }
+        const accountDetails = await (0, withdrawal_service_2.resolveAccount)(bankAccountNumber, bankCode);
+        return res.status(200).json({
+            message: "Account resolved successfully",
+            data: accountDetails,
+        });
+    }
+    catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+};
+exports.resolveAccountController = resolveAccountController;
+const getAllBanks = async (req, res) => {
+    const banksList = await (0, paystack_1.getBanks)();
+    res.status(200).json({
+        success: true,
+        message: "Banks Lis gotten Successfully",
+        data: banksList
+    });
+};
+exports.getAllBanks = getAllBanks;
