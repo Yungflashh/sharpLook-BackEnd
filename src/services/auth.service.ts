@@ -9,9 +9,12 @@ import {
   VendorLoginResponse,
   ClientLoginResponse,
 } from "../types/auth.types";
-
 import { generateReferralCode } from "../utils/referral";
 import { createWallet, creditWallet } from "./wallet.service";
+
+
+
+
 export const registerUser = async (
   email: string,
   password: string,
@@ -25,32 +28,25 @@ export const registerUser = async (
   console.log("➡️ Starting user registration...");
   console.log("Incoming data:", { email, referredByCode });
 
+  // 🔍 Check if user already exists
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     console.log("❌ User already exists with email:", email);
     throw new Error("Email already in use");
   }
 
+  // 🔐 Hash password
   const hash = await bcrypt.hash(password, 10);
   console.log("🔒 Password hashed");
 
+  // 🎁 Generate referral code
   const referralCode = generateReferralCode();
   console.log("🎁 Generated referral code:", referralCode);
 
-  const userData: any = {
-    firstName,
-    lastName,
-    email,
-    password: hash,
-    role,
-    acceptedPersonalData,
-    phone,
-    referralCode,
-  };
-
   let referredByUser: any = null;
+  let referredByConnectData: any = undefined;
 
-  // ✅ Handle referral code connection
+  // 🔍 Handle referral lookup
   if (referredByCode) {
     console.log("🔍 Looking up referrer by referralCode:", referredByCode);
     referredByUser = await prisma.user.findUnique({
@@ -59,7 +55,7 @@ export const registerUser = async (
 
     if (referredByUser) {
       console.log("✅ Found referrer user:", referredByUser.id);
-      userData.referredBy = {
+      referredByConnectData = {
         connect: { id: referredByUser.id },
       };
     } else {
@@ -67,49 +63,53 @@ export const registerUser = async (
     }
   }
 
-  // ✅ Create the user
-  console.log("📦 Creating user with data:", userData);
-  const user = await prisma.user.create({ data: userData });
-
-  // ✅ Create wallet for user
-  console.log("💰 Creating wallet for new user...");
-  const userWallet = await prisma.wallet.create({
+  // 📦 Create user and wallet in a single nested write
+  console.log("📦 Creating user and wallet...");
+  const user = await prisma.user.create({
     data: {
-      userId: user.id,
-      balance: 0,
-      status: "ACTIVE",
+      firstName,
+      lastName,
+      email,
+      password: hash,
+      role,
+      acceptedPersonalData,
+      phone,
+      referralCode,
+      referredBy: referredByConnectData,
+      wallet: {
+        create: {
+          balance: 0,
+          status: "ACTIVE",
+        },
+      },
+    },
+    include: {
+      wallet: true,
     },
   });
 
-  // ✅ Link wallet to user
-  console.log("🔗 Linking wallet to user...");
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { walletId: userWallet.id },
-  });
+  console.log("✅ User created:", user.id);
 
-  // ✅ Credit wallets if there's a referrer
+  // 💸 Handle referral credit
   if (referredByUser?.walletId) {
     console.log("💸 Crediting referrer's wallet:", referredByUser.walletId);
     await creditWallet(referredByUser.walletId, 100);
 
-    console.log("🎉 Crediting new user's wallet:", userWallet.id);
-    await creditWallet(userWallet.id, 100);
+    console.log("🎉 Crediting new user's wallet:", user.wallet!.id);
+    await creditWallet(user.wallet!.id, 100);
 
     await prisma.referral.create({
-    data: {
-      referredById: referredByUser.id,
-      referredUserId: user.id,
-      amountEarned: 100,
-    },
-  });
-
-
+      data: {
+        referredById: referredByUser.id,
+        referredUserId: user.id,
+        amountEarned: 100,
+      },
+    });
   } else {
     console.log("ℹ️ No valid referrer to credit.");
   }
 
-  // ✅ Final user fetch including referredBy name
+  // 🔄 Fetch final user with referredBy info
   const updatedUser = await prisma.user.findUnique({
     where: { id: user.id },
     include: {
@@ -128,9 +128,10 @@ export const registerUser = async (
     throw new Error("User registration failed during final fetch.");
   }
 
-  console.log("✅ User registered:", updatedUser.id);
+  console.log("✅ User registration complete:", updatedUser.id);
   return updatedUser;
 };
+
 
 
 

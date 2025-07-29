@@ -54,6 +54,8 @@ router.get("/users/active", (0, admin_middleware_1.requireAdminRole)(client_1.Ro
 router.get("/users/:userId", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getUserDetail);
 router.put("/users/:userId/ban", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.banUser);
 router.put("/users/:userId/unban", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.unbanUser);
+router.get("/users/notifications", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllNotifications);
+router.get("/users/services", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllServices);
 // Vendors
 router.patch("/vendors/:vendorId/verify", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.verifyVendorIdentity);
 // Reviews

@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = void 0;
+exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = void 0;
 const AdminService = __importStar(require("../services/admin.service"));
 const email_helper_1 = require("../helpers/email.helper");
 const adminLogger_1 = require("../utils/adminLogger");
@@ -396,3 +396,25 @@ const getPlatformStats = async (req, res) => {
     }
 };
 exports.getPlatformStats = getPlatformStats;
+const getAllNotifications = async (req, res) => {
+    try {
+        const notifications = await AdminService.getAllNotifications();
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'VIEW_NOTIFICATIONS', 'Admin fetched all notifications');
+        res.json({ success: true, data: notifications });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.getAllNotifications = getAllNotifications;
+const getAllServices = async (req, res) => {
+    try {
+        const services = await AdminService.getAllServices();
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'VIEW_ALL_SERVICES', 'Admin fetched all services');
+        res.json({ success: true, data: services });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+exports.getAllServices = getAllServices;

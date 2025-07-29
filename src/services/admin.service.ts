@@ -237,17 +237,98 @@ export const getAllPayments = async () => {
   });
 };
 
-
 export const getAllBookingsDetailed = async () => {
   return await prisma.booking.findMany({
     include: {
-      client: true,
-      vendor: true,
-      reviews: true,
+      client: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          location: true,
+          avatar: true,
+          bio: true,
+          referralCode: true,
+          preferredLatitude: true,
+          preferredLongitude: true,
+        },
+      },
+      vendor: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          avatar: true,
+          bio: true,
+          referralCode: true,
+          vendorOnboarding: {
+            select: {
+              businessName: true,
+              serviceType: true,
+              location: true,
+              // approvalStatus: true,
+              pricing: true,
+              profileImage: true,
+              specialties: true,
+              latitude: true,
+              longitude: true,
+              serviceRadiusKm: true,
+            },
+          },
+        },
+      },
+      service: {
+        select: {
+          id: true,
+          serviceName: true,
+          servicePrice: true,
+          serviceImage: true,
+          description: true,
+        },
+      },
+      reviews: {
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          type: true,
+          createdAt: true,
+          client: {
+            select: {
+              firstName: true,
+              lastName: true,
+              avatar: true,
+            },
+          },
+        },
+      },
+      dispute: {
+        select: {
+          id: true,
+          reason: true,
+          status: true,
+          resolution: true,
+          imageUrl: true,
+          createdAt: true,
+          raisedBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+            },
+          },
+        },
+      },
     },
-    orderBy: { createdAt: "desc" }
+    orderBy: { createdAt: "desc" },
   });
 };
+
 
 
 export const getAllDisputes = async () => {
@@ -400,5 +481,37 @@ export const getPlatformStats = async () => {
     totalPhoneVerified,
     totalAcceptedPersonalData
   };
+};
+
+
+
+export const getAllNotifications = async () => {
+  return await prisma.notification.findMany({
+    include: {
+      user: true, // If notifications are tied to users
+    },
+    orderBy: {
+      createdAt: "desc"
+    }
+  });
+};
+
+
+export const getAllServices = async () => {
+  return await prisma.vendorService.findMany({
+    include: {
+      vendor: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true
+        }
+      }
+    },
+    orderBy: {
+      createdAt: "desc"
+    }
+  });
 };
 

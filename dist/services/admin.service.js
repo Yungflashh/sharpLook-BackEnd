@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = void 0;
+exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const date_fns_1 = require("date-fns");
@@ -219,11 +219,92 @@ exports.getAllPayments = getAllPayments;
 const getAllBookingsDetailed = async () => {
     return await prisma_1.default.booking.findMany({
         include: {
-            client: true,
-            vendor: true,
-            reviews: true,
+            client: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    location: true,
+                    avatar: true,
+                    bio: true,
+                    referralCode: true,
+                    preferredLatitude: true,
+                    preferredLongitude: true,
+                },
+            },
+            vendor: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    avatar: true,
+                    bio: true,
+                    referralCode: true,
+                    vendorOnboarding: {
+                        select: {
+                            businessName: true,
+                            serviceType: true,
+                            location: true,
+                            // approvalStatus: true,
+                            pricing: true,
+                            profileImage: true,
+                            specialties: true,
+                            latitude: true,
+                            longitude: true,
+                            serviceRadiusKm: true,
+                        },
+                    },
+                },
+            },
+            service: {
+                select: {
+                    id: true,
+                    serviceName: true,
+                    servicePrice: true,
+                    serviceImage: true,
+                    description: true,
+                },
+            },
+            reviews: {
+                select: {
+                    id: true,
+                    rating: true,
+                    comment: true,
+                    type: true,
+                    createdAt: true,
+                    client: {
+                        select: {
+                            firstName: true,
+                            lastName: true,
+                            avatar: true,
+                        },
+                    },
+                },
+            },
+            dispute: {
+                select: {
+                    id: true,
+                    reason: true,
+                    status: true,
+                    resolution: true,
+                    imageUrl: true,
+                    createdAt: true,
+                    raisedBy: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            role: true,
+                        },
+                    },
+                },
+            },
         },
-        orderBy: { createdAt: "desc" }
+        orderBy: { createdAt: "desc" },
     });
 };
 exports.getAllBookingsDetailed = getAllBookingsDetailed;
@@ -353,3 +434,32 @@ const getPlatformStats = async () => {
     };
 };
 exports.getPlatformStats = getPlatformStats;
+const getAllNotifications = async () => {
+    return await prisma_1.default.notification.findMany({
+        include: {
+            user: true, // If notifications are tied to users
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    });
+};
+exports.getAllNotifications = getAllNotifications;
+const getAllServices = async () => {
+    return await prisma_1.default.vendorService.findMany({
+        include: {
+            vendor: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true
+                }
+            }
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    });
+};
+exports.getAllServices = getAllServices;
