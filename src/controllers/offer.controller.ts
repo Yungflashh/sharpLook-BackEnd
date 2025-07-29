@@ -117,46 +117,49 @@ export const handleVendorAccept = async (req: Request, res: Response) => {
 
 export const selectVendorController = async (req: Request, res: Response) => {
   const { offerId, selectedVendorId, reference, paymentMethod } = req.body;
-  const clientId = req.user!.id
-  console.log("this is body data" , req.body);
-  
-      // Basic input validation
-    const requiredFields = [
-      "offerId",
-      "selectedVendorId",
-      "reference",
-      "paymentMethod"
-    ];
-    for (const field of requiredFields) {
-      if (!req.body[field]) {
-        return res.status(400).json({
-          success: false,
-          message: `Missing required field: ${field}`,
-        });
-      }
+  const clientId = req.user!.id;
+  console.log("this is body data", req.body);
+
+  // Validate required fields dynamically based on payment method
+  const requiredFields = ["offerId", "selectedVendorId", "paymentMethod"];
+
+  // Only require reference if paymentMethod is not "Sharp Pay"
+  if (paymentMethod !== "SHARP-PAY") {
+    requiredFields.push("reference");
+  }
+
+  for (const field of requiredFields) {
+    if (!req.body[field]) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required field: ${field}`,
+      });
     }
+  }
 
+  const result = await OfferService.selectVendorForOffer(
+    offerId,
+    selectedVendorId,
+    reference,
+    paymentMethod
+  );
 
-  const result = await OfferService.selectVendorForOffer(offerId, selectedVendorId, reference, paymentMethod);
   if (result.success) {
-    
-        await createNotification(
-          clientId,
-          `Your booking for a service Offer has been placed successfully.`
-        );
-        await createNotification(
-          selectedVendorId,
-          `The Service offer you accepted has been acknowledged and requested`
-        );
-
+    await createNotification(
+      clientId,
+      `Your booking for a service Offer has been placed successfully.`
+    );
+    await createNotification(
+      selectedVendorId,
+      `The Service offer you accepted has been acknowledged and requested`
+    );
 
     return res.status(200).json(result);
-
-
   } else {
     return res.status(500).json(result);
   }
 };
+
 export const handleGetVendorsForOffer = async (req: Request, res: Response) => {
   const { offerId } = req.body;
 

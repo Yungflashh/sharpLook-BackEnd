@@ -135,13 +135,12 @@ const selectVendorController = async (req, res) => {
     const { offerId, selectedVendorId, reference, paymentMethod } = req.body;
     const clientId = req.user.id;
     console.log("this is body data", req.body);
-    // Basic input validation
-    const requiredFields = [
-        "offerId",
-        "selectedVendorId",
-        "reference",
-        "paymentMethod"
-    ];
+    // Validate required fields dynamically based on payment method
+    const requiredFields = ["offerId", "selectedVendorId", "paymentMethod"];
+    // Only require reference if paymentMethod is not "Sharp Pay"
+    if (paymentMethod !== "SHARP-PAY") {
+        requiredFields.push("reference");
+    }
     for (const field of requiredFields) {
         if (!req.body[field]) {
             return res.status(400).json({
