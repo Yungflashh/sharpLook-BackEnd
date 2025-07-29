@@ -1,22 +1,26 @@
 import prisma from "../config/prisma";
+import { ApprovalStatus } from '@prisma/client';
 
 export const getVendorAnalytics = async (vendorId: string) => {
-  // Get Products sold and revenue
- const products = await prisma.product.findMany({
-  where: { vendorId },
-  select: {
-    id: true,
-    productName: true,
-    price: true,
-    unitsSold: true,
-    updatedAt: true, // <-- Add this line
-  },
-});
+  // Fetch products sold by vendor, only approved ones
+  const products = await prisma.product.findMany({
+    where: {
+      vendorId,
+      approvalStatus: ApprovalStatus.APPROVED,  // filter here to only approved products
+    },
+    select: {
+      id: true,
+      productName: true,
+      price: true,
+      unitsSold: true,
+      updatedAt: true,
+    },
+  });
 
   const totalProductRevenue = products.reduce((acc, p) => acc + p.unitsSold * p.price, 0);
   const totalUnitsSold = products.reduce((acc, p) => acc + p.unitsSold, 0);
 
-  // Get Bookings and revenue
+  // Fetch bookings by vendor
   const bookings = await prisma.booking.findMany({
     where: { vendorId },
     select: {
@@ -32,27 +36,23 @@ export const getVendorAnalytics = async (vendorId: string) => {
   const completedBookings = bookings.filter(b => b.status === "COMPLETED");
   const bookingRevenue = completedBookings.reduce((sum, b) => sum + b.price, 0);
 
-  const newBookingsCount = bookings.filter(b =>
-    b.createdAt >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  ).length;
+  // Bookings created within the last 7 days
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const newBookingsCount = bookings.filter(b => b.createdAt >= oneWeekAgo).length;
 
-  // Get disputes
+  // Count disputes related to vendor bookings
   const disputesCount = await prisma.dispute.count({
     where: {
-      booking: {
-        vendorId
-      }
-    }
+      booking: { vendorId },
+    },
   });
 
-  // Recent earnings (last 7 days)
-  const recentBookings = completedBookings.filter(b =>
-    b.createdAt >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  );
+  // Prepare recent earnings items from bookings and products in last 7 days
+  const recentBookings = completedBookings.filter(b => b.createdAt >= oneWeekAgo);
 
   const recentEarningItems = [
     ...recentBookings.map(b => ({
-      type: "BOOKING",
+      type: "BOOKING" as const,
       sourceId: b.id,
       name: b.serviceName,
       amount: b.price,
@@ -61,16 +61,16 @@ export const getVendorAnalytics = async (vendorId: string) => {
     ...products
       .filter(p => p.unitsSold > 0)
       .map(p => ({
-        type: "PRODUCT",
+        type: "PRODUCT" as const,
         sourceId: p.id,
         name: p.productName,
         amount: p.price * p.unitsSold,
-        date: p.updatedAt ?? new Date(), // fallback if no updatedAt
-      }))
+        date: p.updatedAt ?? new Date(),
+      })),
   ];
 
   const recentEarnings = recentEarningItems
-    .filter(e => e.date >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+    .filter(e => e.date >= oneWeekAgo)
     .sort((a, b) => b.date.getTime() - a.date.getTime());
 
   return {
@@ -80,7 +80,7 @@ export const getVendorAnalytics = async (vendorId: string) => {
     bookingRevenue,
     newBookingsCount,
     disputesCount,
-    recentEarnings
+    recentEarnings,
   };
 };
 
@@ -89,7 +89,10 @@ export const getVendorAnalytics = async (vendorId: string) => {
 export const getVendorEarningsGraphData = async (vendorId: string) => {
   // --- 1. Get product reviews/sales with timestamps ---
   const products = await prisma.product.findMany({
-    where: { vendorId },
+    where: {
+      vendorId,
+      approvalStatus: ApprovalStatus.APPROVED,  // filter only approved products
+    },
     select: {
       id: true,
       price: true,
@@ -144,3 +147,4 @@ export const getVendorEarningsGraphData = async (vendorId: string) => {
 
   return { earningsByDate };
 };
+

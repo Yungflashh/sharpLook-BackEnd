@@ -42,6 +42,7 @@ const serviceOfferBookingService = __importStar(require("../services/offerBookin
 const notification_service_1 = require("./notification.service");
 const wallet_service_1 = require("../services/wallet.service");
 const paystack_1 = require("../utils/paystack");
+const client_1 = require("@prisma/client");
 const createServiceOffer = async (clientId, data, serviceImage) => {
     const requiredFields = [
         "serviceName",
@@ -98,15 +99,23 @@ const getVendorsForOffer = async (offerId) => {
                     vendorServices: true,
                     vendorReviews: true,
                     vendorAvailabilities: true,
-                    products: true,
+                    products: true, // will filter this manually
                 },
             },
         },
     });
+    const cleanedVendors = vendors.map((entry) => {
+        const vendor = entry.vendor;
+        const approvedProducts = vendor.products.filter((product) => product.approvalStatus === client_1.ApprovalStatus.APPROVED);
+        return {
+            ...vendor,
+            products: approvedProducts,
+        };
+    });
     return {
         offerId,
-        totalVendors: vendors.length,
-        vendors: vendors.map((entry) => entry.vendor),
+        totalVendors: cleanedVendors.length,
+        vendors: cleanedVendors,
     };
 };
 exports.getVendorsForOffer = getVendorsForOffer;

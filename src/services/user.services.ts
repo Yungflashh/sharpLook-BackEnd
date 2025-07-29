@@ -1,6 +1,7 @@
 import  prisma  from "../config/prisma"
 import { uploadBufferToCloudinary } from "../utils/cloudinary";
 import { EditableUserFields } from "../types/user.types"
+import { ApprovalStatus } from '@prisma/client';
 
 
 export const getUserById = async (id: string) => {
@@ -34,6 +35,7 @@ export const updateClientLocationPreferences = async (
 };
 
 
+
 export const getTopRatedVendors = async (limit: number = 10) => {
   const topVendors = await prisma.user.findMany({
     where: { role: "VENDOR" },
@@ -44,7 +46,7 @@ export const getTopRatedVendors = async (limit: number = 10) => {
       vendorAvailabilities: true,
       promotions: true,
       wallet: true,
-      products: true, 
+      products: true,  // fetch all products, then filter
     },
   });
 
@@ -57,11 +59,16 @@ export const getTopRatedVendors = async (limit: number = 10) => {
           ? reviews.reduce((acc: any, r: any) => acc + r.rating, 0) / total
           : 0;
 
+      // Filter approved products only
+      const approvedProducts = (vendor.products || []).filter(
+        (product: any) => product.approvalStatus === ApprovalStatus.APPROVED
+      );
+
       return {
         ...vendor,
         rating: avgRating,
         totalReviews: total,
-        products: vendor.products // ✅ Ensure products are explicitly returned
+        products: approvedProducts,
       };
     })
     .sort((a: any, b: any) => b.rating - a.rating)
@@ -72,10 +79,11 @@ export const getTopRatedVendors = async (limit: number = 10) => {
 
 
 
+
 export const getVendorDetails = async (vendorId: string) => {
   const vendor = await prisma.user.findUnique({
     where: {
-      id: vendorId
+      id: vendorId,
     },
     include: {
       vendorOnboarding: true,
@@ -87,23 +95,23 @@ export const getVendorDetails = async (vendorId: string) => {
             select: {
               firstName: true,
               lastName: true,
-              avatar: true
-            }
-          }
+              avatar: true,
+            },
+          },
         },
         orderBy: {
-          createdAt: "desc"
-        }
+          createdAt: 'desc',
+        },
       },
       promotions: {
         where: {
-          isActive: true
+          isActive: true,
         },
         orderBy: {
-          startDate: "desc"
-        }
+          startDate: 'desc',
+        },
       },
-      products: true, // Include full product info, not just selected fields
+      products: true, // fetch all products, filter below
       wallet: true,
       cartItems: true,
       wishlistItems: true,
@@ -113,12 +121,17 @@ export const getVendorDetails = async (vendorId: string) => {
       notifications: true,
       sentMessages: true,
       receivedMessages: true,
-    }
+    },
   });
 
   if (!vendor) return null;
 
-  // Optional: Compute average rating & total reviews
+  // Filter only approved products
+  const approvedProducts = (vendor.products || []).filter(
+    (product: any) => product.approvalStatus === ApprovalStatus.APPROVED
+  );
+
+  // Compute average rating & total reviews
   const reviews = vendor.vendorReviews || [];
   const totalReviews = reviews.length;
   const avgRating =
@@ -128,8 +141,9 @@ export const getVendorDetails = async (vendorId: string) => {
 
   return {
     ...vendor,
+    products: approvedProducts,
     totalReviews,
-    avgRating
+    avgRating,
   };
 };
 

@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-const targetKeywords = ["vendor", "product"];
-const targetExtensions = [".ts", ".tsx", ".js"];
+const targetKeywords = ["product"]; // ✅ Only scanning for 'product'
+const targetExtensions = [".ts"];
 const baseDir = path.join(__dirname, "services"); // 👈 Only scan ./services
 
 const matches: { file: string; line: number; text: string }[] = [];
@@ -44,9 +44,9 @@ walkDir(baseDir);
 
 // Output results
 if (matches.length === 0) {
-  console.log("✅ No vendor or product references found in services folder.");
+  console.log("✅ No product references found in services folder.");
 } else {
-  console.log(`🔍 Found ${matches.length} references in 'services':\n`);
+  console.log(`🔍 Found ${matches.length} 'product' references in 'services':\n`);
   matches.forEach((match) => {
     console.log(`📄 ${match.file} [Line ${match.line}]: ${match.text}`);
   });

@@ -264,6 +264,7 @@ model Review {
   PENDING
   APPROVED
   REJECTED
+  SUSPENDED
 }
 
 

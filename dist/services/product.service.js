@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteProduct = exports.updateProduct = exports.getTopSellingProducts = exports.getAllProducts = exports.getVendorProducts = exports.createProduct = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
+const client_1 = require("@prisma/client");
 const createProduct = async (vendorId, productName, price, qtyAvailable, description, picture) => {
     const status = qtyAvailable === 0 ? "not in stock" : "in stock";
     return await prisma_1.default.product.create({
@@ -24,7 +25,10 @@ const createProduct = async (vendorId, productName, price, qtyAvailable, descrip
 exports.createProduct = createProduct;
 const getVendorProducts = async (vendorId) => {
     return await prisma_1.default.product.findMany({
-        where: { vendorId },
+        where: {
+            vendorId,
+            approvalStatus: client_1.ApprovalStatus.APPROVED,
+        },
         orderBy: { createdAt: "desc" },
         include: {
             vendor: {
@@ -54,6 +58,9 @@ const getVendorProducts = async (vendorId) => {
 exports.getVendorProducts = getVendorProducts;
 const getAllProducts = async () => {
     return await prisma_1.default.product.findMany({
+        where: {
+            approvalStatus: client_1.ApprovalStatus.APPROVED,
+        },
         orderBy: { createdAt: "desc" },
         include: {
             vendor: {
@@ -97,6 +104,7 @@ const getTopSellingProducts = async (limit = 10) => {
             unitsSold: {
                 gt: 0,
             },
+            approvalStatus: client_1.ApprovalStatus.APPROVED, // Only approved products
         },
         orderBy: {
             unitsSold: "desc",

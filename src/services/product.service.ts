@@ -1,7 +1,7 @@
 import prisma from "../config/prisma"
 import uploadToCloudinary  from "../utils/cloudinary"
 
-
+import { ApprovalStatus } from "@prisma/client";
 export const createProduct = async (
   vendorId: string,
   productName: string,
@@ -29,9 +29,13 @@ export const createProduct = async (
 
 
 
+
 export const getVendorProducts = async (vendorId: string) => {
   return await prisma.product.findMany({
-    where: { vendorId },
+    where: {
+      vendorId,
+      approvalStatus: ApprovalStatus.APPROVED,
+    },
     orderBy: { createdAt: "desc" },
     include: {
       vendor: {
@@ -59,8 +63,13 @@ export const getVendorProducts = async (vendorId: string) => {
   });
 };
 
+
+
 export const getAllProducts = async () => {
   return await prisma.product.findMany({
+    where: {
+      approvalStatus: ApprovalStatus.APPROVED,
+    },
     orderBy: { createdAt: "desc" },
     include: {
       vendor: {
@@ -105,6 +114,7 @@ export const getTopSellingProducts = async (limit = 10) => {
       unitsSold: {
         gt: 0,
       },
+      approvalStatus: ApprovalStatus.APPROVED, // Only approved products
     },
     orderBy: {
       unitsSold: "desc",
@@ -119,8 +129,8 @@ export const getTopSellingProducts = async (limit = 10) => {
       },
     },
     take: limit,
-  })
-}
+  });
+};
 
 
 

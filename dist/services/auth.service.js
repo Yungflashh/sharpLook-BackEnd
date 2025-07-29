@@ -12,101 +12,77 @@ const email_helper_1 = require("../helpers/email.helper");
 const referral_1 = require("../utils/referral");
 const wallet_service_1 = require("./wallet.service");
 const registerUser = async (email, password, firstName, lastName, role, acceptedPersonalData, phone, referredByCode) => {
-    console.log("➡️ Starting user registration...");
-    console.log("Incoming data:", { email, referredByCode });
-    // 🔍 Check if user already exists
-    const existing = await prisma_1.default.user.findUnique({ where: { email } });
-    if (existing) {
-        console.log("❌ User already exists with email:", email);
+    const existingUser = await prisma_1.default.user.findUnique({ where: { email } });
+    if (existingUser) {
         throw new Error("Email already in use");
     }
-    // 🔐 Hash password
-    const hash = await bcryptjs_1.default.hash(password, 10);
-    console.log("🔒 Password hashed");
-    // 🎁 Generate referral code
+    const hashedPassword = await bcryptjs_1.default.hash(password, 10);
     const referralCode = (0, referral_1.generateReferralCode)();
-    console.log("🎁 Generated referral code:", referralCode);
-    let referredByUser = null;
-    let referredByConnectData = undefined;
-    // 🔍 Handle referral lookup
-    if (referredByCode) {
-        console.log("🔍 Looking up referrer by referralCode:", referredByCode);
-        referredByUser = await prisma_1.default.user.findUnique({
-            where: { referralCode: referredByCode },
-        });
-        if (referredByUser) {
-            console.log("✅ Found referrer user:", referredByUser.id);
-            referredByConnectData = {
-                connect: { id: referredByUser.id },
-            };
+    return await prisma_1.default.$transaction(async (tx) => {
+        let referredById;
+        if (referredByCode) {
+            const referredByUser = await tx.user.findUnique({
+                where: { referralCode: referredByCode },
+                select: { id: true },
+            });
+            if (!referredByUser) {
+                throw new Error("Invalid referral code.");
+            }
+            referredById = referredByUser.id;
         }
-        else {
-            console.log("⚠️ No user found with referralCode:", referredByCode);
-        }
-    }
-    // 📦 Create user and wallet in a single nested write
-    console.log("📦 Creating user and wallet...");
-    const user = await prisma_1.default.user.create({
-        data: {
-            firstName,
-            lastName,
-            email,
-            password: hash,
-            role,
-            acceptedPersonalData,
-            phone,
-            referralCode,
-            referredBy: referredByConnectData,
-            wallet: {
-                create: {
-                    balance: 0,
-                    status: "ACTIVE",
-                },
-            },
-        },
-        include: {
-            wallet: true,
-        },
-    });
-    console.log("✅ User created:", user.id);
-    // 💸 Handle referral credit
-    if (referredByUser?.walletId) {
-        console.log("💸 Crediting referrer's wallet:", referredByUser.walletId);
-        await (0, wallet_service_1.creditWallet)(referredByUser.walletId, 100);
-        console.log("🎉 Crediting new user's wallet:", user.wallet.id);
-        await (0, wallet_service_1.creditWallet)(user.wallet.id, 100);
-        await prisma_1.default.referral.create({
+        // ✅ Step 1: Create the user WITHOUT walletId field
+        const createdUser = await tx.user.create({
             data: {
-                referredById: referredByUser.id,
-                referredUserId: user.id,
-                amountEarned: 100,
+                email,
+                password: hashedPassword,
+                firstName,
+                lastName,
+                phone,
+                role,
+                referralCode,
+                acceptedPersonalData,
+                ...(referredById && { referredById }),
             },
         });
-    }
-    else {
-        console.log("ℹ️ No valid referrer to credit.");
-    }
-    // 🔄 Fetch final user with referredBy info
-    const updatedUser = await prisma_1.default.user.findUnique({
-        where: { id: user.id },
-        include: {
-            referredBy: {
-                select: {
-                    firstName: true,
-                    lastName: true,
-                    referralCode: true,
-                },
+        // ✅ Step 2: Create wallet with userId
+        const wallet = await tx.wallet.create({
+            data: {
+                balance: 0,
+                status: "ACTIVE",
+                userId: createdUser.id,
             },
-        },
+        });
+        // ✅ Step 3: Update user with walletId
+        await tx.user.update({
+            where: { id: createdUser.id },
+            data: { walletId: wallet.id },
+        });
+        // ✅ Step 4: Handle referral reward
+        if (referredById) {
+            await tx.referral.create({
+                data: {
+                    referredById,
+                    referredUserId: createdUser.id,
+                    amountEarned: 100,
+                },
+            });
+            await (0, wallet_service_1.creditWallet)(wallet.id, 100);
+            const referrerWallet = await tx.wallet.findUnique({
+                where: { userId: referredById },
+                select: { id: true },
+            });
+            if (referrerWallet) {
+                await (0, wallet_service_1.creditWallet)(referrerWallet.id, 100);
+            }
+        }
+        return {
+            ...createdUser,
+            wallet,
+        };
     });
-    if (!updatedUser) {
-        console.log("❌ Could not retrieve updated user.");
-        throw new Error("User registration failed during final fetch.");
-    }
-    console.log("✅ User registration complete:", updatedUser.id);
-    return updatedUser;
 };
 exports.registerUser = registerUser;
+;
 const loginUser = async (email, password) => {
     const user = await prisma_1.default.user.findUnique({
         where: { email },

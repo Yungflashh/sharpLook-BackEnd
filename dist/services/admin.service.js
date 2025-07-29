@@ -7,6 +7,7 @@ exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats 
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const date_fns_1 = require("date-fns");
+const client_1 = require("@prisma/client");
 const sendBroadcast = async (adminId, title, message, audience) => {
     const broadcast = await prisma_1.default.broadcast.create({
         data: {
@@ -209,21 +210,21 @@ exports.deleteProduct = deleteProduct;
 const approveProduct = async (productId) => {
     return await prisma_1.default.product.update({
         where: { id: productId },
-        data: { status: "approved" },
+        data: { approvalStatus: client_1.ApprovalStatus.APPROVED },
     });
 };
 exports.approveProduct = approveProduct;
 const suspendProduct = async (productId) => {
     return await prisma_1.default.product.update({
         where: { id: productId },
-        data: { status: "suspended" },
+        data: { approvalStatus: client_1.ApprovalStatus.SUSPENDED },
     });
 };
 exports.suspendProduct = suspendProduct;
 const rejectProduct = async (productId, reason) => {
     return await prisma_1.default.product.update({
         where: { id: productId },
-        data: { status: "rejected", description: reason || "" },
+        data: { approvalStatus: client_1.ApprovalStatus.REJECTED, description: reason || "" },
     });
 };
 exports.rejectProduct = rejectProduct;

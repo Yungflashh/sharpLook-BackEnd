@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUserAccount = exports.updateUserAvatar = exports.getVendorDetails = exports.getTopRatedVendors = exports.updateClientLocationPreferences = exports.updateUserProfile = exports.getUserById = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const cloudinary_1 = require("../utils/cloudinary");
+const client_1 = require("@prisma/client");
 const getUserById = async (id) => {
     return await prisma_1.default.user.findUnique({ where: { id } });
 };
@@ -38,7 +39,7 @@ const getTopRatedVendors = async (limit = 10) => {
             vendorAvailabilities: true,
             promotions: true,
             wallet: true,
-            products: true,
+            products: true, // fetch all products, then filter
         },
     });
     const sorted = topVendors
@@ -48,11 +49,13 @@ const getTopRatedVendors = async (limit = 10) => {
         const avgRating = total > 0
             ? reviews.reduce((acc, r) => acc + r.rating, 0) / total
             : 0;
+        // Filter approved products only
+        const approvedProducts = (vendor.products || []).filter((product) => product.approvalStatus === client_1.ApprovalStatus.APPROVED);
         return {
             ...vendor,
             rating: avgRating,
             totalReviews: total,
-            products: vendor.products // ✅ Ensure products are explicitly returned
+            products: approvedProducts,
         };
     })
         .sort((a, b) => b.rating - a.rating)
@@ -63,7 +66,7 @@ exports.getTopRatedVendors = getTopRatedVendors;
 const getVendorDetails = async (vendorId) => {
     const vendor = await prisma_1.default.user.findUnique({
         where: {
-            id: vendorId
+            id: vendorId,
         },
         include: {
             vendorOnboarding: true,
@@ -75,23 +78,23 @@ const getVendorDetails = async (vendorId) => {
                         select: {
                             firstName: true,
                             lastName: true,
-                            avatar: true
-                        }
-                    }
+                            avatar: true,
+                        },
+                    },
                 },
                 orderBy: {
-                    createdAt: "desc"
-                }
+                    createdAt: 'desc',
+                },
             },
             promotions: {
                 where: {
-                    isActive: true
+                    isActive: true,
                 },
                 orderBy: {
-                    startDate: "desc"
-                }
+                    startDate: 'desc',
+                },
             },
-            products: true, // Include full product info, not just selected fields
+            products: true, // fetch all products, filter below
             wallet: true,
             cartItems: true,
             wishlistItems: true,
@@ -101,11 +104,13 @@ const getVendorDetails = async (vendorId) => {
             notifications: true,
             sentMessages: true,
             receivedMessages: true,
-        }
+        },
     });
     if (!vendor)
         return null;
-    // Optional: Compute average rating & total reviews
+    // Filter only approved products
+    const approvedProducts = (vendor.products || []).filter((product) => product.approvalStatus === client_1.ApprovalStatus.APPROVED);
+    // Compute average rating & total reviews
     const reviews = vendor.vendorReviews || [];
     const totalReviews = reviews.length;
     const avgRating = totalReviews > 0
@@ -113,8 +118,9 @@ const getVendorDetails = async (vendorId) => {
         : 0;
     return {
         ...vendor,
+        products: approvedProducts,
         totalReviews,
-        avgRating
+        avgRating,
     };
 };
 exports.getVendorDetails = getVendorDetails;

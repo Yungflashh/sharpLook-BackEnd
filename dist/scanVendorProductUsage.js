@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const targetKeywords = ["vendor", "product"];
-const targetExtensions = [".ts", ".tsx", ".js"];
+const targetKeywords = ["product"]; // ✅ Only scanning for 'product'
+const targetExtensions = [".ts"];
 const baseDir = path_1.default.join(__dirname, "services"); // 👈 Only scan ./services
 const matches = [];
 function scanFile(filePath) {
@@ -41,10 +41,10 @@ if (!fs_1.default.existsSync(baseDir)) {
 walkDir(baseDir);
 // Output results
 if (matches.length === 0) {
-    console.log("✅ No vendor or product references found in services folder.");
+    console.log("✅ No product references found in services folder.");
 }
 else {
-    console.log(`🔍 Found ${matches.length} references in 'services':\n`);
+    console.log(`🔍 Found ${matches.length} 'product' references in 'services':\n`);
     matches.forEach((match) => {
         console.log(`📄 ${match.file} [Line ${match.line}]: ${match.text}`);
     });

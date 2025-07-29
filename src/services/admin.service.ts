@@ -2,6 +2,7 @@
 import prisma from "../config/prisma"
 import { Role, BroadcastAudience } from "@prisma/client"
 import { subDays, subWeeks, subMonths, subYears } from "date-fns";
+import { ApprovalStatus } from '@prisma/client';
 
 
 export const sendBroadcast = async (
@@ -244,7 +245,7 @@ export const deleteProduct = async (productId: string) => {
 export const approveProduct = async (productId: string) => {
   return await prisma.product.update({
     where: { id: productId },
-    data: { status: "approved" },
+    data: { approvalStatus: ApprovalStatus.APPROVED },
   });
 };
 
@@ -252,14 +253,14 @@ export const approveProduct = async (productId: string) => {
 export const suspendProduct = async (productId: string) => {
   return await prisma.product.update({
     where: { id: productId },
-    data: { status: "suspended" },
+    data: { approvalStatus: ApprovalStatus.SUSPENDED },
   });
 };
 
 export const rejectProduct = async (productId: string, reason?: string) => {
   return await prisma.product.update({
     where: { id: productId },
-    data: { status: "rejected", description: reason || "" },
+    data: { approvalStatus: ApprovalStatus.REJECTED , description: reason || "" },
   });
 };
 

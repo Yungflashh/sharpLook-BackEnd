@@ -10,6 +10,9 @@ import { sendOtpService, verifyOtpService } from "../services/otp.service";
 import { getUserById } from "../services/auth.service";
 import { GenericLoginResponse } from "../types/auth.types";
 import prisma from "../config/prisma"
+// ✅ Correct
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+
 
 
 
@@ -22,14 +25,18 @@ export const register = async (req: Request, res: Response) => {
     role,
     phone,
     referredByCode,
+    acceptedPersonalData,
   } = req.body;
 
   console.log("➡️ Register attempt:", { email, role });
 
-  let {acceptedPersonalData} = req.body
-
-  if (acceptedPersonalData == "true" || acceptedPersonalData == "True" || acceptedPersonalData == true){
-    acceptedPersonalData = true
+  let accepted = false;
+  if (
+    acceptedPersonalData === true ||
+    acceptedPersonalData === "true" ||
+    acceptedPersonalData === "True"
+  ) {
+    accepted = true;
   }
 
   let user;
@@ -42,13 +49,24 @@ export const register = async (req: Request, res: Response) => {
       firstName,
       lastName,
       role,
-      acceptedPersonalData,
+      accepted,
       phone,
       referredByCode
     );
     console.log("✅ User registered:", user.id);
   } catch (err: any) {
     console.error("❌ Error during user creation:", err.message);
+
+    if (err instanceof PrismaClientKnownRequestError) {
+      if (err.code === "P2002") {
+        return res.status(409).json({
+          success: false,
+          step: "registerUser",
+          message: `Duplicate entry for: ${err.meta?.target}`,
+        });
+      }
+    }
+
     return res.status(400).json({
       success: false,
       step: "registerUser",
@@ -78,6 +96,7 @@ export const register = async (req: Request, res: Response) => {
     data: user,
   });
 };
+
 
 
 
