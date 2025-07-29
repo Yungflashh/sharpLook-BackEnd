@@ -5,7 +5,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.removeFromCart = exports.getUserCart = exports.addToCart = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
+const client_1 = require("@prisma/client");
+const errors_1 = require("../utils/errors"); // adjust path
 const addToCart = async (userId, productId) => {
+    // Step 1: Find product
+    const product = await prisma_1.default.product.findUnique({
+        where: { id: productId },
+    });
+    if (!product) {
+        throw new errors_1.NotFoundError('Product not found');
+    }
+    if (product.approvalStatus !== client_1.ApprovalStatus.APPROVED) {
+        throw new errors_1.ForbiddenError('Product is not approved for sale');
+    }
+    // Optional: Prevent duplicates
+    const existingItem = await prisma_1.default.cartItem.findFirst({
+        where: { userId, productId },
+    });
+    if (existingItem) {
+        throw new errors_1.BadRequestError('Product already in cart');
+    }
+    // Step 2: Add to cart
     return await prisma_1.default.cartItem.create({
         data: { userId, productId },
         include: { product: true },
@@ -13,10 +33,22 @@ const addToCart = async (userId, productId) => {
 };
 exports.addToCart = addToCart;
 const getUserCart = async (userId) => {
-    return await prisma_1.default.cartItem.findMany({
+    // Step 1: Make sure user exists
+    const user = await prisma_1.default.user.findUnique({ where: { id: userId } });
+    if (!user) {
+        throw new errors_1.NotFoundError('User not found');
+    }
+    // Step 2: Fetch cart items with related product
+    const cartItems = await prisma_1.default.cartItem.findMany({
         where: { userId },
         include: { product: true },
     });
+    // Step 3: Filter out products that are not approved
+    const approvedItems = cartItems.filter((item) => item.product?.approvalStatus === 'APPROVED');
+    if (approvedItems.length === 0) {
+        throw new errors_1.NotFoundError('No approved products in cart');
+    }
+    return approvedItems;
 };
 exports.getUserCart = getUserCart;
 const removeFromCart = async (userId, productId) => {

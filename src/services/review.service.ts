@@ -1,5 +1,6 @@
 import prisma from "../config/prisma"
 import { ReviewType } from "@prisma/client";  
+import { ApprovalStatus } from '@prisma/client';
 
 
 
@@ -37,59 +38,21 @@ export const createReview = async ({
 };
 
 
-// export const getVendorReviews = async (vendorId: string) => {
-//   return await prisma.review.findMany({
-//     where: { vendorId },
-//     include: {
-//       client: {
-//         select: {
-//           firstName: true,
-//           lastName: true,
-//           avatar: true,
-//         },
-//       },
-//       booking: {
-//         select: {
-//           id: true,
-//           date: true,
-//           serviceName: true,
-//         },
-//       },
-//       product: {
-//         select: {
-//           id: true,
-//           productName: true,
-//           picture: true,
-//         },
-//       },
-//       service: {
-//         select: {
-//           id: true,
-//           serviceName: true,
-//           serviceImage: true,
-//         },
-//       },
-//     },
-//     orderBy: {
-//       createdAt: 'desc',
-//     },
-//   });
-// };
-
 
 export const getVendorReviews = async (vendorId: string, type?: string) => {
   if (!vendorId) throw new Error("vendorId is required");
 
-  // Only set enumType if it's a valid ReviewType value
   const enumValues = Object.values(ReviewType);
   const isValidType = type && enumValues.includes(type as ReviewType);
-
   const enumType = isValidType ? (type as ReviewType) : undefined;
 
   return await prisma.review.findMany({
     where: {
       vendorId,
       ...(enumType ? { type: enumType } : {}),
+      product: {
+        approvalStatus: ApprovalStatus.APPROVED,
+      },
     },
     include: {
       client: {
@@ -111,6 +74,7 @@ export const getVendorReviews = async (vendorId: string, type?: string) => {
           id: true,
           productName: true,
           picture: true,
+          approvalStatus: true, // optional: see the status
         },
       },
       service: {
@@ -158,6 +122,9 @@ export const getProductReviewsByVendor = async (vendorId: string, productId: str
     where: {
       vendorId,
       productId,
+      product: {
+        approvalStatus: ApprovalStatus.APPROVED,
+      },
     },
     include: {
       client: {
@@ -172,10 +139,12 @@ export const getProductReviewsByVendor = async (vendorId: string, productId: str
           id: true,
           productName: true,
           picture: true,
+          approvalStatus: true, // optional to see
         },
       },
     },
     orderBy: { createdAt: 'desc' },
   });
 };
+
 

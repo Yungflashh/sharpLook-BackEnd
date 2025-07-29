@@ -12,7 +12,7 @@ const router = (0, express_1.Router)();
 router.get("/dashboard", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), (req, res) => {
     res.json({ message: "Welcome, Vendor!" });
 });
-router.put("/complete-profile", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_1.completeVendorProfile);
+router.put("/complete-profile", auth_middleware_1.verifyToken, upload_middleware_1.uploadMultiple, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_1.completeVendorProfile);
 router.post("/upload", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), upload_middleware_1.uploadMultiple, vendor_controller_2.uploadPortfolioImages);
 router.get("/fetchPortfolioImage", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.fetchPortfolioImages);
 router.get("/getVendorPricing", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorPricing_controller_1.fetchVendorPricing);

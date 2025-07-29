@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProductReviewsByVendor = exports.getServiceReviewsByVendor = exports.getVendorReviews = exports.createReview = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
+const client_2 = require("@prisma/client");
 const createReview = async ({ vendorId, clientId, rating, comment, bookingId, productId, serviceId, type }) => {
     return await prisma_1.default.review.create({
         data: {
@@ -21,48 +22,9 @@ const createReview = async ({ vendorId, clientId, rating, comment, bookingId, pr
     });
 };
 exports.createReview = createReview;
-// export const getVendorReviews = async (vendorId: string) => {
-//   return await prisma.review.findMany({
-//     where: { vendorId },
-//     include: {
-//       client: {
-//         select: {
-//           firstName: true,
-//           lastName: true,
-//           avatar: true,
-//         },
-//       },
-//       booking: {
-//         select: {
-//           id: true,
-//           date: true,
-//           serviceName: true,
-//         },
-//       },
-//       product: {
-//         select: {
-//           id: true,
-//           productName: true,
-//           picture: true,
-//         },
-//       },
-//       service: {
-//         select: {
-//           id: true,
-//           serviceName: true,
-//           serviceImage: true,
-//         },
-//       },
-//     },
-//     orderBy: {
-//       createdAt: 'desc',
-//     },
-//   });
-// };
 const getVendorReviews = async (vendorId, type) => {
     if (!vendorId)
         throw new Error("vendorId is required");
-    // Only set enumType if it's a valid ReviewType value
     const enumValues = Object.values(client_1.ReviewType);
     const isValidType = type && enumValues.includes(type);
     const enumType = isValidType ? type : undefined;
@@ -70,6 +32,9 @@ const getVendorReviews = async (vendorId, type) => {
         where: {
             vendorId,
             ...(enumType ? { type: enumType } : {}),
+            product: {
+                approvalStatus: client_2.ApprovalStatus.APPROVED,
+            },
         },
         include: {
             client: {
@@ -91,6 +56,7 @@ const getVendorReviews = async (vendorId, type) => {
                     id: true,
                     productName: true,
                     picture: true,
+                    approvalStatus: true, // optional: see the status
                 },
             },
             service: {
@@ -136,6 +102,9 @@ const getProductReviewsByVendor = async (vendorId, productId) => {
         where: {
             vendorId,
             productId,
+            product: {
+                approvalStatus: client_2.ApprovalStatus.APPROVED,
+            },
         },
         include: {
             client: {
@@ -150,6 +119,7 @@ const getProductReviewsByVendor = async (vendorId, productId) => {
                     id: true,
                     productName: true,
                     picture: true,
+                    approvalStatus: true, // optional to see
                 },
             },
         },

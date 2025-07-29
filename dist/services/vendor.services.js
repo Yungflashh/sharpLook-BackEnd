@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateVendorProfile = exports.getVendorsByService = exports.getAllVendorServices = exports.findNearbyVendors = exports.updateServiceRadiusAndLocation = exports.getVendorAvailability = exports.setVendorAvailability = exports.getVendorSpecialties = exports.updateVendorSpecialties = exports.getPortfolioImages = exports.addPortfolioImages = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const distance_1 = require("../utils/distance");
+const client_1 = require("@prisma/client");
 const addPortfolioImages = async (userId, imageUrls) => {
     return await prisma_1.default.vendorOnboarding.update({
         where: { userId },
@@ -69,18 +70,26 @@ const findNearbyVendors = async (clientLat, clientLon) => {
         include: {
             user: {
                 include: {
-                    vendorServices: true, // ✅ Vendor's services
-                    products: true, // ✅ Vendor's products
+                    vendorServices: true,
+                    products: true, // fetch all products, filter next
                 },
             },
         },
     });
-    // Filter by distance
-    return allVendors.filter((vendor) => {
+    // Filter vendors by distance and only include approved products
+    return allVendors
+        .filter((vendor) => {
         const { latitude, longitude, serviceRadiusKm } = vendor;
         const distance = (0, distance_1.haversineDistanceKm)(clientLat, clientLon, latitude, longitude);
         return distance <= serviceRadiusKm;
-    });
+    })
+        .map((vendor) => ({
+        ...vendor,
+        user: {
+            ...vendor.user,
+            products: (vendor.user.products || []).filter((product) => product.approvalStatus === client_1.ApprovalStatus.APPROVED),
+        },
+    }));
 };
 exports.findNearbyVendors = findNearbyVendors;
 const getAllVendorServices = async () => {

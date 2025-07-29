@@ -3,6 +3,7 @@ import prisma from "../config/prisma"
 import { haversineDistanceKm } from "../utils/distance"
 import { EditableVendorFields } from "../types/vendor.types";
 
+import { ApprovalStatus } from '@prisma/client';
 
 
 export const addPortfolioImages = async (userId: string, imageUrls: string[]) => {
@@ -84,25 +85,36 @@ export const findNearbyVendors = async (
     include: {
       user: {
         include: {
-          vendorServices: true, // ✅ Vendor's services
-          products: true,       // ✅ Vendor's products
+          vendorServices: true,
+          products: true,  // fetch all products, filter next
         },
       },
     },
-  })
+  });
 
-  // Filter by distance
-  return allVendors.filter((vendor: any) => {
-    const { latitude, longitude, serviceRadiusKm } = vendor
-    const distance = haversineDistanceKm(
-      clientLat,
-      clientLon,
-      latitude!,
-      longitude!
-    )
-    return distance <= serviceRadiusKm!
-  })
-}
+  // Filter vendors by distance and only include approved products
+  return allVendors
+    .filter((vendor: any) => {
+      const { latitude, longitude, serviceRadiusKm } = vendor;
+      const distance = haversineDistanceKm(
+        clientLat,
+        clientLon,
+        latitude!,
+        longitude!
+      );
+      return distance <= serviceRadiusKm!;
+    })
+    .map((vendor: any) => ({
+      ...vendor,
+      user: {
+        ...vendor.user,
+        products: (vendor.user.products || []).filter(
+          (product: any) => product.approvalStatus === ApprovalStatus.APPROVED
+        ),
+      },
+    }));
+};
+
 
 export const getAllVendorServices = async () => {
 

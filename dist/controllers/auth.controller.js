@@ -9,21 +9,34 @@ const auth_service_2 = require("../services/auth.service");
 const otp_service_1 = require("../services/otp.service");
 const auth_service_3 = require("../services/auth.service");
 const prisma_1 = __importDefault(require("../config/prisma"));
+// ✅ Correct
+const library_1 = require("@prisma/client/runtime/library");
 const register = async (req, res) => {
-    const { firstName, lastName, email, password, role, phone, referredByCode, } = req.body;
+    const { firstName, lastName, email, password, role, phone, referredByCode, acceptedPersonalData, } = req.body;
     console.log("➡️ Register attempt:", { email, role });
-    let { acceptedPersonalData } = req.body;
-    if (acceptedPersonalData == "true" || acceptedPersonalData == "True" || acceptedPersonalData == true) {
-        acceptedPersonalData = true;
+    let accepted = false;
+    if (acceptedPersonalData === true ||
+        acceptedPersonalData === "true" ||
+        acceptedPersonalData === "True") {
+        accepted = true;
     }
     let user;
     try {
         // ✅ Step 1: Create user
-        user = await (0, auth_service_1.registerUser)(email, password, firstName, lastName, role, acceptedPersonalData, phone, referredByCode);
+        user = await (0, auth_service_1.registerUser)(email, password, firstName, lastName, role, accepted, phone, referredByCode);
         console.log("✅ User registered:", user.id);
     }
     catch (err) {
         console.error("❌ Error during user creation:", err.message);
+        if (err instanceof library_1.PrismaClientKnownRequestError) {
+            if (err.code === "P2002") {
+                return res.status(409).json({
+                    success: false,
+                    step: "registerUser",
+                    message: `Duplicate entry for: ${err.meta?.target}`,
+                });
+            }
+        }
         return res.status(400).json({
             success: false,
             step: "registerUser",

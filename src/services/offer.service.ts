@@ -7,6 +7,7 @@ import { createNotification } from "./notification.service";
 
 import { getUserWallet, debitWallet } from "../services/wallet.service";
 import {generateReference} from "../utils/paystack"
+import { ApprovalStatus } from '@prisma/client';
 
 
 
@@ -75,18 +76,31 @@ export const getVendorsForOffer = async (offerId: string) => {
           vendorServices: true,
           vendorReviews: true,
           vendorAvailabilities: true,
-          products: true,
+          products: true, // will filter this manually
         },
       },
     },
   });
 
+  const cleanedVendors = vendors.map((entry) => {
+    const vendor = entry.vendor;
+    const approvedProducts = vendor.products.filter(
+      (product) => product.approvalStatus === ApprovalStatus.APPROVED
+    );
+
+    return {
+      ...vendor,
+      products: approvedProducts,
+    };
+  });
+
   return {
     offerId,
-    totalVendors: vendors.length,
-    vendors: vendors.map((entry) => entry.vendor),
+    totalVendors: cleanedVendors.length,
+    vendors: cleanedVendors,
   };
 };
+
 
 export const vendorAcceptOffer = async (vendorId: string, offerId: string, price: number) => {
   const existing = await prisma.vendorOffer.findFirst({
