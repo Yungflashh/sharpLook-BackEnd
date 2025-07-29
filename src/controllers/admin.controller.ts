@@ -378,3 +378,29 @@ export const getPlatformStats = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: getErrorMessage(error) });
   }
 };
+
+
+export const getAllNotifications = async (req: Request, res: Response) => {
+  try {
+    const notifications = await AdminService.getAllNotifications();
+
+    await logAdminAction(req.user!.id, 'VIEW_NOTIFICATIONS', 'Admin fetched all notifications');
+
+    res.json({ success: true, data: notifications });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
+export const getAllServices = async (req: Request, res: Response) => {
+  try {
+    const services = await AdminService.getAllServices();
+
+    await logAdminAction(req.user!.id, 'VIEW_ALL_SERVICES', 'Admin fetched all services');
+
+    res.json({ success: true, data: services });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+

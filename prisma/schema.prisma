@@ -120,6 +120,8 @@
     profileImage        String?
     pricing             Json? // 
     service             String?
+    approvalStatus      ApprovalStatus @default(PENDING)
+
     specialties         String[]    @default([])
     portfolioImages     String[]    @default([])
     serviceRadiusKm     Int? // NEW: Radius in kilometers
@@ -190,6 +192,8 @@
     picture       String
     cartItems     CartItem[]     @relation("ProductCartItems")
     wishlistItems WishlistItem[] @relation("ProductWishlistItems")
+    approvalStatus ApprovalStatus @default(PENDING)
+
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
 
@@ -254,6 +258,13 @@ model Review {
     SERVICE
     VENDOR   
   }
+
+  enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 
   model Promotion {
     id                 String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -358,7 +369,7 @@ model Review {
     status     String?          
     metadata    Json?  
     paymentFor   String?
-      createdAt   DateTime        @default(now())
+    createdAt   DateTime        @default(now())
     walletId    String          @db.ObjectId
     wallet      Wallet          @relation(fields: [walletId], references: [id])
   }
