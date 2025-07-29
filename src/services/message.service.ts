@@ -71,7 +71,6 @@ export const countUnreadMessages = async (userId: string) => {
     },
   });
 };
-
 export const getChatListForUser = async (userId: string) => {
   const rooms = await prisma.message.findMany({
     where: {
@@ -117,26 +116,42 @@ export const getChatListForUser = async (userId: string) => {
     distinct: ["roomId"],
   });
 
-  const formatUser = (user: any) => ({
-    id: user.id,
-    name:
-      user.role === "VENDOR" && user.vendorOnboarding?.businessName
-        ? user.vendorOnboarding.businessName
-        : `${user.firstName} ${user.lastName}`,
-    email: user.email,
-    phone: user.phone,
-    avatar: user.avatar,
-    role: user.role,
-  });
-
   return rooms.map((room) => {
     const isSender = room.sender.id === userId;
+    const self = isSender ? room.sender : room.receiver;
     const chatPartner = isSender ? room.receiver : room.sender;
+
+    const getDisplayName = () => {
+      if (self.role === 'CLIENT' && chatPartner.role === 'VENDOR') {
+        // Client chatting with vendor → show business name
+        return chatPartner.vendorOnboarding?.businessName ?? `${chatPartner.firstName} ${chatPartner.lastName}`;
+      } else if (self.role === 'VENDOR' && chatPartner.role === 'CLIENT') {
+        // Vendor chatting with client → show first name
+        return chatPartner.firstName;
+      }
+      // Fallback for any other case
+      return `${chatPartner.firstName} ${chatPartner.lastName}`;
+    };
+
+    const formatUser = (user: any) => ({
+      id: user.id,
+      name:
+        user.role === "VENDOR" && user.vendorOnboarding?.businessName
+          ? user.vendorOnboarding.businessName
+          : `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      role: user.role,
+    });
 
     return {
       roomId: room.roomId,
       createdAt: room.createdAt,
-      chatPartner: formatUser(chatPartner), // <- this is what frontend should display
+      chatPartner: {
+        ...formatUser(chatPartner),
+        name: getDisplayName(),
+      },
       sender: formatUser(room.sender),
       receiver: formatUser(room.receiver),
     };
