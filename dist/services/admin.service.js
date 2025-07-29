@@ -3,10 +3,41 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = void 0;
+exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const date_fns_1 = require("date-fns");
+const sendBroadcast = async (adminId, title, message, audience) => {
+    const broadcast = await prisma_1.default.broadcast.create({
+        data: {
+            title,
+            message,
+            audience,
+            createdById: adminId,
+        },
+    });
+    const roles = audience === "BOTH"
+        ? ["CLIENT", "VENDOR"]
+        : [audience === "CLIENT" ? "CLIENT" : "VENDOR"];
+    const users = await prisma_1.default.user.findMany({
+        where: { role: { in: roles } },
+        select: { id: true },
+    });
+    if (users.length === 0)
+        return broadcast;
+    const notifications = users.map((user) => ({
+        userId: user.id,
+        message,
+        type: "BROADCAST",
+    }));
+    await prisma_1.default.notification.createMany({ data: notifications });
+    await prisma_1.default.broadcast.update({
+        where: { id: broadcast.id },
+        data: { sentCount: users.length },
+    });
+    return { message: `Broadcast sent to ${users.length} users.` };
+};
+exports.sendBroadcast = sendBroadcast;
 const getAllUsers = async () => {
     const users = await prisma_1.default.user.findMany({
         orderBy: { createdAt: "desc" },

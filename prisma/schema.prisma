@@ -99,6 +99,7 @@
     
   serviceOfferBookingsAsClient ServiceOfferBooking[] @relation("ServiceOfferBookingClient")
   serviceOfferBookingsAsVendor ServiceOfferBooking[] @relation("ServiceOfferBookingVendor")
+      broadcasts  Broadcast[] @relation("UserToBroadcasts") // optional name for clarity
 
     isBanned  Boolean  @default(false)
     createdAt DateTime @default(now())
@@ -576,4 +577,22 @@ model ServiceOfferBooking {
   status           BookingStatus   @default(PENDING)
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
+}
+
+
+model Broadcast {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  message     String
+  audience    BroadcastAudience
+  createdById String      @db.ObjectId
+  createdBy   User     @relation("UserToBroadcasts", fields: [createdById], references: [id])
+  createdAt   DateTime    @default(now())
+  sentCount   Int         @default(0)
+}
+
+enum BroadcastAudience {
+  CLIENT
+  VENDOR
+  BOTH
 }

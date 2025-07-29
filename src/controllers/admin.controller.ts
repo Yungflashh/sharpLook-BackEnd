@@ -11,6 +11,43 @@ const getErrorMessage = (error: unknown): string =>
 
 // ====================== USERS ======================
 
+
+import { BroadcastAudience } from "@prisma/client";
+
+
+
+
+export const  createBroadcast = async(req: Request, res: Response)=> {
+    try {
+      const adminId = req.user!.id;
+      const { title, message, audience } = req.body;
+
+      if (!title || !message || !audience) {
+        return res.status(400).json({ error: "Missing required fields." });
+      }
+
+      if (!["CLIENT", "VENDOR", "BOTH"].includes(audience)) {
+        return res.status(400).json({ error: "Invalid audience." });
+      }
+
+      const result = await AdminService.sendBroadcast(
+        adminId,
+        title,
+        message,
+        audience as BroadcastAudience
+      );
+
+      return res.status(200).json({ success: true, ...result });
+    } catch (error) {
+      console.error("Broadcast error:", error);
+      return res.status(500).json({ error: "Failed to send broadcast." });
+    }
+  }
+
+
+
+
+
 export const getAllUsers = async (req: Request, res: Response) => {
 
   try {

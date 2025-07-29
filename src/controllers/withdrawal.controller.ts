@@ -99,7 +99,7 @@ export const getAllBanks = async (req: Request, res: Response) => {
 
   res.status(200).json({
     success : true,
-    message : "Banks Lis gotten Successfully",
+    message : "Banks List gotten Successfully",
     data : banksList
   })
 }
