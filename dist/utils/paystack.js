@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateReference = exports.verifyPayment = exports.initializePayment = void 0;
 const axios_1 = __importDefault(require("axios"));
+const uuid_1 = require("uuid");
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const initializePayment = async (email, amount) => {
     console.log(typeof amount);
@@ -42,5 +43,5 @@ const verifyPayment = async (reference) => {
     }
 };
 exports.verifyPayment = verifyPayment;
-const generateReference = () => `REF-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+const generateReference = () => `REF-${(0, uuid_1.v4)()}`;
 exports.generateReference = generateReference;

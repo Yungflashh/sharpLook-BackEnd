@@ -192,10 +192,14 @@ export const selectVendorForOffer = async (
     if (!totalAmount) throw new Error("Total amount missing");
     if (!selectedVendorId) throw new Error("Selected vendor ID missing");
 
-    const finalPaymentMethod = paymentMethod || "CASH";
+    const finalPaymentMethod = paymentMethod;
 
-    const finalReference = reference || generateReference();
+    const finalReference = reference 
+    const transactionReference = generateReference(); // 🔐 Ensure unique wallet reference
 
+
+    console.log(finalReference);
+    
     // 5. Get price from vendorOffer
     const vendorOffer = await prisma.vendorOffer.findFirst({
       where: {
@@ -219,8 +223,8 @@ export const selectVendorForOffer = async (
           message: "Insufficient wallet balance",
         };
       }
-
-      await debitWallet(wallet.id, price, "Offer Booking Payment", finalReference);
+        reference = transactionReference
+      await debitWallet(wallet.id, price, "Offer Booking Payment", reference);
     } else {
       if (!reference || reference.trim() === "") {
         return {

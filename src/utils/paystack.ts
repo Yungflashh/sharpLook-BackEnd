@@ -1,4 +1,6 @@
 import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
+
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY!;
 
@@ -47,4 +49,6 @@ export const verifyPayment = async (reference: string) => {
 };
 
 
-export const generateReference = () => `REF-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+
+export const generateReference = () => `REF-${uuidv4()}`;
+

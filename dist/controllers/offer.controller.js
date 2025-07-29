@@ -186,7 +186,7 @@ const handleCancelOffer = async (req, res) => {
 exports.handleCancelOffer = handleCancelOffer;
 const getAllAvailableOffersHandler = async (req, res) => {
     try {
-        const offers = await OfferService.getAllAvailableOffers(); // you'll write this in the service
+        const offers = await OfferService.getAllAvailableOffers();
         res.status(200).json({ success: true, data: offers });
     }
     catch (error) {
