@@ -1,7 +1,55 @@
 // src/services/admin.service.ts
 import prisma from "../config/prisma"
-import { Role } from "@prisma/client"
+import { Role, BroadcastAudience } from "@prisma/client"
 import { subDays, subWeeks, subMonths, subYears } from "date-fns";
+
+
+export const sendBroadcast = async (
+  adminId: string,
+  title: string,
+  message: string,
+  audience: BroadcastAudience
+) => {
+  const broadcast = await prisma.broadcast.create({
+    data: {
+      title,
+      message,
+      audience,
+      createdById: adminId,
+    },
+  });
+
+  const roles: Role[] =
+    audience === "BOTH"
+      ? ["CLIENT", "VENDOR"]
+      : [audience === "CLIENT" ? "CLIENT" : "VENDOR"];
+
+  const users = await prisma.user.findMany({
+    where: { role: { in: roles } },
+    select: { id: true },
+  });
+
+  if (users.length === 0) return broadcast;
+
+  const notifications = users.map((user) => ({
+    userId: user.id,
+    message,
+    type: "BROADCAST",
+  }));
+
+  await prisma.notification.createMany({ data: notifications });
+
+  await prisma.broadcast.update({
+    where: { id: broadcast.id },
+    data: { sentCount: users.length },
+  });
+
+  return { message: `Broadcast sent to ${users.length} users.` };
+};
+
+
+
+
 
 
 export const getAllUsers = async () => {

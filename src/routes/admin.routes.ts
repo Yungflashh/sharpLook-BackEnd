@@ -32,6 +32,7 @@ router.put("/users/:userId/ban", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), 
 router.put("/users/:userId/unban", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.unbanUser);
 router.get("/users/notifications", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.getAllNotifications);
 router.get("/users/services", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.getAllServices);
+router.post("/broadcasts", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.createBroadcast);
 
 // Vendors
 router.patch("/vendors/:vendorId/verify", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.verifyVendorIdentity);

@@ -87,7 +87,7 @@ const getAllBanks = async (req, res) => {
     const banksList = await (0, paystack_1.getBanks)();
     res.status(200).json({
         success: true,
-        message: "Banks Lis gotten Successfully",
+        message: "Banks List gotten Successfully",
         data: banksList
     });
 };
