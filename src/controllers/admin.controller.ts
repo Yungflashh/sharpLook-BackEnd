@@ -561,3 +561,13 @@ export const deleteServiceCategory = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+export const fetchAllAdmins = async (req: Request, res: Response) => {
+  try {
+    const admins = await AdminService.getAllAdmins();
+    res.status(200).json({ success: true, data: admins });
+  } catch (error) {
+    console.error('Error fetching admins:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
