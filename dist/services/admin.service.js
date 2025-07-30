@@ -3,11 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
+exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
-const date_fns_1 = require("date-fns");
 const client_1 = require("@prisma/client");
+const date_fns_1 = require("date-fns");
+const client_2 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const referral_1 = require("../utils/referral");
 const sendBroadcast = async (adminId, title, message, audience) => {
@@ -361,21 +362,21 @@ exports.deleteProduct = deleteProduct;
 const approveProduct = async (productId) => {
     return await prisma_1.default.product.update({
         where: { id: productId },
-        data: { approvalStatus: client_1.ApprovalStatus.APPROVED },
+        data: { approvalStatus: client_2.ApprovalStatus.APPROVED },
     });
 };
 exports.approveProduct = approveProduct;
 const suspendProduct = async (productId) => {
     return await prisma_1.default.product.update({
         where: { id: productId },
-        data: { approvalStatus: client_1.ApprovalStatus.SUSPENDED },
+        data: { approvalStatus: client_2.ApprovalStatus.SUSPENDED },
     });
 };
 exports.suspendProduct = suspendProduct;
 const rejectProduct = async (productId, reason) => {
     return await prisma_1.default.product.update({
         where: { id: productId },
-        data: { approvalStatus: client_1.ApprovalStatus.REJECTED, description: reason || "" },
+        data: { approvalStatus: client_2.ApprovalStatus.REJECTED, description: reason || "" },
     });
 };
 exports.rejectProduct = rejectProduct;
@@ -723,3 +724,30 @@ const deleteServiceCategoryById = async (id) => {
     });
 };
 exports.deleteServiceCategoryById = deleteServiceCategoryById;
+const getAllAdmins = async () => {
+    const adminRoles = [
+        client_1.Role.ADMIN,
+        client_1.Role.SUPERADMIN,
+        client_1.Role.MODERATOR,
+        client_1.Role.ANALYST,
+        client_1.Role.FINANCE_ADMIN,
+        client_1.Role.CONTENT_MANAGER,
+        client_1.Role.SUPPORT,
+    ];
+    return await prisma_1.default.user.findMany({
+        where: {
+            role: { in: adminRoles },
+        },
+        orderBy: { createdAt: 'desc' }, // Optional: latest first
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+            adminRole: true,
+            createdAt: true,
+        },
+    });
+};
+exports.getAllAdmins = getAllAdmins;

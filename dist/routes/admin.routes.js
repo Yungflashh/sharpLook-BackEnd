@@ -50,6 +50,7 @@ router.post("/createAdmin", (0, admin_middleware_1.requireAdminRole)(client_1.Ro
 router.post("/addServiceCategory", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.addServiceCategory);
 router.get("/getAllServiceCategory", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.fetchServiceCategories);
 router.delete("/deleteServiceCategory/:id", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.deleteServiceCategory);
+router.get("/getAllAdmins", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.fetchAllAdmins);
 // // ADMIN AND SUPERADMIN
 // // Users
 router.get("/users", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllUsers);

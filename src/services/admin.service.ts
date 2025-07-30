@@ -846,3 +846,32 @@ export const deleteServiceCategoryById = async (id: string) => {
     where: { id },
   });
 };
+
+
+export const getAllAdmins = async () => {
+  const adminRoles: Role[] = [
+    Role.ADMIN,
+    Role.SUPERADMIN,
+    Role.MODERATOR,
+    Role.ANALYST,
+    Role.FINANCE_ADMIN,
+    Role.CONTENT_MANAGER,
+    Role.SUPPORT,
+  ];
+
+  return await prisma.user.findMany({
+    where: {
+      role: { in: adminRoles },
+    },
+    orderBy: { createdAt: 'desc' }, // Optional: latest first
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      adminRole: true,
+      createdAt: true,
+    },
+  });
+};
