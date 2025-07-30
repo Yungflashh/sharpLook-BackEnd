@@ -1,6 +1,6 @@
 // src/services/admin.service.ts
 import prisma from "../config/prisma"
-import { Role, BroadcastAudience } from "@prisma/client"
+import { Role, BroadcastAudience, BroadcastChannel } from "@prisma/client"
 import { subDays, subWeeks, subMonths, subYears } from "date-fns";
 import { ApprovalStatus } from '@prisma/client';
 
@@ -9,18 +9,23 @@ import bcrypt from "bcryptjs";
 
 
 import { generateReferralCode } from "../utils/referral";
+import { sendMail } from "../helpers/email.helper";
+
+
 
 export const sendBroadcast = async (
   adminId: string,
   title: string,
   message: string,
-  audience: BroadcastAudience
+  audience: BroadcastAudience,
+  channel: BroadcastChannel
 ) => {
   const broadcast = await prisma.broadcast.create({
     data: {
       title,
       message,
       audience,
+      channel,
       createdById: adminId,
     },
   });
@@ -32,26 +37,41 @@ export const sendBroadcast = async (
 
   const users = await prisma.user.findMany({
     where: { role: { in: roles } },
-    select: { id: true },
+    select: { id: true, email: true, firstName: true },
   });
 
   if (users.length === 0) return broadcast;
 
-  const notifications = users.map((user) => ({
-    userId: user.id,
-    message,
-    type: "BROADCAST",
-  }));
+  if (channel === "EMAIL") {
+    for (const user of users) {
+      if (user.email) {
+        const html = `
+          <p>Hi ${user.firstName || "there"},</p>
+          <p>${message}</p>
+          <p>— From the SHARPLOOK Team</p>
+        `;
+        await sendMail(user.email, title, html);
+      }
+    }
+  }
 
-  await prisma.notification.createMany({ data: notifications });
+  if (channel === "PUSH_NOTIFICATION") {
+    const notifications = users.map((user) => ({
+      userId: user.id,
+      message,
+      type: "BROADCAST",
+    }));
+    await prisma.notification.createMany({ data: notifications });
+  }
 
   await prisma.broadcast.update({
     where: { id: broadcast.id },
     data: { sentCount: users.length },
   });
 
-  return { message: `Broadcast sent to ${users.length} users.` };
+  return { message: `Broadcast sent to ${users.length} users via ${channel}.` };
 };
+
 
 
 
@@ -874,4 +894,80 @@ export const getAllAdmins = async () => {
       createdAt: true,
     },
   });
+};
+
+
+const ADMIN_ROLES = [
+  "SUPERADMIN",
+  "ADMIN",
+  "MODERATOR",
+  "ANALYST",
+  "FINANCE_ADMIN",
+  "CONTENT_MANAGER",
+  "SUPPORT",
+] as const;
+
+type AdminRole = typeof ADMIN_ROLES[number];
+
+export const deleteAdmin = async (adminId: string) => {
+  // Check if user exists and is an admin
+  const admin = await prisma.user.findUnique({
+    where: { id: adminId },
+    select: { role: true },
+  });
+
+  if (!admin || !ADMIN_ROLES.includes(admin.role as AdminRole)) {
+    throw new Error("User is not an admin or does not exist.");
+  }
+
+  // Delete related admin data
+  await prisma.adminAction.deleteMany({
+    where: { adminId },
+  });
+
+  await prisma.broadcast.deleteMany({
+    where: { createdById: adminId },
+  });
+
+  // Delete the admin user
+  const deletedAdmin = await prisma.user.delete({
+    where: { id: adminId },
+  });
+
+  return deletedAdmin;
+};
+
+
+export const editAdmin = async (
+  adminId: string,
+  data: {
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    password?: string;
+    role?: AdminRole;
+  }
+) => {
+  
+  const admin = await prisma.user.findUnique({
+    where: { id: adminId },
+    select: { role: true },
+  });
+
+  if (!admin || !ADMIN_ROLES.includes(admin.role as AdminRole)) {
+    throw new Error("User is not an admin or does not exist.");
+  }
+
+
+  if (data.password) {
+   
+    data.password =   await bcrypt.hash(data.password, 10)    
+  }
+
+  const updatedAdmin = await prisma.user.update({
+    where: { id: adminId },
+    data,
+  });
+
+  return updatedAdmin;
 };
