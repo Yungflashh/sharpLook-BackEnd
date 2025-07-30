@@ -29,13 +29,15 @@ router.post("/upload", verifyToken, requireRole(["VENDOR"]), uploadMultiple,  up
 router.get("/fetchPortfolioImage", verifyToken, requireRole(["VENDOR"]), fetchPortfolioImages)
 router.get("/getVendorPricing", verifyToken, requireRole(["VENDOR"]), fetchVendorPricing)
 router.post("/setVendorPricing", verifyToken, requireRole(["VENDOR"]), setVendorPricing)
-router.get("/services", verifyToken, fetchAllServiceCategories)
+router.get("/serviceCategories", verifyToken, fetchAllServiceCategories)
 router.get("/filter-by-service", filterVendorsByService)
 router.post("/setVendorAvailability", verifyToken, requireRole(["VENDOR"]), updateAvailability)
 router.get("/getVendorAvailability", verifyToken, requireRole(["VENDOR"]),  fetchAvailability)
 router.put("/update-service-radius",verifyToken,requireRole(["VENDOR"]),updateServiceRadius)
 router.get("/analytics/:vendorId", fetchVendorAnalytics);
 router.get("/earnings-graph", requireRole(["VENDOR"]), fetchVendorEarningsGraph);
+
+
 router.put(
   "/profile/edit",verifyToken,
   requireRole(["VENDOR"]),uploadMultiple,

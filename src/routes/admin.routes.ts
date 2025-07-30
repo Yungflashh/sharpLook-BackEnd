@@ -39,7 +39,7 @@ router.get("/users/:userId", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), Admi
 router.put("/users/:userId/ban", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.banUser);
 router.put("/users/:userId/unban", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.unbanUser);
 router.get("/users/notifications", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.getAllNotifications);
-router.get("/users/services", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.getAllServices);
+router.get("/services", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.getAllServices);
 router.post("/broadcasts", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.createBroadcast);
 router.put("/products/:productId", uploadSingle2, requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.editProductAsAdmin);
 
