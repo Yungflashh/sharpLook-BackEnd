@@ -56,7 +56,7 @@
     vendorReviews  Review[]  @relation("VendorReview")
 
     // ✅ Vendor services, availability, etc.
-    vendorAvailabilities VendorAvailability[]
+    vendorAvailability VendorAvailability? 
     vendorServices       VendorService[]
 
     // ✅ Messages

@@ -98,7 +98,7 @@ const getVendorsForOffer = async (offerId) => {
                     vendorOnboarding: true,
                     vendorServices: true,
                     vendorReviews: true,
-                    vendorAvailabilities: true,
+                    vendorAvailability: true,
                     products: true, // will filter this manually
                 },
             },
@@ -355,7 +355,7 @@ const getClientOffers = async (clientId) => {
                                     longitude: true,
                                 },
                             },
-                            vendorAvailabilities: {
+                            vendorAvailability: {
                                 select: {
                                     days: true,
                                     fromTime: true,

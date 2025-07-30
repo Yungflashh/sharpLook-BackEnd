@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-const targetKeywords = ["product"]; // ✅ Only scanning for 'product'
+const targetKeywords = ["vendorAvailabilities"]; // ✅ Only scanning for 'product'
 const targetExtensions = [".ts"];
 const baseDir = path.join(__dirname, "services"); // 👈 Only scan ./services
 

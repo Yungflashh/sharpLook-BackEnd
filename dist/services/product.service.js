@@ -34,7 +34,7 @@ const getVendorProducts = async (vendorId) => {
             vendor: {
                 include: {
                     vendorOnboarding: true,
-                    vendorAvailabilities: true,
+                    vendorAvailability: true,
                     vendorServices: true,
                     vendorReviews: {
                         include: {
@@ -66,7 +66,7 @@ const getAllProducts = async () => {
             vendor: {
                 include: {
                     vendorOnboarding: true,
-                    vendorAvailabilities: true,
+                    vendorAvailability: true,
                     vendorServices: true,
                     vendorReviews: {
                         include: {

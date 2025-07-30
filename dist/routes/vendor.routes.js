@@ -8,6 +8,7 @@ const vendor_controller_2 = require("../controllers/vendor.controller");
 const upload_middleware_1 = require("../middlewares/upload.middleware");
 const vendorPricing_controller_1 = require("../controllers/vendorPricing.controller");
 const vendorAnalytics_controller_1 = require("../controllers/vendorAnalytics.controller");
+const admin_controller_1 = require("../controllers/admin.controller");
 const router = (0, express_1.Router)();
 router.get("/dashboard", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), (req, res) => {
     res.json({ message: "Welcome, Vendor!" });
@@ -17,7 +18,7 @@ router.post("/upload", auth_middleware_1.verifyToken, (0, auth_middleware_1.requ
 router.get("/fetchPortfolioImage", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.fetchPortfolioImages);
 router.get("/getVendorPricing", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorPricing_controller_1.fetchVendorPricing);
 router.post("/setVendorPricing", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorPricing_controller_1.setVendorPricing);
-router.get("/serviceCategories", auth_middleware_1.verifyToken, vendor_controller_2.fetchAllServiceCategories);
+router.get("/getCategories", admin_controller_1.fetchServiceCategories);
 router.get("/filter-by-service", vendor_controller_2.filterVendorsByService);
 router.post("/setVendorAvailability", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.updateAvailability);
 router.get("/getVendorAvailability", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.fetchAvailability);

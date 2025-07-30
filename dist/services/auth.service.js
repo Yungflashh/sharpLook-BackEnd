@@ -200,7 +200,7 @@ const getUserById = async (userId) => {
             clientBookings: true,
             vendorBookings: true,
             products: true,
-            vendorAvailabilities: true,
+            vendorAvailability: true,
             // promotions: true,
             vendorReviews: true,
             clientReviews: true,
