@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editAdmin = exports.deleteAdmin = exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteVendorService = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.getAllBroadcasts = exports.sendBroadcast = void 0;
+exports.editAdmin = exports.deleteAdmin = exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.updateAdmin = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteVendorService = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.getAllBroadcasts = exports.sendBroadcast = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
@@ -12,6 +12,15 @@ const client_2 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const referral_1 = require("../utils/referral");
 const email_helper_1 = require("../helpers/email.helper");
+const ADMIN_ROLES = [
+    "SUPERADMIN",
+    "ADMIN",
+    "MODERATOR",
+    "ANALYST",
+    "FINANCE_ADMIN",
+    "CONTENT_MANAGER",
+    "SUPPORT",
+];
 const sendBroadcast = async (adminId, title, message, audience, channel) => {
     const broadcast = await prisma_1.default.broadcast.create({
         data: {
@@ -378,7 +387,6 @@ const deleteUser = async (userId) => {
     return deleted;
 };
 exports.deleteUser = deleteUser;
-// src/services/admin.service.ts
 const deleteVendorService = async (serviceId) => {
     // Step 1: Break relations or delete dependent data
     // Delete all related reviews
@@ -746,6 +754,7 @@ const updateProductAsAdmin = async (productId, productName, price, qtyAvailable,
     });
 };
 exports.updateProductAsAdmin = updateProductAsAdmin;
+const mongodb_1 = require("mongodb");
 const createUser = async (firstName, lastName, email, password, role, // Comes from frontend
 phone) => {
     const existingUser = await prisma_1.default.user.findUnique({ where: { email } });
@@ -754,6 +763,7 @@ phone) => {
     }
     const hashedPassword = await bcryptjs_1.default.hash(password, 10);
     const referralCode = (0, referral_1.generateReferralCode)();
+    const walletId = new mongodb_1.ObjectId().toString();
     const newUser = await prisma_1.default.user.create({
         data: {
             firstName,
@@ -768,11 +778,37 @@ phone) => {
             isEmailVerified: true,
             isOtpVerified: true,
             isBanned: false,
+            walletId
         },
     });
     return newUser;
 };
 exports.createUser = createUser;
+const updateAdmin = async (payload) => {
+    const { id, password, role, ...rest } = payload;
+    const existingUser = await prisma_1.default.user.findUnique({ where: { id } });
+    if (!existingUser) {
+        throw new Error("User not found.");
+    }
+    const isAdmin = ADMIN_ROLES.includes(existingUser.role);
+    if (!isAdmin) {
+        throw new Error("Only admin users can be updated with this service.");
+    }
+    if (role && !ADMIN_ROLES.includes(role)) {
+        throw new Error(`Invalid role "${role}". Allowed roles: ${ADMIN_ROLES.join(", ")}`);
+    }
+    const updateData = { ...rest };
+    if (role)
+        updateData.role = role;
+    if (password)
+        updateData.password = await bcryptjs_1.default.hash(password, 10);
+    const updatedAdmin = await prisma_1.default.user.update({
+        where: { id },
+        data: updateData,
+    });
+    return updatedAdmin;
+};
+exports.updateAdmin = updateAdmin;
 const createServiceCategory = async (name) => {
     return await prisma_1.default.serviceCategory.create({
         data: {
@@ -820,15 +856,6 @@ const getAllAdmins = async () => {
     });
 };
 exports.getAllAdmins = getAllAdmins;
-const ADMIN_ROLES = [
-    "SUPERADMIN",
-    "ADMIN",
-    "MODERATOR",
-    "ANALYST",
-    "FINANCE_ADMIN",
-    "CONTENT_MANAGER",
-    "SUPPORT",
-];
 const deleteAdmin = async (adminId) => {
     // Check if user exists and is an admin
     const admin = await prisma_1.default.user.findUnique({

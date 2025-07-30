@@ -12,6 +12,15 @@ import { generateReferralCode } from "../utils/referral";
 import { sendMail } from "../helpers/email.helper";
 
 
+const ADMIN_ROLES = [
+  "SUPERADMIN",
+  "ADMIN",
+  "MODERATOR",
+  "ANALYST",
+  "FINANCE_ADMIN",
+  "CONTENT_MANAGER",
+  "SUPPORT",
+] as const;
 
 export const sendBroadcast = async (
   adminId: string,
@@ -255,7 +264,7 @@ export const getDailyActiveUsers = async () => {
   return await prisma.user.findMany({
     where: { updatedAt: { gte: today } }
   });
-};
+}
 
 export const getAllProducts = async () => {
   const allProducts = await prisma.product.findMany({
@@ -442,7 +451,6 @@ export const deleteUser = async (userId: string) => {
 };
 
 
-// src/services/admin.service.ts
 
 export const deleteVendorService = async (serviceId: string) => {
   // Step 1: Break relations or delete dependent data
@@ -868,6 +876,8 @@ export const updateProductAsAdmin = async (
   });
 };
 
+import { ObjectId } from "mongodb";
+
 
 export const createUser = async (
   firstName: string,
@@ -884,6 +894,7 @@ export const createUser = async (
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const referralCode = generateReferralCode();
+      const walletId = new ObjectId().toString();  
 
   const newUser = await prisma.user.create({
     data: {
@@ -899,10 +910,74 @@ export const createUser = async (
       isEmailVerified: true,
       isOtpVerified: true,
       isBanned: false,
+      walletId
     },
   });
 
   return newUser;
+};
+
+
+
+export interface UpdateAdminPayload {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  role?: Role; // VENDOR or CLIENT should be rejected
+  adminRole?: AdminRole;
+  isBanned?: boolean;
+  powerGiven?: boolean;
+}
+
+
+
+export interface UpdateAdminPayload {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  role?: Role; // e.g., ADMIN, SUPERADMIN, MODERATOR, etc.
+  adminRole?: AdminRole;
+  isBanned?: boolean;
+  powerGiven?: boolean;
+}
+
+
+
+
+export const updateAdmin = async (payload: UpdateAdminPayload) => {
+  const { id, password, role, ...rest } = payload;
+
+  const existingUser = await prisma.user.findUnique({ where: { id } });
+  if (!existingUser) {
+    throw new Error("User not found.");
+  }
+
+  const isAdmin = ADMIN_ROLES.includes(existingUser.role as AdminRole);
+  if (!isAdmin) {
+    throw new Error("Only admin users can be updated with this service.");
+  }
+
+  if (role && !ADMIN_ROLES.includes(role as AdminRole)) {
+    throw new Error(`Invalid role "${role}". Allowed roles: ${ADMIN_ROLES.join(", ")}`);
+  }
+
+  const updateData: any = { ...rest };
+
+  if (role) updateData.role = role;
+  if (password) updateData.password = await bcrypt.hash(password, 10);
+
+  const updatedAdmin = await prisma.user.update({
+    where: { id },
+    data: updateData,
+  });
+
+  return updatedAdmin;
 };
 
 
@@ -956,15 +1031,7 @@ export const getAllAdmins = async () => {
 };
 
 
-const ADMIN_ROLES = [
-  "SUPERADMIN",
-  "ADMIN",
-  "MODERATOR",
-  "ANALYST",
-  "FINANCE_ADMIN",
-  "CONTENT_MANAGER",
-  "SUPPORT",
-] as const;
+
 
 type AdminRole = typeof ADMIN_ROLES[number];
 

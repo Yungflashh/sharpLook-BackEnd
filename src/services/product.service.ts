@@ -34,7 +34,6 @@ export const getVendorProducts = async (vendorId: string) => {
   return await prisma.product.findMany({
     where: {
       vendorId,
-      approvalStatus: ApprovalStatus.APPROVED,
     },
     orderBy: { createdAt: "desc" },
     include: {
