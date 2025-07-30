@@ -4,6 +4,11 @@ import { Role, BroadcastAudience } from "@prisma/client"
 import { subDays, subWeeks, subMonths, subYears } from "date-fns";
 import { ApprovalStatus } from '@prisma/client';
 
+import bcrypt from "bcryptjs"; 
+
+
+
+import { generateReferralCode } from "../utils/referral";
 
 export const sendBroadcast = async (
   adminId: string,
@@ -111,9 +116,32 @@ export const getAllUsers = async () => {
 
 export const getAllBookings = async () => {
   return await prisma.booking.findMany({
-    include: { client: true, vendor: true },
-  })
-}
+    include: {
+      client: true,
+      vendor: {
+        include: {
+          vendorOnboarding: {
+            select: {
+              businessName: true,
+              bio: true,
+              location: true,
+              serviceType: true,
+              specialties: true,
+              serviceRadiusKm: true,
+              profileImage: true,
+              pricing: true,
+              latitude: true,
+              longitude: true,
+              createdAt: true
+            }
+          }
+        }
+      }
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+
 
 export const banUser = async (userId: string) => {
   return await prisma.user.update({
@@ -264,9 +292,118 @@ export const getUserDetail = async (userId: string) => {
 };
 
 
+
 export const deleteUser = async (userId: string) => {
-  return await prisma.user.delete({ where: { id: userId } });
+  // Step 1: Break required relations
+
+  // Self-relation: referrals
+  await prisma.user.updateMany({
+    where: { referredById: userId },
+    data: { referredById: null },
+  });
+
+  // ServiceOfferBooking (client and vendor)
+  await prisma.serviceOfferBooking.deleteMany({
+    where: {
+      OR: [
+        { clientId: userId },
+        { vendorId: userId },
+      ],
+    },
+  });
+
+  // Update VendorAvailability to remove reference
+  await prisma.vendorAvailability.deleteMany({
+    where: { vendorId: userId },
+  });
+
+  // Update Wallet if exists (remove userId to avoid FK issue)
+  await prisma.wallet.updateMany({
+    where: { userId },
+    data: { userId: null },
+  });
+
+  // Step 2: Delete dependent data (optional relations)
+  await prisma.review.deleteMany({
+    where: {
+      OR: [{ vendorId: userId }, { clientId: userId }],
+    },
+  });
+
+  await prisma.booking.deleteMany({
+    where: {
+      OR: [{ vendorId: userId }, { clientId: userId }],
+    },
+  });
+
+  await prisma.message.deleteMany({
+    where: {
+      OR: [{ senderId: userId }, { receiverId: userId }],
+    },
+  });
+
+  await prisma.vendorOnboarding.deleteMany({
+    where: { userId },
+  });
+
+  await prisma.cartItem.deleteMany({
+    where: { userId },
+  });
+
+  await prisma.wishlistItem.deleteMany({
+    where: { userId },
+  });
+
+  await prisma.referral.deleteMany({
+    where: {
+      OR: [{ referredById: userId }, { referredUserId: userId }],
+    },
+  });
+
+  await prisma.promotion.deleteMany({
+    where: { vendorId: userId },
+  });
+
+  await prisma.notification.deleteMany({
+    where: { userId },
+  });
+
+  await prisma.serviceOffer.deleteMany({
+    where: { clientId: userId },
+  });
+
+  await prisma.vendorOffer.deleteMany({
+    where: { vendorId: userId },
+  });
+
+  await prisma.product.deleteMany({
+    where: { vendorId: userId },
+  });
+
+  await prisma.order.deleteMany({
+    where: { userId },
+  });
+
+  await prisma.withdrawalRequest.deleteMany({
+    where: { userId },
+  });
+
+  await prisma.adminAction.deleteMany({
+    where: { adminId: userId },
+  });
+
+  await prisma.broadcast.deleteMany({
+    where: { createdById: userId },
+  });
+
+  // Step 3: Delete the user
+  const deleted = await prisma.user.delete({
+    where: { id: userId },
+  });
+
+  return deleted;
 };
+
 
 
 export const getProductDetail = async (productId: string) => {
@@ -649,5 +786,63 @@ export const updateProductAsAdmin = async (
       ...(picture && { picture }),
       ...(approvalStatus && { approvalStatus }),
     },
+  });
+};
+
+
+export const createUser = async (
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string,
+  role: Role, // Comes from frontend
+  phone?: string
+) => {
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser) {
+    throw new Error("User with this email already exists.");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const referralCode = generateReferralCode();
+
+  const newUser = await prisma.user.create({
+    data: {
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      phone,
+      role,
+      powerGiven: true,
+      acceptedPersonalData: true, 
+      referralCode,
+      isEmailVerified: true,
+      isOtpVerified: true,
+      isBanned: false,
+    },
+  });
+
+  return newUser;
+};
+
+
+export const createServiceCategory = async (name: string) => {
+  return await prisma.serviceCategory.create({
+    data: {
+      name,
+    },
+  });
+};
+
+export const getAllServiceCategories = async () => {
+  return await prisma.serviceCategory.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+export const deleteServiceCategoryById = async (id: string) => {
+  return await prisma.serviceCategory.delete({
+    where: { id },
   });
 };
