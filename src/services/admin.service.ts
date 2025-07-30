@@ -75,6 +75,23 @@ export const sendBroadcast = async (
 
 
 
+export const getAllBroadcasts = async () => {
+  const broadcasts = await prisma.broadcast.findMany({
+    orderBy: { createdAt: 'desc' }, // Optional: show newest first
+    include: {
+      createdBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  return broadcasts;
+};
 
 
 

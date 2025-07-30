@@ -47,7 +47,15 @@ export const  createBroadcast = async(req: Request, res: Response)=> {
   }
 
 
-
+export const getAllBroadcasts = async (req: Request, res: Response) => {
+  try {
+    const broadcasts = await AdminService.getAllBroadcasts();
+    return res.status(200).json({ success: true, broadcasts });
+  } catch (error) {
+    console.error("Error fetching broadcasts:", error);
+    return res.status(500).json({ error: "Failed to retrieve broadcasts." });
+  }
+};
 
 
 export const getAllUsers = async (req: Request, res: Response) => {

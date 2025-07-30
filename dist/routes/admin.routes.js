@@ -53,6 +53,7 @@ router.delete("/deleteServiceCategory/:id", (0, admin_middleware_1.requireAdminR
 router.get("/getAllAdmins", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.fetchAllAdmins);
 router.delete("/deleteAdmin/:id", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.deleteAdminController);
 router.patch("/editAdmin/:id", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.editAdminController);
+router.get("/getAllBroadcast", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.getAllBroadcasts);
 // // ADMIN AND SUPERADMIN
 // // Users
 router.get("/users", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllUsers);

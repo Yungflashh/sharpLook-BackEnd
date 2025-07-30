@@ -24,6 +24,7 @@ router.delete("/deleteServiceCategory/:id", requireAdminRole(Role.SUPERADMIN), A
 router.get("/getAllAdmins", requireAdminRole(Role.SUPERADMIN), AdminController.fetchAllAdmins);
 router.delete("/deleteAdmin/:id", requireAdminRole(Role.SUPERADMIN), AdminController.deleteAdminController);
 router.patch("/editAdmin/:id", requireAdminRole(Role.SUPERADMIN), AdminController.editAdminController);
+router.get("/getAllBroadcast", requireAdminRole(Role.SUPERADMIN), AdminController.getAllBroadcasts);
 
 
 
