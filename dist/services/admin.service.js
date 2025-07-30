@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editAdmin = exports.deleteAdmin = exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
+exports.editAdmin = exports.deleteAdmin = exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.getAllBroadcasts = exports.sendBroadcast = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
@@ -58,6 +58,23 @@ const sendBroadcast = async (adminId, title, message, audience, channel) => {
     return { message: `Broadcast sent to ${users.length} users via ${channel}.` };
 };
 exports.sendBroadcast = sendBroadcast;
+const getAllBroadcasts = async () => {
+    const broadcasts = await prisma_1.default.broadcast.findMany({
+        orderBy: { createdAt: 'desc' }, // Optional: show newest first
+        include: {
+            createdBy: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                },
+            },
+        },
+    });
+    return broadcasts;
+};
+exports.getAllBroadcasts = getAllBroadcasts;
 const getAllUsers = async () => {
     const users = await prisma_1.default.user.findMany({
         orderBy: { createdAt: "desc" },
