@@ -442,6 +442,33 @@ export const deleteUser = async (userId: string) => {
 };
 
 
+// src/services/admin.service.ts
+
+export const deleteVendorService = async (serviceId: string) => {
+  // Step 1: Break relations or delete dependent data
+
+  // Delete all related reviews
+  await prisma.review.deleteMany({
+    where: { serviceId },
+  });
+
+  // Delete all related bookings
+  await prisma.booking.deleteMany({
+    where: { serviceId },
+  });
+
+  // Step 2: Delete the vendor service
+  const deletedService = await prisma.vendorService.delete({
+    where: { id: serviceId },
+  });
+
+  return {
+    message: "Vendor service deleted successfully",
+    deletedService,
+  };
+};
+
+
 
 export const getProductDetail = async (productId: string) => {
   return await prisma.product.findUnique({
@@ -796,7 +823,8 @@ export const getAllServices = async () => {
           id: true,
           firstName: true,
           lastName: true,
-          email: true
+          email: true,
+          vendorOnboarding: true // 👈 Include the onboarding details
         }
       }
     },
@@ -805,6 +833,7 @@ export const getAllServices = async () => {
     }
   });
 };
+
 
 
 

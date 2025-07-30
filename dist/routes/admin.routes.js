@@ -67,6 +67,7 @@ router.get("/users/notifications", (0, admin_middleware_1.requireAdminRole)(clie
 router.get("/services", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllServices);
 router.post("/broadcasts", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.createBroadcast);
 router.put("/products/:productId", upload_middleware_1.uploadSingle2, (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.editProductAsAdmin);
+router.delete("/deleteVendorService/:serviceId", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.deleteVendorService);
 // Vendors
 router.patch("/vendors/:vendorId/verify", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.verifyVendorIdentity);
 // Reviews

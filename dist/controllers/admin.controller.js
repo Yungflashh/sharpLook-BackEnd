@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editAdminController = exports.deleteAdminController = exports.fetchAllAdmins = exports.deleteServiceCategory = exports.fetchServiceCategories = exports.addServiceCategory = exports.createAdminUser = exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.getAllBroadcasts = exports.createBroadcast = void 0;
+exports.editAdminController = exports.deleteAdminController = exports.fetchAllAdmins = exports.deleteServiceCategory = exports.fetchServiceCategories = exports.addServiceCategory = exports.createAdminUser = exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.deleteVendorService = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.getAllBroadcasts = exports.createBroadcast = void 0;
 const AdminService = __importStar(require("../services/admin.service"));
 const email_helper_1 = require("../helpers/email.helper");
 const adminLogger_1 = require("../utils/adminLogger");
@@ -429,6 +429,26 @@ const getPlatformStats = async (req, res) => {
     }
 };
 exports.getPlatformStats = getPlatformStats;
+const deleteVendorService = async (req, res) => {
+    try {
+        const { serviceId } = req.params;
+        const deletedService = await AdminService.deleteVendorService(serviceId);
+        await (0, adminLogger_1.logAdminAction)(req.user.id, 'DELETE_VENDOR_SERVICE', `Admin deleted vendor service with ID: ${serviceId}`);
+        res.status(200).json({
+            success: true,
+            message: "Vendor service deleted successfully",
+            data: deletedService,
+        });
+    }
+    catch (error) {
+        console.error("Error deleting vendor service:", error);
+        res.status(500).json({
+            success: false,
+            message: getErrorMessage(error),
+        });
+    }
+};
+exports.deleteVendorService = deleteVendorService;
 const getAllNotifications = async (req, res) => {
     try {
         const notifications = await AdminService.getAllNotifications();

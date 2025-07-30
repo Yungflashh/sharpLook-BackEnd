@@ -42,6 +42,7 @@ router.get("/users/notifications", requireAdminRole(Role.ADMIN, Role.SUPERADMIN)
 router.get("/services", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.getAllServices);
 router.post("/broadcasts", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.createBroadcast);
 router.put("/products/:productId", uploadSingle2, requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.editProductAsAdmin);
+router.delete("/deleteVendorService/:serviceId", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.deleteVendorService);
 
 // Vendors
 router.patch("/vendors/:vendorId/verify", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.verifyVendorIdentity);
