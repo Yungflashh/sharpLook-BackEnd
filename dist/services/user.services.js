@@ -36,7 +36,7 @@ const getTopRatedVendors = async (limit = 10) => {
             vendorOnboarding: true,
             vendorReviews: true,
             vendorServices: true,
-            vendorAvailabilities: true,
+            vendorAvailability: true,
             promotions: true,
             wallet: true,
             products: true, // fetch all products, then filter
@@ -70,7 +70,7 @@ const getVendorDetails = async (vendorId) => {
         },
         include: {
             vendorOnboarding: true,
-            vendorAvailabilities: true,
+            vendorAvailability: true,
             vendorServices: true,
             vendorReviews: {
                 include: {

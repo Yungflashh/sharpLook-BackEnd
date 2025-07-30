@@ -264,8 +264,8 @@ export const getAllProducts = async () => {
       vendor: {
         include: {
           vendorOnboarding: true,
-          vendorAvailabilities: true,
-          vendorServices: true,
+          vendorAvailability: true,
+            vendorServices: true,
           vendorReviews: {
             include: {
               client: {

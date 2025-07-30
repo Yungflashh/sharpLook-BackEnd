@@ -14,7 +14,7 @@ import { uploadMultiple } from "../middlewares/upload.middleware"
 import { setVendorPricing, fetchVendorPricing } from "../controllers/vendorPricing.controller"
 import { fetchVendorAnalytics ,fetchVendorEarningsGraph } from "../controllers/vendorAnalytics.controller";
 
-
+import {fetchServiceCategories} from "../controllers/admin.controller"
 
 
 
@@ -29,7 +29,7 @@ router.post("/upload", verifyToken, requireRole(["VENDOR"]), uploadMultiple,  up
 router.get("/fetchPortfolioImage", verifyToken, requireRole(["VENDOR"]), fetchPortfolioImages)
 router.get("/getVendorPricing", verifyToken, requireRole(["VENDOR"]), fetchVendorPricing)
 router.post("/setVendorPricing", verifyToken, requireRole(["VENDOR"]), setVendorPricing)
-router.get("/serviceCategories", verifyToken, fetchAllServiceCategories)
+router.get("/getCategories",  fetchServiceCategories);
 router.get("/filter-by-service", filterVendorsByService)
 router.post("/setVendorAvailability", verifyToken, requireRole(["VENDOR"]), updateAvailability)
 router.get("/getVendorAvailability", verifyToken, requireRole(["VENDOR"]),  fetchAvailability)

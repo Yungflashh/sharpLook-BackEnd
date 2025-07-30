@@ -43,7 +43,7 @@ export const getTopRatedVendors = async (limit: number = 10) => {
       vendorOnboarding: true,
       vendorReviews: true,
       vendorServices: true,
-      vendorAvailabilities: true,
+      vendorAvailability: true,
       promotions: true,
       wallet: true,
       products: true,  // fetch all products, then filter
@@ -87,7 +87,7 @@ export const getVendorDetails = async (vendorId: string) => {
     },
     include: {
       vendorOnboarding: true,
-      vendorAvailabilities: true,
+      vendorAvailability: true,
       vendorServices: true,
       vendorReviews: {
         include: {
