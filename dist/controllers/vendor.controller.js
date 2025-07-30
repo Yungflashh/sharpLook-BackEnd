@@ -11,14 +11,18 @@ const prisma_1 = __importDefault(require("../config/prisma"));
 const completeVendorProfile = async (req, res) => {
     try {
         const vendorId = req.user.id;
-        const updated = await (0, vendorOnboarding_service_1.updateVendorProfile)(vendorId, req.body);
-        res.json({
+        const updated = await (0, vendorOnboarding_service_1.updateVendorProfile)(vendorId, {
+            ...req.body,
+            portfolioFiles: req.files,
+        });
+        res.status(200).json({
             success: true,
             message: "Vendor profile completed successfully",
             data: updated,
         });
     }
     catch (err) {
+        console.error("Vendor profile update error:", err);
         res.status(400).json({
             success: false,
             message: "Failed to complete vendor profile",

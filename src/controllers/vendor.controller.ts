@@ -12,17 +12,25 @@ import {
 } from "../services/vendor.services"
 import uploadToCloudinary from "../utils/cloudinary"
 import prisma from "../config/prisma"
+
+
+
 export const completeVendorProfile = async (req: Request, res: Response) => {
   try {
     const vendorId = req.user!.id;
-    const updated = await updateVendorProfile(vendorId, req.body);
 
-    res.json({
+    const updated = await updateVendorProfile(vendorId, {
+      ...req.body,
+      portfolioFiles: req.files as Express.Multer.File[], 
+    });
+
+    res.status(200).json({
       success: true,
       message: "Vendor profile completed successfully",
       data: updated,
     });
   } catch (err: any) {
+    console.error("Vendor profile update error:", err);
     res.status(400).json({
       success: false,
       message: "Failed to complete vendor profile",
