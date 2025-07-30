@@ -64,7 +64,7 @@ router.get("/users/:userId", (0, admin_middleware_1.requireAdminRole)(client_1.R
 router.put("/users/:userId/ban", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.banUser);
 router.put("/users/:userId/unban", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.unbanUser);
 router.get("/users/notifications", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllNotifications);
-router.get("/users/services", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllServices);
+router.get("/services", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllServices);
 router.post("/broadcasts", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.createBroadcast);
 router.put("/products/:productId", upload_middleware_1.uploadSingle2, (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.editProductAsAdmin);
 // Vendors

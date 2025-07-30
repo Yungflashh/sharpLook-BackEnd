@@ -426,13 +426,27 @@ const getAllPayments = async () => {
     return await prisma_1.default.transaction.findMany({
         include: {
             wallet: {
-                include: { user: true }
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            role: true,
+                            vendorOnboarding: true, // 👈 includes vendor details if applicable
+                        }
+                    }
+                }
             }
         },
-        orderBy: { createdAt: "desc" }
+        orderBy: {
+            createdAt: "desc"
+        }
     });
 };
 exports.getAllPayments = getAllPayments;
+;
 const getAllBookingsDetailed = async () => {
     return await prisma_1.default.booking.findMany({
         include: {
