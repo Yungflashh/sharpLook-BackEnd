@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editAdminController = exports.deleteAdminController = exports.fetchAllAdmins = exports.deleteServiceCategory = exports.fetchServiceCategories = exports.addServiceCategory = exports.createAdminUser = exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.deleteVendorService = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.getAllBroadcasts = exports.createBroadcast = void 0;
+exports.editAdminController = exports.deleteAdminController = exports.fetchAllAdmins = exports.deleteServiceCategory = exports.fetchServiceCategories = exports.addServiceCategory = exports.updateAdminController = exports.createAdminUser = exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.deleteVendorService = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.getAllBroadcasts = exports.createBroadcast = void 0;
 const AdminService = __importStar(require("../services/admin.service"));
 const email_helper_1 = require("../helpers/email.helper");
 const adminLogger_1 = require("../utils/adminLogger");
@@ -522,6 +522,36 @@ const createAdminUser = async (req, res) => {
     }
 };
 exports.createAdminUser = createAdminUser;
+const updateAdminController = async (req, res) => {
+    try {
+        const adminId = req.params.id;
+        const { firstName, lastName, email, phone, password, role, isBanned, powerGiven, } = req.body;
+        const updated = await AdminService.updateAdmin({
+            id: adminId,
+            firstName,
+            lastName,
+            email,
+            phone,
+            password,
+            role,
+            isBanned,
+            powerGiven,
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Admin updated successfully",
+            data: updated,
+        });
+    }
+    catch (error) {
+        console.error("❌ Failed to update admin:", error);
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Failed to update admin",
+        });
+    }
+};
+exports.updateAdminController = updateAdminController;
 const addServiceCategory = async (req, res) => {
     try {
         const { name } = req.body;

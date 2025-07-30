@@ -7,19 +7,24 @@ exports.getProductReviewsByVendor = exports.getServiceReviewsByVendor = exports.
 const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
 const client_2 = require("@prisma/client");
-const createReview = async ({ vendorId, clientId, rating, comment, bookingId, productId, serviceId, type }) => {
-    return await prisma_1.default.review.create({
-        data: {
-            vendor: { connect: { id: vendorId } },
-            client: { connect: { id: clientId } },
-            rating,
-            comment,
-            type,
-            booking: bookingId ? { connect: { id: bookingId } } : undefined,
-            product: { connect: { id: productId } },
-            service: serviceId ? { connect: { id: serviceId } } : undefined,
-        }
-    });
+const createReview = async ({ vendorId, clientId, rating, comment, bookingId, productId, serviceId, type, }) => {
+    const data = {
+        vendor: { connect: { id: vendorId } },
+        client: { connect: { id: clientId } },
+        rating,
+        comment,
+        type,
+    };
+    if (bookingId) {
+        data.booking = { connect: { id: bookingId } };
+    }
+    if (productId) {
+        data.product = { connect: { id: productId } };
+    }
+    if (serviceId) {
+        data.service = { connect: { id: serviceId } };
+    }
+    return await prisma_1.default.review.create({ data });
 };
 exports.createReview = createReview;
 const getVendorReviews = async (vendorId, type) => {
@@ -32,9 +37,11 @@ const getVendorReviews = async (vendorId, type) => {
         where: {
             vendorId,
             ...(enumType ? { type: enumType } : {}),
-            product: {
-                approvalStatus: client_2.ApprovalStatus.APPROVED,
-            },
+            ...(type === 'PRODUCT' && {
+                product: {
+                    approvalStatus: client_2.ApprovalStatus.APPROVED,
+                },
+            }),
         },
         include: {
             client: {
@@ -56,7 +63,7 @@ const getVendorReviews = async (vendorId, type) => {
                     id: true,
                     productName: true,
                     picture: true,
-                    approvalStatus: true, // optional: see the status
+                    approvalStatus: true,
                 },
             },
             service: {

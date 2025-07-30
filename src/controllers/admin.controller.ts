@@ -560,6 +560,46 @@ export const createAdminUser = async (req: Request, res: Response) => {
 };
 
 
+export const updateAdminController = async (req: Request, res: Response) => {
+  try {
+    const adminId = req.params.id;
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      role,
+      isBanned,
+      powerGiven,
+    } = req.body;
+
+    const updated = await AdminService.updateAdmin({
+      id: adminId,
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      role,
+      isBanned,
+      powerGiven,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin updated successfully",
+      data: updated,
+    });
+  } catch (error: any) {
+    console.error("❌ Failed to update admin:", error);
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Failed to update admin",
+    });
+  }
+};
+
 
 export const addServiceCategory = async (req: Request, res: Response) => {
   try {

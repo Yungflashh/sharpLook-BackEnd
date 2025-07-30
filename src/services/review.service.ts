@@ -3,7 +3,6 @@ import { ReviewType } from "@prisma/client";
 import { ApprovalStatus } from '@prisma/client';
 
 
-
 export const createReview = async ({
   vendorId,
   clientId,
@@ -12,7 +11,7 @@ export const createReview = async ({
   bookingId,
   productId,
   serviceId,
-  type
+  type,
 }: {
   vendorId: string;
   clientId: string;
@@ -21,22 +20,30 @@ export const createReview = async ({
   bookingId?: string;
   productId?: string;
   serviceId?: string;
-  type: 'BOOKING' | 'PRODUCT' | 'SERVICE';
+  type: "BOOKING" | "PRODUCT" | "SERVICE" | "VENDOR";
 }) => {
-  return await prisma.review.create({
-    data: {
-      vendor: { connect: { id: vendorId } },
-      client: { connect: { id: clientId } },
-      rating,
-      comment,
-      type,
-      booking: bookingId ? { connect: { id: bookingId } } : undefined,
-    product: { connect: { id: productId } },
-      service: serviceId ? { connect: { id: serviceId } } : undefined,
-    }
-  });
-};
+  const data: any = {
+    vendor: { connect: { id: vendorId } },
+    client: { connect: { id: clientId } },
+    rating,
+    comment,
+    type,
+  };
 
+  if (bookingId) {
+    data.booking = { connect: { id: bookingId } };
+  }
+
+  if (productId) {
+    data.product = { connect: { id: productId } };
+  }
+
+  if (serviceId) {
+    data.service = { connect: { id: serviceId } };
+  }
+
+  return await prisma.review.create({ data });
+};
 
 
 export const getVendorReviews = async (vendorId: string, type?: string) => {
@@ -50,9 +57,11 @@ export const getVendorReviews = async (vendorId: string, type?: string) => {
     where: {
       vendorId,
       ...(enumType ? { type: enumType } : {}),
-      product: {
-        approvalStatus: ApprovalStatus.APPROVED,
-      },
+      ...(type === 'PRODUCT' && {
+        product: {
+          approvalStatus: ApprovalStatus.APPROVED,
+        },
+      }),
     },
     include: {
       client: {
@@ -74,7 +83,7 @@ export const getVendorReviews = async (vendorId: string, type?: string) => {
           id: true,
           productName: true,
           picture: true,
-          approvalStatus: true, // optional: see the status
+          approvalStatus: true,
         },
       },
       service: {
@@ -88,6 +97,7 @@ export const getVendorReviews = async (vendorId: string, type?: string) => {
     orderBy: { createdAt: 'desc' },
   });
 };
+
 
 export const getServiceReviewsByVendor = async (vendorId: string, serviceId: string) => {
   return await prisma.review.findMany({
