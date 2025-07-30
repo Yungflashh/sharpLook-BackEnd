@@ -3,11 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
+exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const date_fns_1 = require("date-fns");
 const client_1 = require("@prisma/client");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const referral_1 = require("../utils/referral");
 const sendBroadcast = async (adminId, title, message, audience) => {
     const broadcast = await prisma_1.default.broadcast.create({
         data: {
@@ -92,7 +94,29 @@ const getAllUsers = async () => {
 exports.getAllUsers = getAllUsers;
 const getAllBookings = async () => {
     return await prisma_1.default.booking.findMany({
-        include: { client: true, vendor: true },
+        include: {
+            client: true,
+            vendor: {
+                include: {
+                    vendorOnboarding: {
+                        select: {
+                            businessName: true,
+                            bio: true,
+                            location: true,
+                            serviceType: true,
+                            specialties: true,
+                            serviceRadiusKm: true,
+                            profileImage: true,
+                            pricing: true,
+                            latitude: true,
+                            longitude: true,
+                            createdAt: true
+                        }
+                    }
+                }
+            }
+        },
+        orderBy: { createdAt: "desc" }
     });
 };
 exports.getAllBookings = getAllBookings;
@@ -232,7 +256,92 @@ const getUserDetail = async (userId) => {
 };
 exports.getUserDetail = getUserDetail;
 const deleteUser = async (userId) => {
-    return await prisma_1.default.user.delete({ where: { id: userId } });
+    // Step 1: Break required relations
+    // Self-relation: referrals
+    await prisma_1.default.user.updateMany({
+        where: { referredById: userId },
+        data: { referredById: null },
+    });
+    // ServiceOfferBooking (client and vendor)
+    await prisma_1.default.serviceOfferBooking.deleteMany({
+        where: {
+            OR: [
+                { clientId: userId },
+                { vendorId: userId },
+            ],
+        },
+    });
+    // Update VendorAvailability to remove reference
+    await prisma_1.default.vendorAvailability.deleteMany({
+        where: { vendorId: userId },
+    });
+    // Update Wallet if exists (remove userId to avoid FK issue)
+    await prisma_1.default.wallet.updateMany({
+        where: { userId },
+        data: { userId: null },
+    });
+    // Step 2: Delete dependent data (optional relations)
+    await prisma_1.default.review.deleteMany({
+        where: {
+            OR: [{ vendorId: userId }, { clientId: userId }],
+        },
+    });
+    await prisma_1.default.booking.deleteMany({
+        where: {
+            OR: [{ vendorId: userId }, { clientId: userId }],
+        },
+    });
+    await prisma_1.default.message.deleteMany({
+        where: {
+            OR: [{ senderId: userId }, { receiverId: userId }],
+        },
+    });
+    await prisma_1.default.vendorOnboarding.deleteMany({
+        where: { userId },
+    });
+    await prisma_1.default.cartItem.deleteMany({
+        where: { userId },
+    });
+    await prisma_1.default.wishlistItem.deleteMany({
+        where: { userId },
+    });
+    await prisma_1.default.referral.deleteMany({
+        where: {
+            OR: [{ referredById: userId }, { referredUserId: userId }],
+        },
+    });
+    await prisma_1.default.promotion.deleteMany({
+        where: { vendorId: userId },
+    });
+    await prisma_1.default.notification.deleteMany({
+        where: { userId },
+    });
+    await prisma_1.default.serviceOffer.deleteMany({
+        where: { clientId: userId },
+    });
+    await prisma_1.default.vendorOffer.deleteMany({
+        where: { vendorId: userId },
+    });
+    await prisma_1.default.product.deleteMany({
+        where: { vendorId: userId },
+    });
+    await prisma_1.default.order.deleteMany({
+        where: { userId },
+    });
+    await prisma_1.default.withdrawalRequest.deleteMany({
+        where: { userId },
+    });
+    await prisma_1.default.adminAction.deleteMany({
+        where: { adminId: userId },
+    });
+    await prisma_1.default.broadcast.deleteMany({
+        where: { createdById: userId },
+    });
+    // Step 3: Delete the user
+    const deleted = await prisma_1.default.user.delete({
+        where: { id: userId },
+    });
+    return deleted;
 };
 exports.deleteUser = deleteUser;
 const getProductDetail = async (productId) => {
@@ -567,3 +676,50 @@ const updateProductAsAdmin = async (productId, productName, price, qtyAvailable,
     });
 };
 exports.updateProductAsAdmin = updateProductAsAdmin;
+const createUser = async (firstName, lastName, email, password, role, // Comes from frontend
+phone) => {
+    const existingUser = await prisma_1.default.user.findUnique({ where: { email } });
+    if (existingUser) {
+        throw new Error("User with this email already exists.");
+    }
+    const hashedPassword = await bcryptjs_1.default.hash(password, 10);
+    const referralCode = (0, referral_1.generateReferralCode)();
+    const newUser = await prisma_1.default.user.create({
+        data: {
+            firstName,
+            lastName,
+            email,
+            password: hashedPassword,
+            phone,
+            role,
+            powerGiven: true,
+            acceptedPersonalData: true,
+            referralCode,
+            isEmailVerified: true,
+            isOtpVerified: true,
+            isBanned: false,
+        },
+    });
+    return newUser;
+};
+exports.createUser = createUser;
+const createServiceCategory = async (name) => {
+    return await prisma_1.default.serviceCategory.create({
+        data: {
+            name,
+        },
+    });
+};
+exports.createServiceCategory = createServiceCategory;
+const getAllServiceCategories = async () => {
+    return await prisma_1.default.serviceCategory.findMany({
+        orderBy: { createdAt: "desc" },
+    });
+};
+exports.getAllServiceCategories = getAllServiceCategories;
+const deleteServiceCategoryById = async (id) => {
+    return await prisma_1.default.serviceCategory.delete({
+        where: { id },
+    });
+};
+exports.deleteServiceCategoryById = deleteServiceCategoryById;

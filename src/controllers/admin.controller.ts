@@ -78,7 +78,7 @@ export const getUserDetail = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
   try {
     const user = await AdminService.deleteUser(req.params.userId);
-    await sendMail(user!.email, "Account Deleted", `<p>Your account has been permanently deleted.</p>`);
+    // await sendMail(user!.email, "Account Deleted", `<p>Your account has been permanently deleted.</p>`);
 
 
     await logAdminAction(req.user!.id, 'DELETE_A_USER', 'Admin DELETED A User');
@@ -488,5 +488,76 @@ export const editProductAsAdmin = async (req: Request, res: Response) => {
       message: "Failed to update product as admin",
       error: err.message,
     });
+  }
+};
+
+
+
+export const createAdminUser = async (req: Request, res: Response) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      role 
+    } = req.body;
+
+    if (!firstName || !lastName || !email || !password || !role) {
+      return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    const user = await AdminService.createUser(firstName, lastName, email, password, role, phone);
+
+    return res.status(201).json({
+      message: "User created successfully.",
+      user
+    });
+  } catch (error: any) {
+    console.error("Create Admin Error:", error);
+    return res.status(500).json({ error: error.message || "Something went wrong." });
+  }
+};
+
+
+
+export const addServiceCategory = async (req: Request, res: Response) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: "Name is required" });
+
+    const existing = await AdminService.getAllServiceCategories();
+    if (existing.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+      return res.status(409).json({ success: false, message: "Category already exists" });
+    }
+
+    const category = await AdminService.createServiceCategory(name);
+    return res.status(201).json({ success: true, data: category });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const fetchServiceCategories = async (_req: Request, res: Response) => {
+  try {
+    const categories = await AdminService.getAllServiceCategories();
+    res.json({ success: true, data: categories });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const deleteServiceCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const category = await AdminService.deleteServiceCategoryById(id);
+    return res.json({ success: true, message: "Category deleted", data: category });
+  } catch (err: any) {
+    if (err.code === "P2025") {
+      return res.status(404).json({ success: false, message: "Category not found" });
+    }
+    res.status(500).json({ success: false, message: err.message });
   }
 };

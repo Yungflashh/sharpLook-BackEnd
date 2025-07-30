@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.createBroadcast = void 0;
+exports.deleteServiceCategory = exports.fetchServiceCategories = exports.addServiceCategory = exports.createAdminUser = exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.createBroadcast = void 0;
 const AdminService = __importStar(require("../services/admin.service"));
 const email_helper_1 = require("../helpers/email.helper");
 const adminLogger_1 = require("../utils/adminLogger");
@@ -89,7 +89,7 @@ exports.getUserDetail = getUserDetail;
 const deleteUser = async (req, res) => {
     try {
         const user = await AdminService.deleteUser(req.params.userId);
-        await (0, email_helper_1.sendMail)(user.email, "Account Deleted", `<p>Your account has been permanently deleted.</p>`);
+        // await sendMail(user!.email, "Account Deleted", `<p>Your account has been permanently deleted.</p>`);
         await (0, adminLogger_1.logAdminAction)(req.user.id, 'DELETE_A_USER', 'Admin DELETED A User');
         res.json({ success: true, message: "User deleted", data: user });
     }
@@ -473,3 +473,62 @@ const editProductAsAdmin = async (req, res) => {
     }
 };
 exports.editProductAsAdmin = editProductAsAdmin;
+const createAdminUser = async (req, res) => {
+    try {
+        const { firstName, lastName, email, password, phone, role } = req.body;
+        if (!firstName || !lastName || !email || !password || !role) {
+            return res.status(400).json({ error: "Missing required fields." });
+        }
+        const user = await AdminService.createUser(firstName, lastName, email, password, role, phone);
+        return res.status(201).json({
+            message: "User created successfully.",
+            user
+        });
+    }
+    catch (error) {
+        console.error("Create Admin Error:", error);
+        return res.status(500).json({ error: error.message || "Something went wrong." });
+    }
+};
+exports.createAdminUser = createAdminUser;
+const addServiceCategory = async (req, res) => {
+    try {
+        const { name } = req.body;
+        if (!name)
+            return res.status(400).json({ success: false, message: "Name is required" });
+        const existing = await AdminService.getAllServiceCategories();
+        if (existing.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+            return res.status(409).json({ success: false, message: "Category already exists" });
+        }
+        const category = await AdminService.createServiceCategory(name);
+        return res.status(201).json({ success: true, data: category });
+    }
+    catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+exports.addServiceCategory = addServiceCategory;
+const fetchServiceCategories = async (_req, res) => {
+    try {
+        const categories = await AdminService.getAllServiceCategories();
+        res.json({ success: true, data: categories });
+    }
+    catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+exports.fetchServiceCategories = fetchServiceCategories;
+const deleteServiceCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const category = await AdminService.deleteServiceCategoryById(id);
+        return res.json({ success: true, message: "Category deleted", data: category });
+    }
+    catch (err) {
+        if (err.code === "P2025") {
+            return res.status(404).json({ success: false, message: "Category not found" });
+        }
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+exports.deleteServiceCategory = deleteServiceCategory;

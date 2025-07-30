@@ -46,6 +46,10 @@ router.use(auth_middleware_1.verifyToken);
 router.delete("/users/:userId", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.deleteUser);
 router.patch("/users/:userId/promote", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.promoteToAdmin);
 router.get("/stats", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.getPlatformStats);
+router.post("/createAdmin", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.createAdminUser);
+router.post("/addServiceCategory", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.addServiceCategory);
+router.get("/getAllServiceCategory", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.fetchServiceCategories);
+router.delete("/deleteServiceCategory/:id", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.deleteServiceCategory);
 // // ADMIN AND SUPERADMIN
 // // Users
 router.get("/users", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllUsers);

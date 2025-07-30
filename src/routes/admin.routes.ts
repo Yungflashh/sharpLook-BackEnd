@@ -17,7 +17,10 @@ router.use(verifyToken);
 router.delete("/users/:userId", requireAdminRole(Role.SUPERADMIN), AdminController.deleteUser);
 router.patch("/users/:userId/promote", requireAdminRole(Role.SUPERADMIN), AdminController.promoteToAdmin);
 router.get("/stats", requireAdminRole(Role.SUPERADMIN), AdminController.getPlatformStats);
-
+router.post("/createAdmin", requireAdminRole(Role.SUPERADMIN),  AdminController.createAdminUser);
+router.post("/addServiceCategory", requireAdminRole(Role.SUPERADMIN), AdminController.addServiceCategory);
+router.get("/getAllServiceCategory", requireAdminRole(Role.SUPERADMIN), AdminController.fetchServiceCategories);
+router.delete("/deleteServiceCategory/:id", requireAdminRole(Role.SUPERADMIN), AdminController.deleteServiceCategory);
 
 
 
