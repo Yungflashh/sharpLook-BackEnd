@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchAllAdmins = exports.deleteServiceCategory = exports.fetchServiceCategories = exports.addServiceCategory = exports.createAdminUser = exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.createBroadcast = void 0;
+exports.editAdminController = exports.deleteAdminController = exports.fetchAllAdmins = exports.deleteServiceCategory = exports.fetchServiceCategories = exports.addServiceCategory = exports.createAdminUser = exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.createBroadcast = void 0;
 const AdminService = __importStar(require("../services/admin.service"));
 const email_helper_1 = require("../helpers/email.helper");
 const adminLogger_1 = require("../utils/adminLogger");
@@ -46,14 +46,14 @@ const getErrorMessage = (error) => error instanceof Error ? error.message : "Int
 const createBroadcast = async (req, res) => {
     try {
         const adminId = req.user.id;
-        const { title, message, audience } = req.body;
+        const { title, message, audience, channel } = req.body;
         if (!title || !message || !audience) {
             return res.status(400).json({ error: "Missing required fields." });
         }
         if (!["CLIENT", "VENDOR", "BOTH"].includes(audience)) {
             return res.status(400).json({ error: "Invalid audience." });
         }
-        const result = await AdminService.sendBroadcast(adminId, title, message, audience);
+        const result = await AdminService.sendBroadcast(adminId, title, message, audience, channel);
         return res.status(200).json({ success: true, ...result });
     }
     catch (error) {
@@ -543,3 +543,40 @@ const fetchAllAdmins = async (req, res) => {
     }
 };
 exports.fetchAllAdmins = fetchAllAdmins;
+const deleteAdminController = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedAdmin = await AdminService.deleteAdmin(id);
+        res.status(200).json({
+            success: true,
+            message: "Admin deleted successfully",
+            data: deletedAdmin,
+        });
+    }
+    catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message || "Failed to delete admin",
+        });
+    }
+};
+exports.deleteAdminController = deleteAdminController;
+const editAdminController = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+        const updatedAdmin = await AdminService.editAdmin(id, updateData);
+        res.status(200).json({
+            success: true,
+            message: "Admin updated successfully",
+            data: updatedAdmin,
+        });
+    }
+    catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message || "Failed to update admin",
+        });
+    }
+};
+exports.editAdminController = editAdminController;

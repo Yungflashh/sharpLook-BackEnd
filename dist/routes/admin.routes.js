@@ -51,6 +51,8 @@ router.post("/addServiceCategory", (0, admin_middleware_1.requireAdminRole)(clie
 router.get("/getAllServiceCategory", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.fetchServiceCategories);
 router.delete("/deleteServiceCategory/:id", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.deleteServiceCategory);
 router.get("/getAllAdmins", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.fetchAllAdmins);
+router.delete("/deleteAdmin/:id", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.deleteAdminController);
+router.patch("/editAdmin/:id", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.editAdminController);
 // // ADMIN AND SUPERADMIN
 // // Users
 router.get("/users", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllUsers);

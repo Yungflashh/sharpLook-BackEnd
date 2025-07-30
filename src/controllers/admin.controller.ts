@@ -13,6 +13,7 @@ const getErrorMessage = (error: unknown): string =>
 
 
 import { BroadcastAudience } from "@prisma/client";
+import { channel } from "process";
 
 
 
@@ -20,7 +21,7 @@ import { BroadcastAudience } from "@prisma/client";
 export const  createBroadcast = async(req: Request, res: Response)=> {
     try {
       const adminId = req.user!.id;
-      const { title, message, audience } = req.body;
+      const { title, message, audience, channel } = req.body;
 
       if (!title || !message || !audience) {
         return res.status(400).json({ error: "Missing required fields." });
@@ -34,7 +35,8 @@ export const  createBroadcast = async(req: Request, res: Response)=> {
         adminId,
         title,
         message,
-        audience as BroadcastAudience
+        audience as BroadcastAudience,
+        channel
       );
 
       return res.status(200).json({ success: true, ...result });
@@ -569,5 +571,46 @@ export const fetchAllAdmins = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching admins:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+
+export const deleteAdminController = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const deletedAdmin = await AdminService.deleteAdmin(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Admin deleted successfully",
+      data: deletedAdmin,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to delete admin",
+    });
+  }
+};
+
+
+export const editAdminController = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const updatedAdmin = await AdminService.editAdmin(id, updateData);
+
+    res.status(200).json({
+      success: true,
+      message: "Admin updated successfully",
+      data: updatedAdmin,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to update admin",
+    });
   }
 };

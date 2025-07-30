@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
+exports.editAdmin = exports.deleteAdmin = exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
@@ -11,12 +11,14 @@ const date_fns_1 = require("date-fns");
 const client_2 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const referral_1 = require("../utils/referral");
-const sendBroadcast = async (adminId, title, message, audience) => {
+const email_helper_1 = require("../helpers/email.helper");
+const sendBroadcast = async (adminId, title, message, audience, channel) => {
     const broadcast = await prisma_1.default.broadcast.create({
         data: {
             title,
             message,
             audience,
+            channel,
             createdById: adminId,
         },
     });
@@ -25,21 +27,35 @@ const sendBroadcast = async (adminId, title, message, audience) => {
         : [audience === "CLIENT" ? "CLIENT" : "VENDOR"];
     const users = await prisma_1.default.user.findMany({
         where: { role: { in: roles } },
-        select: { id: true },
+        select: { id: true, email: true, firstName: true },
     });
     if (users.length === 0)
         return broadcast;
-    const notifications = users.map((user) => ({
-        userId: user.id,
-        message,
-        type: "BROADCAST",
-    }));
-    await prisma_1.default.notification.createMany({ data: notifications });
+    if (channel === "EMAIL") {
+        for (const user of users) {
+            if (user.email) {
+                const html = `
+          <p>Hi ${user.firstName || "there"},</p>
+          <p>${message}</p>
+          <p>— From the SHARPLOOK Team</p>
+        `;
+                await (0, email_helper_1.sendMail)(user.email, title, html);
+            }
+        }
+    }
+    if (channel === "PUSH_NOTIFICATION") {
+        const notifications = users.map((user) => ({
+            userId: user.id,
+            message,
+            type: "BROADCAST",
+        }));
+        await prisma_1.default.notification.createMany({ data: notifications });
+    }
     await prisma_1.default.broadcast.update({
         where: { id: broadcast.id },
         data: { sentCount: users.length },
     });
-    return { message: `Broadcast sent to ${users.length} users.` };
+    return { message: `Broadcast sent to ${users.length} users via ${channel}.` };
 };
 exports.sendBroadcast = sendBroadcast;
 const getAllUsers = async () => {
@@ -751,3 +767,53 @@ const getAllAdmins = async () => {
     });
 };
 exports.getAllAdmins = getAllAdmins;
+const ADMIN_ROLES = [
+    "SUPERADMIN",
+    "ADMIN",
+    "MODERATOR",
+    "ANALYST",
+    "FINANCE_ADMIN",
+    "CONTENT_MANAGER",
+    "SUPPORT",
+];
+const deleteAdmin = async (adminId) => {
+    // Check if user exists and is an admin
+    const admin = await prisma_1.default.user.findUnique({
+        where: { id: adminId },
+        select: { role: true },
+    });
+    if (!admin || !ADMIN_ROLES.includes(admin.role)) {
+        throw new Error("User is not an admin or does not exist.");
+    }
+    // Delete related admin data
+    await prisma_1.default.adminAction.deleteMany({
+        where: { adminId },
+    });
+    await prisma_1.default.broadcast.deleteMany({
+        where: { createdById: adminId },
+    });
+    // Delete the admin user
+    const deletedAdmin = await prisma_1.default.user.delete({
+        where: { id: adminId },
+    });
+    return deletedAdmin;
+};
+exports.deleteAdmin = deleteAdmin;
+const editAdmin = async (adminId, data) => {
+    const admin = await prisma_1.default.user.findUnique({
+        where: { id: adminId },
+        select: { role: true },
+    });
+    if (!admin || !ADMIN_ROLES.includes(admin.role)) {
+        throw new Error("User is not an admin or does not exist.");
+    }
+    if (data.password) {
+        data.password = await bcryptjs_1.default.hash(data.password, 10);
+    }
+    const updatedAdmin = await prisma_1.default.user.update({
+        where: { id: adminId },
+        data,
+    });
+    return updatedAdmin;
+};
+exports.editAdmin = editAdmin;

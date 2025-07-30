@@ -586,6 +586,7 @@ model Broadcast {
   title       String
   message     String
   audience    BroadcastAudience
+  channel     BroadcastChannel
   createdById String      @db.ObjectId
   createdBy   User     @relation("UserToBroadcasts", fields: [createdById], references: [id])
   createdAt   DateTime    @default(now())
@@ -596,4 +597,10 @@ enum BroadcastAudience {
   CLIENT
   VENDOR
   BOTH
+ 
+}
+
+enum BroadcastChannel {
+  EMAIL
+  PUSH_NOTIFICATION
 }
