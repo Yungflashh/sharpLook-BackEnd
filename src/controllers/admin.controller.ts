@@ -427,6 +427,35 @@ export const getPlatformStats = async (req: Request, res: Response) => {
 };
 
 
+
+export const deleteVendorService = async (req: Request, res: Response) => {
+  try {
+    const { serviceId } = req.params;
+
+    const deletedService = await AdminService.deleteVendorService(serviceId);
+
+    await logAdminAction(
+      req.user!.id,
+      'DELETE_VENDOR_SERVICE',
+      `Admin deleted vendor service with ID: ${serviceId}`
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Vendor service deleted successfully",
+      data: deletedService,
+    });
+  } catch (error: any) {
+    console.error("Error deleting vendor service:", error);
+    res.status(500).json({
+      success: false,
+      message: getErrorMessage(error),
+    });
+  }
+};
+
+
+
 export const getAllNotifications = async (req: Request, res: Response) => {
   try {
     const notifications = await AdminService.getAllNotifications();

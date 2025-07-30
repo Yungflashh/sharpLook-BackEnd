@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editAdmin = exports.deleteAdmin = exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.getAllBroadcasts = exports.sendBroadcast = void 0;
+exports.editAdmin = exports.deleteAdmin = exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteVendorService = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.getAllBroadcasts = exports.sendBroadcast = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
@@ -378,6 +378,27 @@ const deleteUser = async (userId) => {
     return deleted;
 };
 exports.deleteUser = deleteUser;
+// src/services/admin.service.ts
+const deleteVendorService = async (serviceId) => {
+    // Step 1: Break relations or delete dependent data
+    // Delete all related reviews
+    await prisma_1.default.review.deleteMany({
+        where: { serviceId },
+    });
+    // Delete all related bookings
+    await prisma_1.default.booking.deleteMany({
+        where: { serviceId },
+    });
+    // Step 2: Delete the vendor service
+    const deletedService = await prisma_1.default.vendorService.delete({
+        where: { id: serviceId },
+    });
+    return {
+        message: "Vendor service deleted successfully",
+        deletedService,
+    };
+};
+exports.deleteVendorService = deleteVendorService;
 const getProductDetail = async (productId) => {
     return await prisma_1.default.product.findUnique({
         where: { id: productId },
@@ -695,7 +716,8 @@ const getAllServices = async () => {
                     id: true,
                     firstName: true,
                     lastName: true,
-                    email: true
+                    email: true,
+                    vendorOnboarding: true // 👈 Include the onboarding details
                 }
             }
         },
