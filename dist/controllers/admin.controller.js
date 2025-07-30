@@ -32,11 +32,15 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.createBroadcast = void 0;
+exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.createBroadcast = void 0;
 const AdminService = __importStar(require("../services/admin.service"));
 const email_helper_1 = require("../helpers/email.helper");
 const adminLogger_1 = require("../utils/adminLogger");
+const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 // Utility to extract error message safely
 const getErrorMessage = (error) => error instanceof Error ? error.message : "Internal server error";
 const createBroadcast = async (req, res) => {
@@ -436,3 +440,36 @@ const getAllServices = async (req, res) => {
     }
 };
 exports.getAllServices = getAllServices;
+const editProductAsAdmin = async (req, res) => {
+    const { productId } = req.params;
+    const { productName, price, qtyAvailable, description, approvalStatus } = req.body;
+    if (!productId || !productName || price === undefined || qtyAvailable === undefined) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing required fields",
+            data: { productId, productName, price, qtyAvailable },
+        });
+    }
+    try {
+        let pictureUrl;
+        if (req.file) {
+            const cloudinaryRes = await (0, cloudinary_1.default)(req.file.buffer, req.file.mimetype);
+            pictureUrl = cloudinaryRes.secure_url;
+        }
+        const updatedProduct = await AdminService.updateProductAsAdmin(productId, productName, Number(price), Number(qtyAvailable), description, pictureUrl, approvalStatus);
+        return res.status(200).json({
+            success: true,
+            message: "Product updated successfully by admin",
+            data: updatedProduct,
+        });
+    }
+    catch (err) {
+        console.error("❌ Error updating product as admin:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update product as admin",
+            error: err.message,
+        });
+    }
+};
+exports.editProductAsAdmin = editProductAsAdmin;
