@@ -3,6 +3,7 @@ import * as AdminController from "../controllers/admin.controller";
 import { verifyToken } from "../middlewares/auth.middleware";
 import { Role} from '@prisma/client';
 import { requireAdminRole } from "../middlewares/admin.middleware";
+import { uploadSingle2 } from "../middlewares/upload.middleware";
 
 
 const router = Router();
@@ -33,6 +34,7 @@ router.put("/users/:userId/unban", requireAdminRole(Role.ADMIN, Role.SUPERADMIN)
 router.get("/users/notifications", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.getAllNotifications);
 router.get("/users/services", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.getAllServices);
 router.post("/broadcasts", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.createBroadcast);
+router.put("/products/:productId", uploadSingle2, requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.editProductAsAdmin);
 
 // Vendors
 router.patch("/vendors/:vendorId/verify", requireAdminRole(Role.ADMIN, Role.SUPERADMIN), AdminController.verifyVendorIdentity);

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
+exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.sendBroadcast = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const date_fns_1 = require("date-fns");
@@ -164,9 +164,51 @@ const getDailyActiveUsers = async () => {
 };
 exports.getDailyActiveUsers = getDailyActiveUsers;
 const getAllProducts = async () => {
-    return await prisma_1.default.product.findMany({
-        orderBy: { createdAt: "desc" }
+    const allProducts = await prisma_1.default.product.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+            vendor: {
+                include: {
+                    vendorOnboarding: true,
+                    vendorAvailabilities: true,
+                    vendorServices: true,
+                    vendorReviews: {
+                        include: {
+                            client: {
+                                select: {
+                                    firstName: true,
+                                    lastName: true,
+                                    avatar: true,
+                                },
+                            },
+                        },
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                    },
+                    wallet: true,
+                    products: true,
+                    cartItems: true,
+                    wishlistItems: true,
+                    orders: true,
+                    referralsMade: true,
+                    referralsGotten: true,
+                    notifications: true,
+                    sentMessages: true,
+                    receivedMessages: true,
+                },
+            },
+        },
     });
+    // Group products by approvalStatus
+    const grouped = allProducts.reduce((acc, product) => {
+        const status = product.approvalStatus || "UNKNOWN";
+        if (!acc[status])
+            acc[status] = [];
+        acc[status].push(product);
+        return acc;
+    }, {});
+    return grouped;
 };
 exports.getAllProducts = getAllProducts;
 const getSoldProducts = async () => {
@@ -342,9 +384,20 @@ const getAllBookingsDetailed = async () => {
 exports.getAllBookingsDetailed = getAllBookingsDetailed;
 const getAllDisputes = async () => {
     return await prisma_1.default.dispute.findMany({
-        include: {
-            raisedBy: true,
-            booking: true,
+        select: {
+            id: true,
+            reason: true,
+            status: true,
+            imageUrl: true, // explicitly included
+            createdAt: true,
+            raisedBy: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true
+                }
+            },
+            booking: true
         },
         orderBy: { createdAt: "desc" }
     });
@@ -495,3 +548,22 @@ const getAllServices = async () => {
     });
 };
 exports.getAllServices = getAllServices;
+// services/admin.service.ts
+const updateProductAsAdmin = async (productId, productName, price, qtyAvailable, description, picture, approvalStatus) => {
+    const status = qtyAvailable === 0 ? "not in stock" : "in stock";
+    return await prisma_1.default.product.update({
+        where: {
+            id: productId,
+        },
+        data: {
+            productName,
+            price,
+            qtyAvailable,
+            status,
+            description,
+            ...(picture && { picture }),
+            ...(approvalStatus && { approvalStatus }),
+        },
+    });
+};
+exports.updateProductAsAdmin = updateProductAsAdmin;

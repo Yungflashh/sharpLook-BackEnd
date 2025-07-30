@@ -3,7 +3,7 @@ import * as AdminService from "../services/admin.service";
 import { Role } from "@prisma/client";
 import { sendMail } from "../helpers/email.helper";
 import { logAdminAction } from '../utils/adminLogger';
-
+import uploadToCloudinary from "../utils/cloudinary";
 
 // Utility to extract error message safely
 const getErrorMessage = (error: unknown): string =>
@@ -441,3 +441,52 @@ export const getAllServices = async (req: Request, res: Response) => {
   }
 };
 
+
+
+
+
+export const editProductAsAdmin = async (req: Request, res: Response) => {
+  const { productId } = req.params;
+  const { productName, price, qtyAvailable, description, approvalStatus } = req.body;
+
+  if (!productId || !productName || price === undefined || qtyAvailable === undefined) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields",
+      data: { productId, productName, price, qtyAvailable },
+    });
+  }
+
+  try {
+    let pictureUrl: string | undefined;
+
+    if (req.file) {
+      const cloudinaryRes = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+      pictureUrl = cloudinaryRes.secure_url;
+    }
+
+    const updatedProduct = await AdminService.updateProductAsAdmin(
+      productId,
+      productName,
+      Number(price),
+      Number(qtyAvailable),
+      description,
+      pictureUrl,
+      approvalStatus
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Product updated successfully by admin",
+      data: updatedProduct,
+    });
+  } catch (err: any) {
+    console.error("❌ Error updating product as admin:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update product as admin",
+      error: err.message,
+    });
+  }
+};

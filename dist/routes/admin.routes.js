@@ -38,6 +38,7 @@ const AdminController = __importStar(require("../controllers/admin.controller"))
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const client_1 = require("@prisma/client");
 const admin_middleware_1 = require("../middlewares/admin.middleware");
+const upload_middleware_1 = require("../middlewares/upload.middleware");
 const router = (0, express_1.Router)();
 // Middleware applied to all admin routes
 router.use(auth_middleware_1.verifyToken);
@@ -57,6 +58,7 @@ router.put("/users/:userId/unban", (0, admin_middleware_1.requireAdminRole)(clie
 router.get("/users/notifications", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllNotifications);
 router.get("/users/services", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllServices);
 router.post("/broadcasts", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.createBroadcast);
+router.put("/products/:productId", upload_middleware_1.uploadSingle2, (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.editProductAsAdmin);
 // Vendors
 router.patch("/vendors/:vendorId/verify", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.verifyVendorIdentity);
 // Reviews

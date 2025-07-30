@@ -192,12 +192,55 @@ export const getDailyActiveUsers = async () => {
   });
 };
 
-
 export const getAllProducts = async () => {
-  return await prisma.product.findMany({
-    orderBy: { createdAt: "desc" }
+  const allProducts = await prisma.product.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      vendor: {
+        include: {
+          vendorOnboarding: true,
+          vendorAvailabilities: true,
+          vendorServices: true,
+          vendorReviews: {
+            include: {
+              client: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  avatar: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
+          wallet: true,
+          products: true,
+          cartItems: true,
+          wishlistItems: true,
+          orders: true,
+          referralsMade: true,
+          referralsGotten: true,
+          notifications: true,
+          sentMessages: true,
+          receivedMessages: true,
+        },
+      },
+    },
   });
+
+  // Group products by approvalStatus
+  const grouped = allProducts.reduce((acc, product) => {
+    const status = product.approvalStatus || "UNKNOWN";
+    if (!acc[status]) acc[status] = [];
+    acc[status].push(product);
+    return acc;
+  }, {} as Record<string, typeof allProducts>);
+
+  return grouped;
 };
+
 
 export const getSoldProducts = async () => {
   return await prisma.product.findMany({
@@ -382,13 +425,25 @@ export const getAllBookingsDetailed = async () => {
 
 export const getAllDisputes = async () => {
   return await prisma.dispute.findMany({
-    include: {
-      raisedBy: true,
-      booking: true,
+    select: {
+      id: true,
+      reason: true,
+      status: true,
+      imageUrl: true, // explicitly included
+      createdAt: true,
+      raisedBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true
+        }
+      },
+      booking: true
     },
     orderBy: { createdAt: "desc" }
   });
 };
+
 
 
 export const resolveDispute = async (disputeId: string, resolution: string) => {
@@ -564,3 +619,35 @@ export const getAllServices = async () => {
   });
 };
 
+
+
+// services/admin.service.ts
+
+
+
+export const updateProductAsAdmin = async (
+  productId: string,
+  productName: string,
+  price: number,
+  qtyAvailable: number,
+  description: string,
+  picture?: string,
+  approvalStatus?: ApprovalStatus
+) => {
+  const status = qtyAvailable === 0 ? "not in stock" : "in stock";
+
+  return await prisma.product.update({
+    where: {
+      id: productId,
+    },
+    data: {
+      productName,
+      price,
+      qtyAvailable,
+      status,
+      description,
+      ...(picture && { picture }),
+      ...(approvalStatus && { approvalStatus }),
+    },
+  });
+};
