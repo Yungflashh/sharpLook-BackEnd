@@ -35,7 +35,7 @@ const handlePaystackWebhook = async (reference) => {
         if (paymentData.status !== "SUCCESS") {
             const message = `${paymentData.gateway_response}`;
             console.warn(message);
-            return { success: true, message };
+            return { success: false, message };
         }
         if (transaction.status === "SUCCESS") {
             const message = `Payment has already been verified , The refrence number is : ${reference}`;
