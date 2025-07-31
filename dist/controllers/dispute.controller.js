@@ -38,10 +38,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolveDispute = exports.getDisputes = exports.raiseDispute = void 0;
 const DisputeService = __importStar(require("../services/dispute.service"));
-const upload_middleware_1 = require("../middlewares/upload.middleware");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 exports.raiseDispute = [
-    upload_middleware_1.uploadDisputeImage,
     async (req, res) => {
         const { bookingId, reason } = req.body;
         const userId = req.user?.id;
