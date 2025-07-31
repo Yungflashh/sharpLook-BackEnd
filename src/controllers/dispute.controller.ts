@@ -5,7 +5,7 @@ import uploadBufferToCloudinary from "../utils/cloudinary";
 
 
 export const raiseDispute = [
-  uploadDisputeImage,
+
   async (req: Request, res: Response) => {
     const { bookingId, reason } = req.body;
     const userId = req.user?.id!;

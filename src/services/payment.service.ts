@@ -9,6 +9,9 @@ export const handlePaystackWebhook = async (reference: string) => {
     const email = paymentData.customer?.email;
     const amount = paymentData.amount / 100;
 
+           console.log("Na transaction be this  ********************", paymentData);
+
+
     if (!email) {
       throw new Error("Email missing from payment");
     }
@@ -32,11 +35,19 @@ export const handlePaystackWebhook = async (reference: string) => {
       return { success: false, message };
     }
 
+    if (paymentData.status !== "SUCCESS"){
+      const message = `${paymentData.gateway_response}`;
+      console.warn(message);
+      return { success: true, message };
+
+    }
+    
     if (transaction.status === "SUCCESS") {
       const message = `Payment has already been verified , The refrence number is : ${reference}`;
       console.warn(message);
       return { success: true, message };
     }
+
 
     // ✅ Credit wallet and mark transaction as successful
     await creditWallet(user.wallet.id, amount, "Wallet Funding");

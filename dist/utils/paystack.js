@@ -35,6 +35,7 @@ const verifyPayment = async (reference) => {
                 Authorization: `Bearer ${PAYSTACK_SECRET}`,
             },
         });
+        console.log("data got here oo");
         return response.data.data;
     }
     catch (error) {

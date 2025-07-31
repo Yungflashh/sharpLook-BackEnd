@@ -41,6 +41,9 @@ export const verifyPayment = async (reference: string) => {
         },
       }
     );
+
+    console.log("data got here oo");
+    
     return response.data.data;
   } catch (error: any) {
     console.error("Payment verification failed:", error.response?.data || error.message);

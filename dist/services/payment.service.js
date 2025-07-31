@@ -13,6 +13,7 @@ const handlePaystackWebhook = async (reference) => {
         const paymentData = await (0, paystack_1.verifyPayment)(reference);
         const email = paymentData.customer?.email;
         const amount = paymentData.amount / 100;
+        console.log("Na transaction be this  ********************", paymentData);
         if (!email) {
             throw new Error("Email missing from payment");
         }
@@ -30,6 +31,11 @@ const handlePaystackWebhook = async (reference) => {
             const message = `[Webhook] No transaction found for ${reference}`;
             console.error(message);
             return { success: false, message };
+        }
+        if (paymentData.status !== "SUCCESS") {
+            const message = `${paymentData.gateway_response}`;
+            console.warn(message);
+            return { success: true, message };
         }
         if (transaction.status === "SUCCESS") {
             const message = `Payment has already been verified , The refrence number is : ${reference}`;
