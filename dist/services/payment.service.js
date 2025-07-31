@@ -40,7 +40,7 @@ const handlePaystackWebhook = async (reference) => {
         if (transaction.status === "SUCCESS") {
             const message = `Payment has already been verified , The refrence number is : ${reference}`;
             console.warn(message);
-            return { success: true, message };
+            return { success: true, status: 200, message };
         }
         // ✅ Credit wallet and mark transaction as successful
         await (0, wallet_service_1.creditWallet)(user.wallet.id, amount, "Wallet Funding");
