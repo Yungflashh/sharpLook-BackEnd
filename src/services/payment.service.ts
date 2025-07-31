@@ -4,6 +4,8 @@ import { creditWallet } from "../services/wallet.service";
 import { TransactionType } from "@prisma/client";
 
 export const handlePaystackWebhook = async (reference: string) => {
+
+
   try {
     const paymentData = await verifyPayment(reference);
     const email = paymentData.customer?.email;
@@ -42,7 +44,7 @@ export const handlePaystackWebhook = async (reference: string) => {
 
     }
     
-    if (transaction.status === "SUCCESS") {
+    if (transaction.status === "paid") {
       const message = `Payment has already been verified , The refrence number is : ${reference}`;
       console.warn(message);
       return { success: true, status: 200,  message };
@@ -58,7 +60,7 @@ export const handlePaystackWebhook = async (reference: string) => {
     });
 
     const message = `[Webhook] Wallet funded successfully: ${amount}`;
-    console.log(message);
+    // console.log(message);
     return { success: true, status: 200, message };
     
   } catch (error: any) {

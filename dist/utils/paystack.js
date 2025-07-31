@@ -36,6 +36,7 @@ const verifyPayment = async (reference) => {
             },
         });
         console.log("data got here oo");
+        console.log("THis is response=> ", response.data);
         return response.data.data;
     }
     catch (error) {

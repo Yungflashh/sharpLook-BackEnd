@@ -37,7 +37,7 @@ const handlePaystackWebhook = async (reference) => {
             console.warn(message);
             return { success: false, message };
         }
-        if (transaction.status === "SUCCESS") {
+        if (transaction.status === "paid") {
             const message = `Payment has already been verified , The refrence number is : ${reference}`;
             console.warn(message);
             return { success: true, status: 200, message };
@@ -49,7 +49,7 @@ const handlePaystackWebhook = async (reference) => {
             data: { status: "SUCCESS" },
         });
         const message = `[Webhook] Wallet funded successfully: ${amount}`;
-        console.log(message);
+        // console.log(message);
         return { success: true, status: 200, message };
     }
     catch (error) {
