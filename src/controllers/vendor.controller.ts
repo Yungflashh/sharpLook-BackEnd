@@ -11,7 +11,7 @@ import {
   getVendorsByService
 } from "../services/vendor.services"
 import uploadToCloudinary from "../utils/cloudinary"
-import prisma from "../config/prisma"
+// import prisma from "../config/prisma"
 import { maybeCreateVendorCommission } from "../services/commision.service"; // adjust path as needed
 
 
@@ -25,6 +25,8 @@ export const completeVendorProfile = async (req: Request, res: Response) => {
       portfolioFiles: req.files as Express.Multer.File[], 
     });
         await maybeCreateVendorCommission(vendorId);
+
+        
 
     res.status(200).json({
       success: true,
@@ -260,3 +262,68 @@ if (typeof availability === "string") {
   }
 };
 
+import { PrismaClient, Role } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export const markVendorAsPaidController = async (req: Request, res: Response) => {
+
+  const userId = req.user!.id
+  const {planName, amount } = req.body;
+
+  if (!userId || !planName || typeof amount !== 'number') {
+    return res.status(400).json({ message: 'Missing or invalid parameters.' });
+  }
+
+  try {
+    
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        vendorSubscription: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    if (user.role !== Role.VENDOR) {
+      return res.status(400).json({ message: 'User is not a vendor.' });
+    }
+
+    // Update subscription
+    const now = new Date();
+    const nextMonth = new Date(now);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+    await prisma.vendorSubscription.update({
+      where: { userId },
+      data: {
+        isPaid: true,
+        paidAt: now,
+        expiresAt: nextMonth,
+        planName,
+        amount,
+        updatedAt: now
+      }
+    });
+
+    // If the user was banned, unban them
+    if (user.isBanned) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          isBanned: false,
+          notes: 'Unbanned after successful IN_SHOP subscription payment.'
+        }
+      });
+    }
+
+    return res.status(200).json({ message: 'Vendor marked as paid and unbanned if necessary.' });
+
+  } catch (error) {
+    console.error('Error updating subscription:', error);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+};

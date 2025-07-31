@@ -82,6 +82,8 @@ export const updateVendorProfile = async (
     },
   });
 
+  
+
   // 🗓️ Upsert availability
   let availabilityRecord = null;
   if (parsedAvailability) {

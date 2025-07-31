@@ -96,6 +96,8 @@
     preferredLongitude Float?
     preferredRadiusKm  Int?
     vendorCommissionSetting   VendorCommissionSetting?
+    vendorSubscription VendorSubscription?
+
     
   serviceOfferBookingsAsClient ServiceOfferBooking[] @relation("ServiceOfferBookingClient")
   serviceOfferBookingsAsVendor ServiceOfferBooking[] @relation("ServiceOfferBookingVendor")
@@ -621,4 +623,20 @@ enum DeductionStartOption {
   AFTER_FIRST_WEEK
   AFTER_SECOND_WEEK
   AFTER_FIRST_MONTH
+}
+
+
+model VendorSubscription {
+  id                     String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId                 String       @unique @db.ObjectId
+  user                   User         @relation(fields: [userId], references: [id])
+  serviceType            ServiceType  @default(IN_SHOP)
+  isPaid                 Boolean      @default(false)
+  paidAt                 DateTime?
+  expiresAt              DateTime?
+  planName               String?
+  amount                 Float?
+  subscriptionStartDate  DateTime?    // Calculated from onboarding date + deduction option
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
 }
