@@ -1,6 +1,7 @@
 import { Request, Response } from "express"
 import { getUserWallet, getWalletTransactions} from "../services/wallet.service"
 import { handlePaystackWebhook , initiatePaystackPayment } from "../services/payment.service"
+import { success } from "zod";
 // import { initializePayment  } from "../utils/paystack"
 
 export const getWalletDetails = async (req: Request, res: Response) => {
@@ -85,7 +86,7 @@ export const verifyWalletFunding = async (req: Request, res: Response) => {
 
 
     else {
-       res.status(200).json({ message: result })
+       res.status(200).json({success: true, status: 200, message: result })
     }
    
   } catch (error: unknown) {
