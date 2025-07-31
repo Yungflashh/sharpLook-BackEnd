@@ -1,8 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyWalletFunding = exports.fundWallet = exports.walletTransactions = exports.getWalletDetails = void 0;
 const wallet_service_1 = require("../services/wallet.service");
 const payment_service_1 = require("../services/payment.service");
+const prisma_1 = __importDefault(require("../config/prisma"));
 // import { initializePayment  } from "../utils/paystack"
 const getWalletDetails = async (req, res) => {
     try {
@@ -63,27 +67,43 @@ const verifyWalletFunding = async (req, res) => {
         if (!reference || typeof reference !== "string") {
             const message = "Missing or invalid reference";
             console.error("[verifyWalletFunding] Error:", message);
-            return res.status(400).json({ error: message });
+            return res.status(400).json({ success: false, message });
         }
-        const result = await (0, payment_service_1.handlePaystackWebhook)(reference);
-        if (result.success == false) {
+        // Step 1: Confirm payment
+        const transaction = await (0, payment_service_1.confirmPaystackPayment)(reference);
+        if (!transaction || transaction.status !== "paid") {
             return res.status(400).json({
                 success: false,
-                message: result.message
+                message: "Payment verification failed or not successful.",
             });
         }
-        else {
-            res.status(200).json({ success: true, status: 200, message: result });
+        // Step 2: Fund wallet
+        const walletId = transaction.walletId;
+        const amount = transaction.amount;
+        if (!walletId) {
+            return res.status(400).json({
+                success: false,
+                message: "Transaction is not linked to a wallet.",
+            });
         }
+        await prisma_1.default.wallet.update({
+            where: { id: walletId },
+            data: {
+                balance: { increment: amount },
+            },
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Wallet funded successfully",
+            amount,
+        });
     }
     catch (error) {
-        const err = error;
-        console.error("[verifyWalletFunding] Error occurred:", err.message);
-        // Add more structured error details for debugging
-        res.status(400).json({
-            error: "Funding failed",
-            details: err.message,
-            message: "verifyWalletFunding",
+        console.error("[verifyWalletFunding] Error:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "An error occurred during wallet funding.",
+            error: error.message,
         });
     }
 };
