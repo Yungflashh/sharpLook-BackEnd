@@ -50,7 +50,7 @@ const handlePaystackWebhook = async (reference) => {
         });
         const message = `[Webhook] Wallet funded successfully: ${amount}`;
         console.log(message);
-        return { success: true, message };
+        return { success: true, status: 200, message };
     }
     catch (error) {
         console.error(`[Webhook Error]`, error);
