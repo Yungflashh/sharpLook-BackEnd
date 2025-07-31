@@ -1,6 +1,6 @@
 // src/services/admin.service.ts
 import prisma from "../config/prisma"
-import { Role, BroadcastAudience, BroadcastChannel } from "@prisma/client"
+import { Role, BroadcastAudience, BroadcastChannel , DeductionStartOption} from "@prisma/client"
 import { subDays, subWeeks, subMonths, subYears } from "date-fns";
 import { ApprovalStatus } from '@prisma/client';
 
@@ -1097,3 +1097,60 @@ export const editAdmin = async (
 
   return updatedAdmin;
 };
+
+
+
+export class VendorCommissionSettingService {
+  static async setCommissionRate(userId: string, commissionRate: number, deductionStart: DeductionStartOption) {
+    const existing = await prisma.vendorCommissionSetting.findUnique({ where: { userId } });
+
+    if (existing) {
+      return prisma.vendorCommissionSetting.update({
+        where: { userId },
+        data: { commissionRate, deductionStart }
+      });
+    } else {
+      return prisma.vendorCommissionSetting.create({
+        data: { userId, commissionRate, deductionStart }
+      });
+    }
+  }
+
+  static async getCommissionRate(userId: string) {
+    return prisma.vendorCommissionSetting.findUnique({ where: { userId } });
+  }
+
+  static async deleteCommissionSetting(userId: string) {
+    return prisma.vendorCommissionSetting.delete({ where: { userId } });
+  }
+
+   static async setCommissionRateForAllVendors(commissionRate: number, deductionStart: DeductionStartOption) {
+    
+    const vendors = await prisma.user.findMany({
+      where: {
+        role: "VENDOR", 
+        vendorOnboarding: {
+      serviceType: "HOME_SERVICE", 
+    },
+      },
+      select: { id: true }
+    });
+
+    if (vendors.length === 0) {
+      throw new Error("No vendors found");
+    }
+
+    // Upsert commission settings for each vendor
+    const upserts = vendors.map((vendor) =>
+      prisma.vendorCommissionSetting.upsert({
+        where: { userId: vendor.id },
+        update: { commissionRate, deductionStart },
+        create: { userId: vendor.id, commissionRate, deductionStart },
+      })
+    );
+
+    await prisma.$transaction(upserts);
+
+    return { updatedVendors: vendors.length };
+  }
+}

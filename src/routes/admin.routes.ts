@@ -5,6 +5,7 @@ import { Role} from '@prisma/client';
 import { requireAdminRole } from "../middlewares/admin.middleware";
 import { uploadSingle2 } from "../middlewares/upload.middleware";
 
+import { VendorCommissionSettingController } from "../controllers/admin.controller";
 
 const router = Router();
 
@@ -26,6 +27,12 @@ router.delete("/deleteAdmin/:id", requireAdminRole(Role.SUPERADMIN), AdminContro
 router.patch("/editAdmin/:id", requireAdminRole(Role.SUPERADMIN), AdminController.editAdminController);
 router.get("/getAllBroadcast", requireAdminRole(Role.SUPERADMIN), AdminController.getAllBroadcasts);
 router.put("/editAdmin/:id", requireAdminRole(Role.SUPERADMIN), AdminController.updateAdminController); 
+
+router.post("/vendor-commission", requireAdminRole(Role.SUPERADMIN), VendorCommissionSettingController.setCommissionRate);
+router.get("/vendor-commission/:userId",requireAdminRole(Role.SUPERADMIN), VendorCommissionSettingController.getCommissionRate);
+router.delete("/vendor-commission/:userId",requireAdminRole(Role.SUPERADMIN), VendorCommissionSettingController.deleteCommissionSetting);
+router.post("/vendor-commission/all", requireAdminRole(Role.SUPERADMIN),VendorCommissionSettingController.setCommissionRateForAllVendors);
+
 
 
 

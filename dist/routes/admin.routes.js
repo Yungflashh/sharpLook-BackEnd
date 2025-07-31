@@ -39,6 +39,7 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const client_1 = require("@prisma/client");
 const admin_middleware_1 = require("../middlewares/admin.middleware");
 const upload_middleware_1 = require("../middlewares/upload.middleware");
+const admin_controller_1 = require("../controllers/admin.controller");
 const router = (0, express_1.Router)();
 // Middleware applied to all admin routes
 router.use(auth_middleware_1.verifyToken);
@@ -55,6 +56,10 @@ router.delete("/deleteAdmin/:id", (0, admin_middleware_1.requireAdminRole)(clien
 router.patch("/editAdmin/:id", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.editAdminController);
 router.get("/getAllBroadcast", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.getAllBroadcasts);
 router.put("/editAdmin/:id", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), AdminController.updateAdminController);
+router.post("/vendor-commission", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), admin_controller_1.VendorCommissionSettingController.setCommissionRate);
+router.get("/vendor-commission/:userId", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), admin_controller_1.VendorCommissionSettingController.getCommissionRate);
+router.delete("/vendor-commission/:userId", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), admin_controller_1.VendorCommissionSettingController.deleteCommissionSetting);
+router.post("/vendor-commission/all", (0, admin_middleware_1.requireAdminRole)(client_1.Role.SUPERADMIN), admin_controller_1.VendorCommissionSettingController.setCommissionRateForAllVendors);
 // // ADMIN AND SUPERADMIN
 // // Users
 router.get("/users", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllUsers);

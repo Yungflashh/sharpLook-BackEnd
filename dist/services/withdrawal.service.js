@@ -19,29 +19,59 @@ class WithdrawalService {
         if (!wallet || wallet.balance < amount) {
             throw new Error("Insufficient wallet balance");
         }
-        // Step 1: Resolve bank account
-        // Example: Resolve account
-        // const resolvedAccountName = accountName ?? resolved.account_name;
-        // Step 2: Create recipient
+        // Fetch Vendor Commission Setting
+        const vendorCommission = await prisma_1.default.vendorCommissionSetting.findUnique({
+            where: { userId },
+        });
+        let platformFee = 0;
+        if (vendorCommission) {
+            const now = new Date();
+            const onboardingDate = user.createdAt; // Assuming createdAt is the onboarding date
+            const timeElapsed = now.getTime() - onboardingDate.getTime();
+            let shouldDeductCommission = false;
+            switch (vendorCommission.deductionStart) {
+                case "AFTER_FIRST_WEEK":
+                    shouldDeductCommission = timeElapsed >= 7 * 24 * 60 * 60 * 1000;
+                    break;
+                case "AFTER_SECOND_WEEK":
+                    shouldDeductCommission = timeElapsed >= 14 * 24 * 60 * 60 * 1000;
+                    break;
+                case "AFTER_FIRST_MONTH":
+                    shouldDeductCommission = timeElapsed >= 30 * 24 * 60 * 60 * 1000;
+                    break;
+            }
+            if (shouldDeductCommission) {
+                platformFee = amount * vendorCommission.commissionRate;
+            }
+        }
+        const payoutAmount = amount - platformFee;
+        if (payoutAmount <= 0) {
+            throw new Error("Payout amount is too low after deducting platform fee.");
+        }
+        // Step 1: Create recipient
         const recipientCode = await (0, paystack_1.createTransferRecipient)(resolvedAccountName, bankAccountNumber, bankCode);
-        // Step 3: Lock funds
+        // Step 2: Lock funds (deduct from wallet)
         await prisma_1.default.wallet.update({
             where: { userId },
             data: {
                 balance: { decrement: amount },
             },
         });
-        // Step 4: Send transfer
-        const transfer = await (0, paystack_1.sendTransfer)(amount, recipientCode, reason, { userId });
-        // Step 5: Store withdrawal record
+        // Step 3: Initiate Transfer for payoutAmount
+        const transfer = await (0, paystack_1.sendTransfer)(payoutAmount, recipientCode, reason, { userId });
+        // Step 4: Store Withdrawal Record
         const withdrawal = await prisma_1.default.withdrawalRequest.create({
             data: {
                 userId,
-                amount,
+                amount: payoutAmount,
                 reason,
                 method: "paystack",
                 status: transfer.status === "success" ? client_1.WithdrawalStatus.PAID : client_1.WithdrawalStatus.PENDING,
-                metadata: transfer,
+                metadata: {
+                    originalAmount: amount,
+                    platformFee,
+                    transferDetails: transfer,
+                },
                 createdAt: new Date(),
                 updatedAt: new Date(),
             },

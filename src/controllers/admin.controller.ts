@@ -12,10 +12,67 @@ const getErrorMessage = (error: unknown): string =>
 // ====================== USERS ======================
 
 
-import { BroadcastAudience } from "@prisma/client";
+import { BroadcastAudience, DeductionStartOption } from "@prisma/client";
 import { channel } from "process";
 
+import { VendorCommissionSettingService } from "../services/admin.service";
 
+
+export class VendorCommissionSettingController {
+  static async setCommissionRate(req: Request, res: Response) {
+    const { userId, commissionRate, deductionStart } = req.body;
+
+    if (!userId || commissionRate === undefined || !deductionStart) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const validOptions = Object.values(DeductionStartOption);
+    if (!validOptions.includes(deductionStart)) {
+      return res.status(400).json({ message: "Invalid deduction start option" });
+    }
+
+    const setting = await VendorCommissionSettingService.setCommissionRate(userId, commissionRate, deductionStart);
+    res.json({ message: "Commission setting updated", setting });
+  }
+
+  static async getCommissionRate(req: Request, res: Response) {
+    const { userId } = req.params;
+
+    const setting = await VendorCommissionSettingService.getCommissionRate(userId);
+    if (!setting) return res.status(404).json({ message: "Commission setting not found" });
+
+    res.json(setting);
+  }
+
+  static async deleteCommissionSetting(req: Request, res: Response) {
+    const { userId } = req.params;
+
+    await VendorCommissionSettingService.deleteCommissionSetting(userId);
+    res.json({ message: "Commission setting deleted" });
+  }
+
+
+
+   static async setCommissionRateForAllVendors(req: Request, res: Response) {
+    const { commissionRate, deductionStart } = req.body;
+
+    if (commissionRate === undefined || !deductionStart) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const validOptions = Object.values(DeductionStartOption);
+    if (!validOptions.includes(deductionStart)) {
+      return res.status(400).json({ message: "Invalid deduction start option" });
+    }
+
+    try {
+      const result = await VendorCommissionSettingService.setCommissionRateForAllVendors(commissionRate, deductionStart);
+      res.json({ message: "Commission settings updated for all vendors", ...result });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+}
 
 
 export const  createBroadcast = async(req: Request, res: Response)=> {

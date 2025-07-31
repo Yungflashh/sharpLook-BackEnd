@@ -95,7 +95,7 @@
     preferredLatitude  Float?
     preferredLongitude Float?
     preferredRadiusKm  Int?
-
+    vendorCommissionSetting   VendorCommissionSetting?
     
   serviceOfferBookingsAsClient ServiceOfferBooking[] @relation("ServiceOfferBookingClient")
   serviceOfferBookingsAsVendor ServiceOfferBooking[] @relation("ServiceOfferBookingVendor")
@@ -603,4 +603,22 @@ enum BroadcastAudience {
 enum BroadcastChannel {
   EMAIL
   PUSH_NOTIFICATION
+}
+
+
+model VendorCommissionSetting {
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String   @unique 
+  commissionRate   Float    // Percentage e.g., 0.1 for 10%
+  deductionStart   DeductionStartOption // Enum for start time (1 week, 2 weeks, 1 month)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+enum DeductionStartOption {
+  AFTER_FIRST_WEEK
+  AFTER_SECOND_WEEK
+  AFTER_FIRST_MONTH
 }
