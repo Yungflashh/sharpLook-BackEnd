@@ -1,7 +1,7 @@
 // src/routes/vendor.routes.ts
 import { Router } from "express"
 import { verifyToken, requireRole } from "../middlewares/auth.middleware"
-import { completeVendorProfile } from "../controllers/vendor.controller"
+import { completeVendorProfile, markVendorAsPaidController } from "../controllers/vendor.controller"
 import { uploadPortfolioImages,
          fetchPortfolioImages, 
          fetchAvailability, 
@@ -15,6 +15,7 @@ import { setVendorPricing, fetchVendorPricing } from "../controllers/vendorPrici
 import { fetchVendorAnalytics ,fetchVendorEarningsGraph } from "../controllers/vendorAnalytics.controller";
 
 import {fetchServiceCategories} from "../controllers/admin.controller"
+
 
 
 
@@ -36,6 +37,7 @@ router.get("/getVendorAvailability", verifyToken, requireRole(["VENDOR"]),  fetc
 router.put("/update-service-radius",verifyToken,requireRole(["VENDOR"]),updateServiceRadius)
 router.get("/analytics/:vendorId", fetchVendorAnalytics);
 router.get("/earnings-graph", requireRole(["VENDOR"]), fetchVendorEarningsGraph);
+router.post('/mark-vendor-paid', verifyToken, markVendorAsPaidController );
 
 
 router.put(

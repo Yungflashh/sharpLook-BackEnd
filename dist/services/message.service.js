@@ -68,86 +68,92 @@ const countUnreadMessages = async (userId) => {
 };
 exports.countUnreadMessages = countUnreadMessages;
 const getChatListForUser = async (userId) => {
-    const rooms = await prisma_1.default.message.findMany({
+    // Step 1: Get unique roomIds where the user is a participant
+    const roomIds = await prisma_1.default.message.findMany({
         where: {
             OR: [{ senderId: userId }, { receiverId: userId }],
         },
         select: {
             roomId: true,
-            createdAt: true,
-            sender: {
-                select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    email: true,
-                    phone: true,
-                    role: true,
-                    avatar: true,
-                    vendorOnboarding: {
-                        select: {
-                            businessName: true,
-                        },
-                    },
-                },
-            },
-            receiver: {
-                select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    email: true,
-                    phone: true,
-                    role: true,
-                    avatar: true,
-                    vendorOnboarding: {
-                        select: {
-                            businessName: true,
-                        },
-                    },
-                },
-            },
         },
-        orderBy: { createdAt: "desc" },
-        distinct: ["roomId"],
+        distinct: ['roomId'],
     });
-    return rooms.map((room) => {
-        const isSender = room.sender.id === userId;
-        const self = isSender ? room.sender : room.receiver;
-        const chatPartner = isSender ? room.receiver : room.sender;
-        const getDisplayName = () => {
-            if (self.role === 'CLIENT' && chatPartner.role === 'VENDOR') {
-                // Client chatting with vendor → show business name
-                return chatPartner.vendorOnboarding?.businessName ?? `${chatPartner.firstName} ${chatPartner.lastName}`;
-            }
-            else if (self.role === 'VENDOR' && chatPartner.role === 'CLIENT') {
-                // Vendor chatting with client → show first name
-                return chatPartner.firstName;
-            }
-            // Fallback for any other case
-            return `${chatPartner.firstName} ${chatPartner.lastName}`;
-        };
-        const formatUser = (user) => ({
-            id: user.id,
-            name: user.role === "VENDOR" && user.vendorOnboarding?.businessName
-                ? user.vendorOnboarding.businessName
-                : `${user.firstName} ${user.lastName}`,
-            email: user.email,
-            phone: user.phone,
-            avatar: user.avatar,
-            role: user.role,
-        });
-        return {
-            roomId: room.roomId,
-            createdAt: room.createdAt,
-            chatPartner: {
-                ...formatUser(chatPartner),
-                name: getDisplayName(),
+    const roomIdList = roomIds.map((r) => r.roomId);
+    // Step 2: For each roomId, get the latest message (ordered by createdAt DESC)
+    const messages = await Promise.all(roomIdList.map(async (roomId) => {
+        const latestMessage = await prisma_1.default.message.findFirst({
+            where: {
+                roomId,
             },
-            sender: formatUser(room.sender),
-            receiver: formatUser(room.receiver),
-        };
-    });
+            orderBy: {
+                createdAt: 'desc',
+            },
+            select: {
+                roomId: true,
+                createdAt: true,
+                sender: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true,
+                        role: true,
+                        avatar: true,
+                        vendorOnboarding: {
+                            select: {
+                                businessName: true,
+                            },
+                        },
+                    },
+                },
+                receiver: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true,
+                        role: true,
+                        avatar: true,
+                        vendorOnboarding: {
+                            select: {
+                                businessName: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        return latestMessage;
+    }));
+    // Filter out any null messages (shouldn’t happen unless deleted)
+    return messages
+        .filter((msg) => msg !== null)
+        .map((room) => ({
+        roomId: room.roomId,
+        createdAt: room.createdAt,
+        sender: {
+            id: room.sender.id,
+            name: room.sender.role === 'VENDOR' && room.sender.vendorOnboarding?.businessName
+                ? room.sender.vendorOnboarding.businessName
+                : `${room.sender.firstName} ${room.sender.lastName}`,
+            email: room.sender.email,
+            phone: room.sender.phone,
+            avatar: room.sender.avatar,
+            role: room.sender.role,
+        },
+        receiver: {
+            id: room.receiver.id,
+            name: room.receiver.role === 'VENDOR' && room.receiver.vendorOnboarding?.businessName
+                ? room.receiver.vendorOnboarding.businessName
+                : `${room.receiver.firstName} ${room.receiver.lastName}`,
+            email: room.receiver.email,
+            phone: room.receiver.phone,
+            avatar: room.receiver.avatar,
+            role: room.receiver.role,
+        },
+    }));
 };
 exports.getChatListForUser = getChatListForUser;
 const getChatPreviews = async (userId) => {

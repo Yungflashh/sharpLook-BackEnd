@@ -3,11 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editVendorProfile = exports.filterVendorsByService = exports.fetchAllServiceCategories = exports.getNearbyVendors = exports.updateServiceRadius = exports.fetchAvailability = exports.updateAvailability = exports.fetchPortfolioImages = exports.uploadPortfolioImages = exports.completeVendorProfile = void 0;
+exports.markVendorAsPaidController = exports.editVendorProfile = exports.filterVendorsByService = exports.fetchAllServiceCategories = exports.getNearbyVendors = exports.updateServiceRadius = exports.fetchAvailability = exports.updateAvailability = exports.fetchPortfolioImages = exports.uploadPortfolioImages = exports.completeVendorProfile = void 0;
 const vendorOnboarding_service_1 = require("../services/vendorOnboarding.service");
 const vendor_services_1 = require("../services/vendor.services");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
-const prisma_1 = __importDefault(require("../config/prisma"));
+// import prisma from "../config/prisma"
 const commision_service_1 = require("../services/commision.service"); // adjust path as needed
 const completeVendorProfile = async (req, res) => {
     try {
@@ -158,14 +158,14 @@ const editVendorProfile = async (req, res) => {
             uploadedPortfolioUrls = uploadResults.map(result => result.secure_url);
         }
         // Update User
-        const updatedUser = await prisma_1.default.user.update({
+        const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
                 phone: phoneNumber,
             },
         });
         // Update VendorOnboarding
-        const updatedVendorOnboarding = await prisma_1.default.vendorOnboarding.update({
+        const updatedVendorOnboarding = await prisma.vendorOnboarding.update({
             where: { userId },
             data: {
                 bio,
@@ -187,7 +187,7 @@ const editVendorProfile = async (req, res) => {
             }
         }
         if (availability) {
-            updatedAvailability = await prisma_1.default.vendorAvailability.upsert({
+            updatedAvailability = await prisma.vendorAvailability.upsert({
                 where: { vendorId: userId },
                 update: {
                     days: availability.days,
@@ -217,3 +217,57 @@ const editVendorProfile = async (req, res) => {
     }
 };
 exports.editVendorProfile = editVendorProfile;
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
+const markVendorAsPaidController = async (req, res) => {
+    const userId = req.user.id;
+    const { planName, amount } = req.body;
+    if (!userId || !planName || typeof amount !== 'number') {
+        return res.status(400).json({ message: 'Missing or invalid parameters.' });
+    }
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                vendorSubscription: true
+            }
+        });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        if (user.role !== client_1.Role.VENDOR) {
+            return res.status(400).json({ message: 'User is not a vendor.' });
+        }
+        // Update subscription
+        const now = new Date();
+        const nextMonth = new Date(now);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        await prisma.vendorSubscription.update({
+            where: { userId },
+            data: {
+                isPaid: true,
+                paidAt: now,
+                expiresAt: nextMonth,
+                planName,
+                amount,
+                updatedAt: now
+            }
+        });
+        // If the user was banned, unban them
+        if (user.isBanned) {
+            await prisma.user.update({
+                where: { id: userId },
+                data: {
+                    isBanned: false,
+                    notes: 'Unbanned after successful IN_SHOP subscription payment.'
+                }
+            });
+        }
+        return res.status(200).json({ message: 'Vendor marked as paid and unbanned if necessary.' });
+    }
+    catch (error) {
+        console.error('Error updating subscription:', error);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+exports.markVendorAsPaidController = markVendorAsPaidController;
