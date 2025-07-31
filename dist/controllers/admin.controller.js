@@ -36,13 +36,60 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editAdminController = exports.deleteAdminController = exports.fetchAllAdmins = exports.deleteServiceCategory = exports.fetchServiceCategories = exports.addServiceCategory = exports.updateAdminController = exports.createAdminUser = exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.deleteVendorService = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.getAllBroadcasts = exports.createBroadcast = void 0;
+exports.editAdminController = exports.deleteAdminController = exports.fetchAllAdmins = exports.deleteServiceCategory = exports.fetchServiceCategories = exports.addServiceCategory = exports.updateAdminController = exports.createAdminUser = exports.editProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.deleteVendorService = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.getAllBookingsDetailed = exports.getAllBookings = exports.getAllPayments = exports.getAllOrders = exports.resolveDispute = exports.getAllDisputes = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getAllUsersByRole = exports.promoteToAdmin = exports.unbanUser = exports.banUser = exports.deleteUser = exports.getUserDetail = exports.getAllUsers = exports.getAllBroadcasts = exports.createBroadcast = exports.VendorCommissionSettingController = void 0;
 const AdminService = __importStar(require("../services/admin.service"));
 const email_helper_1 = require("../helpers/email.helper");
 const adminLogger_1 = require("../utils/adminLogger");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 // Utility to extract error message safely
 const getErrorMessage = (error) => error instanceof Error ? error.message : "Internal server error";
+// ====================== USERS ======================
+const client_1 = require("@prisma/client");
+const admin_service_1 = require("../services/admin.service");
+class VendorCommissionSettingController {
+    static async setCommissionRate(req, res) {
+        const { userId, commissionRate, deductionStart } = req.body;
+        if (!userId || commissionRate === undefined || !deductionStart) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+        const validOptions = Object.values(client_1.DeductionStartOption);
+        if (!validOptions.includes(deductionStart)) {
+            return res.status(400).json({ message: "Invalid deduction start option" });
+        }
+        const setting = await admin_service_1.VendorCommissionSettingService.setCommissionRate(userId, commissionRate, deductionStart);
+        res.json({ message: "Commission setting updated", setting });
+    }
+    static async getCommissionRate(req, res) {
+        const { userId } = req.params;
+        const setting = await admin_service_1.VendorCommissionSettingService.getCommissionRate(userId);
+        if (!setting)
+            return res.status(404).json({ message: "Commission setting not found" });
+        res.json(setting);
+    }
+    static async deleteCommissionSetting(req, res) {
+        const { userId } = req.params;
+        await admin_service_1.VendorCommissionSettingService.deleteCommissionSetting(userId);
+        res.json({ message: "Commission setting deleted" });
+    }
+    static async setCommissionRateForAllVendors(req, res) {
+        const { commissionRate, deductionStart } = req.body;
+        if (commissionRate === undefined || !deductionStart) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+        const validOptions = Object.values(client_1.DeductionStartOption);
+        if (!validOptions.includes(deductionStart)) {
+            return res.status(400).json({ message: "Invalid deduction start option" });
+        }
+        try {
+            const result = await admin_service_1.VendorCommissionSettingService.setCommissionRateForAllVendors(commissionRate, deductionStart);
+            res.json({ message: "Commission settings updated for all vendors", ...result });
+        }
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+}
+exports.VendorCommissionSettingController = VendorCommissionSettingController;
 const createBroadcast = async (req, res) => {
     try {
         const adminId = req.user.id;

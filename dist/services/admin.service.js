@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editAdmin = exports.deleteAdmin = exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.updateAdmin = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteVendorService = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.getAllBroadcasts = exports.sendBroadcast = void 0;
+exports.VendorCommissionSettingService = exports.editAdmin = exports.deleteAdmin = exports.getAllAdmins = exports.deleteServiceCategoryById = exports.getAllServiceCategories = exports.createServiceCategory = exports.updateAdmin = exports.createUser = exports.updateProductAsAdmin = exports.getAllServices = exports.getAllNotifications = exports.getPlatformStats = exports.adjustWalletBalance = exports.getReferralHistory = exports.getAllMessages = exports.getAllReviewsWithContent = exports.deleteReview = exports.suspendPromotion = exports.getAllPromotions = exports.verifyVendorIdentity = exports.resolveDispute = exports.getAllDisputes = exports.getAllBookingsDetailed = exports.getAllPayments = exports.getAllOrders = exports.rejectProduct = exports.suspendProduct = exports.approveProduct = exports.deleteProduct = exports.getProductDetail = exports.deleteVendorService = exports.deleteUser = exports.getUserDetail = exports.getSoldProducts = exports.getAllProducts = exports.getDailyActiveUsers = exports.getNewUsersByRange = exports.getUsersByRole = exports.promoteUserToAdmin = exports.unbanUser = exports.banUser = exports.getAllBookings = exports.getAllUsers = exports.getAllBroadcasts = exports.sendBroadcast = void 0;
 // src/services/admin.service.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
 const client_1 = require("@prisma/client");
@@ -897,3 +897,48 @@ const editAdmin = async (adminId, data) => {
     return updatedAdmin;
 };
 exports.editAdmin = editAdmin;
+class VendorCommissionSettingService {
+    static async setCommissionRate(userId, commissionRate, deductionStart) {
+        const existing = await prisma_1.default.vendorCommissionSetting.findUnique({ where: { userId } });
+        if (existing) {
+            return prisma_1.default.vendorCommissionSetting.update({
+                where: { userId },
+                data: { commissionRate, deductionStart }
+            });
+        }
+        else {
+            return prisma_1.default.vendorCommissionSetting.create({
+                data: { userId, commissionRate, deductionStart }
+            });
+        }
+    }
+    static async getCommissionRate(userId) {
+        return prisma_1.default.vendorCommissionSetting.findUnique({ where: { userId } });
+    }
+    static async deleteCommissionSetting(userId) {
+        return prisma_1.default.vendorCommissionSetting.delete({ where: { userId } });
+    }
+    static async setCommissionRateForAllVendors(commissionRate, deductionStart) {
+        const vendors = await prisma_1.default.user.findMany({
+            where: {
+                role: "VENDOR",
+                vendorOnboarding: {
+                    serviceType: "HOME_SERVICE",
+                },
+            },
+            select: { id: true }
+        });
+        if (vendors.length === 0) {
+            throw new Error("No vendors found");
+        }
+        // Upsert commission settings for each vendor
+        const upserts = vendors.map((vendor) => prisma_1.default.vendorCommissionSetting.upsert({
+            where: { userId: vendor.id },
+            update: { commissionRate, deductionStart },
+            create: { userId: vendor.id, commissionRate, deductionStart },
+        }));
+        await prisma_1.default.$transaction(upserts);
+        return { updatedVendors: vendors.length };
+    }
+}
+exports.VendorCommissionSettingService = VendorCommissionSettingService;
