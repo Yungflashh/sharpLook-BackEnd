@@ -59,7 +59,7 @@ export const handlePaystackWebhook = async (reference: string) => {
 
     const message = `[Webhook] Wallet funded successfully: ${amount}`;
     console.log(message);
-    return { success: true, message };
+    return { success: true, status: 200, message };
     
   } catch (error: any) {
     console.error(`[Webhook Error]`, error);
