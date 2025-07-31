@@ -44,24 +44,24 @@ const wallet_service_1 = require("../services/wallet.service");
 const paystack_1 = require("../utils/paystack");
 const client_1 = require("@prisma/client");
 const createServiceOffer = async (clientId, data, serviceImage) => {
-    const requiredFields = [
-        "serviceName",
-        "serviceType",
-        "offerAmount",
-        "fullAddress",
-        "landMark",
-        "date",
-        "time",
-        "landMark",
-        "fullAddress",
-        "paymentMethod",
-        "totalAmount"
-    ];
-    for (const field of requiredFields) {
-        if (!data[field]) {
-            throw new Error(`Missing required field: ${field}`);
-        }
-    }
+    // const requiredFields = [
+    //   "serviceName",
+    //   "serviceType",
+    //   "offerAmount",
+    //    "fullAddress",
+    //   "landMark",
+    //   "date",
+    //   "time",
+    //    "landMark",
+    //     "fullAddress",
+    //     "paymentMethod",
+    //     "totalAmount"
+    // ];
+    // for (const field of requiredFields) {
+    //   if (!data[field]) {
+    //     throw new Error(`Missing required field: ${field}`);
+    //   }
+    // }
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
     return await prisma_1.default.serviceOffer.create({
