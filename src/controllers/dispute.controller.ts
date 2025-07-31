@@ -9,6 +9,7 @@ export const raiseDispute = [
   async (req: Request, res: Response) => {
     const { bookingId, reason } = req.body;
     const userId = req.user?.id!;
+    const raisedById = userId
     try {
       let imageUrl: string | undefined;
       if (req.file) {
@@ -18,7 +19,7 @@ export const raiseDispute = [
 
       const dispute = await DisputeService.createDispute(
         bookingId,
-        userId,
+        raisedById,
         reason,
         imageUrl
       );
