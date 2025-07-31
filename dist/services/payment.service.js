@@ -32,7 +32,7 @@ const handlePaystackWebhook = async (reference) => {
             console.error(message);
             return { success: false, message };
         }
-        if (paymentData.status !== "SUCCESS") {
+        if (paymentData.status !== "success") {
             const message = `${paymentData.gateway_response}`;
             console.warn(message);
             return { success: false, message };
