@@ -8,6 +8,7 @@ const vendorOnboarding_service_1 = require("../services/vendorOnboarding.service
 const vendor_services_1 = require("../services/vendor.services");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const prisma_1 = __importDefault(require("../config/prisma"));
+const commision_service_1 = require("../services/commision.service"); // adjust path as needed
 const completeVendorProfile = async (req, res) => {
     try {
         const vendorId = req.user.id;
@@ -15,6 +16,7 @@ const completeVendorProfile = async (req, res) => {
             ...req.body,
             portfolioFiles: req.files,
         });
+        await (0, commision_service_1.maybeCreateVendorCommission)(vendorId);
         res.status(200).json({
             success: true,
             message: "Vendor profile completed successfully",

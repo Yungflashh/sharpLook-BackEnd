@@ -12,6 +12,7 @@ import {
 } from "../services/vendor.services"
 import uploadToCloudinary from "../utils/cloudinary"
 import prisma from "../config/prisma"
+import { maybeCreateVendorCommission } from "../services/commision.service"; // adjust path as needed
 
 
 
@@ -23,6 +24,7 @@ export const completeVendorProfile = async (req: Request, res: Response) => {
       ...req.body,
       portfolioFiles: req.files as Express.Multer.File[], 
     });
+        await maybeCreateVendorCommission(vendorId);
 
     res.status(200).json({
       success: true,
