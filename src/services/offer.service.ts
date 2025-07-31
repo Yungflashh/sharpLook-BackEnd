@@ -16,25 +16,25 @@ export const createServiceOffer = async (
   data: any,
   serviceImage: string
 ) => {
-  const requiredFields = [
-    "serviceName",
-    "serviceType",
-    "offerAmount",
-     "fullAddress",
-    "landMark",
-    "date",
-    "time",
-     "landMark",
-      "fullAddress",
-      "paymentMethod",
-      "totalAmount"
-  ];
+  // const requiredFields = [
+  //   "serviceName",
+  //   "serviceType",
+  //   "offerAmount",
+  //    "fullAddress",
+  //   "landMark",
+  //   "date",
+  //   "time",
+  //    "landMark",
+  //     "fullAddress",
+  //     "paymentMethod",
+  //     "totalAmount"
+  // ];
 
-  for (const field of requiredFields) {
-    if (!data[field]) {
-      throw new Error(`Missing required field: ${field}`);
-    }
-  }
+  // for (const field of requiredFields) {
+  //   if (!data[field]) {
+  //     throw new Error(`Missing required field: ${field}`);
+  //   }
+  // }
 
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
