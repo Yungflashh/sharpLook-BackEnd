@@ -72,7 +72,9 @@ const verifyWalletFunding = async (req, res) => {
                 message: result.message
             });
         }
-        res.status(200).json({ message: result });
+        else {
+            res.status(200).json({ message: result });
+        }
     }
     catch (error) {
         const err = error;

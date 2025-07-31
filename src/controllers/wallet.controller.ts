@@ -83,7 +83,11 @@ export const verifyWalletFunding = async (req: Request, res: Response) => {
       })
     }
 
-    res.status(200).json({ message: result })
+
+    else {
+       res.status(200).json({ message: result })
+    }
+   
   } catch (error: unknown) {
     const err = error as Error
     console.error("[verifyWalletFunding] Error occurred:", err.message)
