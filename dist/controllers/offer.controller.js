@@ -48,16 +48,16 @@ const handleCreateOffer = async (req, res) => {
                 message: "Unauthorized. Client not authenticated.",
             });
         }
-        // Basic input validation
-        const requiredFields = [
-            "serviceName",
-            "serviceType",
-            "offerAmount",
-            "fullAddress",
-            "landMark",
-            "date",
-            "time",
-        ];
+        // // Basic input validation
+        // const requiredFields = [
+        //   "serviceName",
+        //   "serviceType",
+        //   "offerAmount",
+        //   "fullAddress",
+        //   "landMark",
+        //   "date",
+        //   "time",
+        // ];
         // Validate offerAmount
         if (isNaN(Number(data.offerAmount)) || Number(data.offerAmount) <= 0) {
             return res.status(400).json({

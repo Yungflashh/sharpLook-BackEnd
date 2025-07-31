@@ -43,13 +43,14 @@ exports.raiseDispute = [
     async (req, res) => {
         const { bookingId, reason } = req.body;
         const userId = req.user?.id;
+        const raisedById = userId;
         try {
             let imageUrl;
             if (req.file) {
                 const result = await (0, cloudinary_1.default)(req.file.buffer, "hairdesign/vendors");
                 imageUrl = result.secure_url;
             }
-            const dispute = await DisputeService.createDispute(bookingId, userId, reason, imageUrl);
+            const dispute = await DisputeService.createDispute(bookingId, raisedById, reason, imageUrl);
             res.status(201).json({ success: true, message: "Dispute submitted", dispute });
         }
         catch (error) {

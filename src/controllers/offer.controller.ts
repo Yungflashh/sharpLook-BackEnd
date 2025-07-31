@@ -18,16 +18,16 @@ export const handleCreateOffer = async (req: Request, res: Response) => {
       });
     }
 
-    // Basic input validation
-    const requiredFields = [
-      "serviceName",
-      "serviceType",
-      "offerAmount",
-      "fullAddress",
-      "landMark",
-      "date",
-      "time",
-    ];
+    // // Basic input validation
+    // const requiredFields = [
+    //   "serviceName",
+    //   "serviceType",
+    //   "offerAmount",
+    //   "fullAddress",
+    //   "landMark",
+    //   "date",
+    //   "time",
+    // ];
  
 
     // Validate offerAmount

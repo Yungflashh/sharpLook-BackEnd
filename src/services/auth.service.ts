@@ -260,6 +260,7 @@ export const getUserById = async (userId: string) => {
       vendorReviews: true,
       clientReviews: true,
       notifications: true,
+      
     },
   });
 };
