@@ -66,8 +66,12 @@ const verifyWalletFunding = async (req, res) => {
             return res.status(400).json({ error: message });
         }
         const result = await (0, payment_service_1.handlePaystackWebhook)(reference);
-        console.log(result);
-        console.log("[verifyWalletFunding] Success:", result);
+        if (result.success == false) {
+            return res.status(400).json({
+                success: false,
+                message: result.message
+            });
+        }
         res.status(200).json({ message: result });
     }
     catch (error) {
