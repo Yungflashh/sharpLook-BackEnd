@@ -39,6 +39,7 @@ const allowedOrigins = [
     "https://406b7add8a65.ngrok-free.app",
     "*", // Ngrok frontend (if needed),
     "https://406b7add8a65.ngrok-free.app",
+    "https://15bf1a77e969.ngrok-free.app"
 ];
 app.use((0, cors_1.default)({
     origin: function (origin, callback) {
