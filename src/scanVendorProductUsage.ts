@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
 
-const targetKeywords = ["vendorAvailabilities"]; // ✅ Only scanning for 'product'
+const targetKeywords = ["sendMail"]; // ✅ Only scanning for 'product'
 const targetExtensions = [".ts"];
-const baseDir = path.join(__dirname, "services"); // 👈 Only scan ./services
+const baseDir = path.join(__dirname,  "controllers"); // 👈 Only scan ./services
 
 const matches: { file: string; line: number; text: string }[] = [];
 

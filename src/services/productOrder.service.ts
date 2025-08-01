@@ -114,11 +114,13 @@ export const checkoutCart = async (userId: string, reference?: string) => {
       `You've sold ${items.length} item(s) totaling ₦${vendorTotal}.`
     );
 
-    await sendVendorOrderEmail(vendorEmail, {
-      name: vendorName,
-      items,
-      total: vendorTotal,
-    });
+  await sendVendorOrderEmail(vendorEmail, {
+  name: vendorName,
+  clientName: `${user.firstName} ${user.lastName}`,
+  phone: `${user.phone}`,
+  items,
+  total: vendorTotal,
+});
   }
 
   return order;
