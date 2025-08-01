@@ -267,16 +267,14 @@ import { PrismaClient, Role } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const markVendorAsPaidController = async (req: Request, res: Response) => {
-
-  const userId = req.user!.id
-  const {planName, amount } = req.body;
+  const userId = req.user!.id;
+  const { planName, amount } = req.body;
 
   if (!userId || !planName || typeof amount !== 'number') {
     return res.status(400).json({ message: 'Missing or invalid parameters.' });
   }
 
   try {
-    
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -292,24 +290,38 @@ export const markVendorAsPaidController = async (req: Request, res: Response) =>
       return res.status(400).json({ message: 'User is not a vendor.' });
     }
 
-    // Update subscription
     const now = new Date();
     const nextMonth = new Date(now);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-    await prisma.vendorSubscription.update({
-      where: { userId },
-      data: {
-        isPaid: true,
-        paidAt: now,
-        expiresAt: nextMonth,
-        planName,
-        amount,
-        updatedAt: now
-      }
-    });
+    if (user.vendorSubscription) {
+      // ✅ Update existing subscription
+      await prisma.vendorSubscription.update({
+        where: { id: user.vendorSubscription.id },
+        data: {
+          isPaid: true,
+          paidAt: now,
+          expiresAt: nextMonth,
+          planName,
+          amount,
+          updatedAt: now
+        }
+      });
+    } else {
+      // ✅ Create new subscription
+      await prisma.vendorSubscription.create({
+        data: {
+          userId,
+          isPaid: true,
+          paidAt: now,
+          expiresAt: nextMonth,
+          planName,
+          amount
+        }
+      });
+    }
 
-    // If the user was banned, unban them
+    // ✅ Unban the user if necessary
     if (user.isBanned) {
       await prisma.user.update({
         where: { id: userId },
@@ -320,7 +332,7 @@ export const markVendorAsPaidController = async (req: Request, res: Response) =>
       });
     }
 
-    return res.status(200).json({ message: 'Vendor marked as paid and unbanned if necessary.' });
+    return res.status(200).json({ message: 'Vendor Monthly Subscription paid' });
 
   } catch (error) {
     console.error('Error updating subscription:', error);
