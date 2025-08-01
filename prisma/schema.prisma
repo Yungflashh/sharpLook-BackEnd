@@ -528,7 +528,7 @@ model ServiceOffer {
   specialInstruction String?
 
   // Relations
-  client        User           @relation(fields: [clientId], references: [id], name: "UserServiceOffers")
+  client        User?     @relation(fields: [clientId], references: [id], name: "UserServiceOffers")
   vendorOffers  VendorOffer[]  @relation("AllVendorOffers")
   acceptedBy    VendorOffer[]  @relation("AcceptedVendorOffers")
     bookings           ServiceOfferBooking[] 
