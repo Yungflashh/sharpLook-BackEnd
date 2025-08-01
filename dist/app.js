@@ -33,23 +33,28 @@ const productOrder_route_1 = __importDefault(require("./routes/productOrder.rout
 const distance_routes_1 = __importDefault(require("./routes/distance.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-// Instead of: app.use(cors())
+const allowedOrigins = [
+    "https://sharp-look-test.vercel.app", // Vercel frontend
+    "http://localhost:3000", // Local dev (if needed)
+    "https://406b7add8a65.ngrok-free.app",
+    "*", // Ngrok frontend (if needed),
+    "https://406b7add8a65.ngrok-free.app",
+];
 app.use((0, cors_1.default)({
-    origin: (origin, callback) => {
-        const allowedOrigins = [
-            "http://localhost:5173", // Local web dev
-            "capacitor://localhost", // Capacitor mobile apps
-            "ionic://localhost", // Ionic mobile apps
-            null, // Native mobile apps (no origin)
-        ];
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin)
+            return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
         }
         else {
-            callback(new Error("Not allowed by CORS"));
+            return callback(new Error("Not allowed by CORS"));
         }
     },
-    credentials: true,
+    credentials: true, // Allows cookies, authorization headers, etc.
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow common headers
 }));
 app.use((req, res, next) => {
     const contentType = req.headers['content-type'] || '';
