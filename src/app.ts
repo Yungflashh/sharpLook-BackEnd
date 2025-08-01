@@ -48,9 +48,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       const allowedOrigins = [
-        "http://localhost:5173",               // Local web dev
-              "capacitor://localhost",               // Capacitor mobile apps
-        "ionic://localhost",                   // Ionic mobile apps
+        "*",                   // Ionic mobile apps
         null,                                  // Native mobile apps (no origin)
       ];
 
