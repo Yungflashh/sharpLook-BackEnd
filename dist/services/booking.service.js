@@ -145,12 +145,22 @@ const getUserBookings = async (userId, role) => {
         where: filter,
         include: {
             dispute: true,
-            service: true,
+            service: {
+                select: {
+                    id: true,
+                    serviceName: true,
+                    servicePrice: true,
+                    serviceImage: true,
+                },
+            },
             client: {
                 select: {
                     id: true,
                     firstName: true,
                     lastName: true,
+                    avatar: true,
+                    email: true,
+                    phone: true,
                 },
             },
             vendor: {
@@ -158,12 +168,40 @@ const getUserBookings = async (userId, role) => {
                     id: true,
                     firstName: true,
                     lastName: true,
+                    email: true,
+                    avatar: true,
+                    phone: true,
+                    location: true,
+                    bio: true,
+                    vendorOnboarding: {
+                        select: {
+                            id: true,
+                            serviceType: true,
+                            homeServicePrice: true,
+                            identityImage: true,
+                            registerationNumber: true,
+                            businessName: true,
+                            bio: true,
+                            location: true,
+                            servicesOffered: true,
+                            profileImage: true,
+                            pricing: true,
+                            service: true,
+                            approvalStatus: true,
+                            specialties: true,
+                            portfolioImages: true,
+                            serviceRadiusKm: true,
+                            latitude: true,
+                            longitude: true,
+                            createdAt: true,
+                        },
+                    },
                 },
             },
         },
         orderBy: {
-            date: 'desc',
-        }
+            date: "desc",
+        },
     });
     return bookings;
 };

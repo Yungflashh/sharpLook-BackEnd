@@ -83,7 +83,7 @@ export const initiatePaystackPayment = async (
     include: { wallet: true },
   });
 
-  console.log(typeof amount, "here");
+
   
 
   if (!user || !user.wallet) throw new Error("User or wallet not found");
@@ -100,7 +100,7 @@ export const initiatePaystackPayment = async (
       amount,
       reference,
       description,
-      status: "pending",
+      status: "PENDING",
       type: TransactionType.DEBIT,
       paymentFor,
     },
@@ -109,17 +109,32 @@ export const initiatePaystackPayment = async (
   return paymentData; // send authorization_url to frontend
 };
 
+
 export const confirmPaystackPayment = async (reference: string) => {
+  // First, fetch the transaction to check current status
+  const existingTransaction = await prisma.transaction.findUnique({
+    where: { reference },
+  });
+
+  if (!existingTransaction) {
+    throw new Error("Transaction not found");
+  }
+
+  // If already paid, return early with a message or the existing transaction
+  if (existingTransaction.status === "paid") {
+    return { message: "Payment already verified", transaction: existingTransaction };
+  }
+
+  // Otherwise, verify payment
   const verification = await verifyPayment(reference);
 
   const status = verification.status === "success" ? "paid" : "failed";
 
   const updatedTransaction = await prisma.transaction.update({
     where: { reference },
-    data: {
-      status,
-    },
+    data: { status },
   });
 
   return updatedTransaction;
 };
+

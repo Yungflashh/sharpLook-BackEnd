@@ -70,20 +70,23 @@ const verifyWalletFunding = async (req, res) => {
             return res.status(400).json({ success: false, message });
         }
         // Step 1: Confirm payment
-        const transaction = await (0, payment_service_1.confirmPaystackPayment)(reference);
-        console.log(transaction);
+        const transactionOrMessage = await (0, payment_service_1.confirmPaystackPayment)(reference);
+        // Check if payment was already verified (if you return an object with a message)
+        if ("message" in transactionOrMessage) {
+            // Transaction was already paid, so just return this info without funding wallet again
+            return res.status(200).json({
+                success: true,
+                message: transactionOrMessage.message,
+                transaction: transactionOrMessage.transaction,
+            });
+        }
+        const transaction = transactionOrMessage;
         if (!transaction || transaction.status !== "paid") {
             return res.status(400).json({
                 success: false,
                 message: "Payment verification failed or not successful.",
             });
         }
-        // else if (transaction.status == "paid"){
-        //   return res.status(400).json({
-        //     success: false,
-        //     message: "Payment has already been verified.",
-        //   });
-        // }
         // Step 2: Fund wallet
         const walletId = transaction.walletId;
         const amount = transaction.amount;
