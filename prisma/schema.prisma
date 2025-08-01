@@ -247,8 +247,8 @@ model Review {
   booking     Booking?        @relation("BookingToReview", fields: [bookingId], references: [id])
   product     Product?        @relation("ProductToReview", fields: [productId], references: [id])
   service     VendorService?  @relation("ServiceToReview", fields: [serviceId], references: [id])
-  vendor      User            @relation("VendorReview", fields: [vendorId], references: [id])
-  client      User            @relation("ClientReview", fields: [clientId], references: [id])
+  vendor      User?            @relation("VendorReview", fields: [vendorId], references: [id])
+  client      User?            @relation("ClientReview", fields: [clientId], references: [id])
 
   // ✅ Composite Unique Constraints
 
