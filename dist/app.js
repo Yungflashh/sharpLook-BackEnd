@@ -34,25 +34,10 @@ const distance_routes_1 = __importDefault(require("./routes/distance.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const allowedOrigins = [
-    "https://sharp-look-test.vercel.app", // Vercel frontend
-    "http://localhost:3000", // Local dev (if needed)
-    "https://406b7add8a65.ngrok-free.app",
-    "*", // Ngrok frontend (if needed),
-    "https://406b7add8a65.ngrok-free.app",
-    "https://15bf1a77e969.ngrok-free.app"
+    "*",
 ];
 app.use((0, cors_1.default)({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl)
-        if (!origin)
-            return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        else {
-            return callback(new Error("Not allowed by CORS"));
-        }
-    },
+    origin: "*",
     credentials: true, // Allows cookies, authorization headers, etc.
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"], // Allow common headers
