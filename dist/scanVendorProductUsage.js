@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const targetKeywords = ["vendorAvailabilities"]; // ✅ Only scanning for 'product'
+const targetKeywords = ["sendMail"]; // ✅ Only scanning for 'product'
 const targetExtensions = [".ts"];
-const baseDir = path_1.default.join(__dirname, "services"); // 👈 Only scan ./services
+const baseDir = path_1.default.join(__dirname, "controllers"); // 👈 Only scan ./services
 const matches = [];
 function scanFile(filePath) {
     const content = fs_1.default.readFileSync(filePath, "utf-8");

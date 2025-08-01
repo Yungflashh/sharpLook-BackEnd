@@ -93,6 +93,8 @@ const checkoutCart = async (userId, reference) => {
         await (0, notification_service_1.createNotification)(vendorId, `You've sold ${items.length} item(s) totaling ₦${vendorTotal}.`);
         await (0, email_helper_1.sendVendorOrderEmail)(vendorEmail, {
             name: vendorName,
+            clientName: `${user.firstName} ${user.lastName}`,
+            phone: `${user.phone}`,
             items,
             total: vendorTotal,
         });
