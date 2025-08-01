@@ -43,7 +43,7 @@ const handlePaystackWebhook = async (reference) => {
             return { success: true, status: 200, message };
         }
         // ✅ Credit wallet and mark transaction as successful
-        await (0, wallet_service_1.creditWallet)(user.wallet.id, amount, "Wallet Funding");
+        await (0, wallet_service_1.creditWallet)(prisma_1.default, user.wallet.id, amount, "Wallet Funding");
         await prisma_1.default.transaction.update({
             where: { reference },
             data: { status: "SUCCESS" },

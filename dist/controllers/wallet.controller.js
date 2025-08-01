@@ -78,12 +78,12 @@ const verifyWalletFunding = async (req, res) => {
                 message: "Payment verification failed or not successful.",
             });
         }
-        else if (transaction.status == "paid") {
-            return res.status(400).json({
-                success: false,
-                message: "Payment has already been verified.",
-            });
-        }
+        // else if (transaction.status == "paid"){
+        //   return res.status(400).json({
+        //     success: false,
+        //     message: "Payment has already been verified.",
+        //   });
+        // }
         // Step 2: Fund wallet
         const walletId = transaction.walletId;
         const amount = transaction.amount;

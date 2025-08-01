@@ -31,7 +31,11 @@ export const registerUser = async (
   const hashedPassword = await bcrypt.hash(password, 10);
   const referralCode = generateReferralCode();
 
-  return await prisma.$transaction(async (tx) => {
+  // Prepare variables for use outside the transaction
+  let creditWalletId: string | null = null;
+  let referrerWalletId: string | null = null;
+
+  const createdUser = await prisma.$transaction(async (tx) => {
     let referredById: string | undefined;
 
     if (referredByCode) {
@@ -47,8 +51,8 @@ export const registerUser = async (
       referredById = referredByUser.id;
     }
 
-    // ✅ Step 1: Create the user WITHOUT walletId field
-    const createdUser = await tx.user.create({
+    // Step 1: Create the user
+    const user = await tx.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -62,32 +66,33 @@ export const registerUser = async (
       },
     });
 
-    // ✅ Step 2: Create wallet with userId
+    // Step 2: Create wallet
     const wallet = await tx.wallet.create({
       data: {
         balance: 0,
         status: "ACTIVE",
-        userId: createdUser.id,
+        userId: user.id,
       },
     });
 
-    // ✅ Step 3: Update user with walletId
+    // Step 3: Update user with walletId
     await tx.user.update({
-      where: { id: createdUser.id },
+      where: { id: user.id },
       data: { walletId: wallet.id },
     });
 
-    // ✅ Step 4: Handle referral reward
+    // Step 4: Handle referral record only (no wallet credit here)
     if (referredById) {
       await tx.referral.create({
         data: {
           referredById,
-          referredUserId: createdUser.id,
+          referredUserId: user.id,
           amountEarned: 100,
         },
       });
 
-      await creditWallet(wallet.id, 100);
+      // Store IDs for wallet credit outside the transaction
+      creditWalletId = wallet.id;
 
       const referrerWallet = await tx.wallet.findUnique({
         where: { userId: referredById },
@@ -95,17 +100,28 @@ export const registerUser = async (
       });
 
       if (referrerWallet) {
-        await creditWallet(referrerWallet.id, 100);
+        referrerWalletId = referrerWallet.id;
       }
     }
 
     return {
-      ...createdUser,
+      ...user,
       wallet,
     };
   });
+
+  // ✅ OUTSIDE the transaction: Perform wallet credits
+  if (creditWalletId) {
+    await creditWallet(prisma, creditWalletId, 100);
+  }
+
+  if (referrerWalletId) {
+    await creditWallet(prisma, referrerWalletId, 100);
+  }
+
+  return createdUser;
 };
-;
+
 
 
 
@@ -115,6 +131,7 @@ export const loginUser = async (email: string, password: string): Promise<BaseLo
   where: { email },
   include: {
     vendorOnboarding: true, 
+    wallet: true,
   },
 });
 ;
@@ -123,7 +140,7 @@ export const loginUser = async (email: string, password: string): Promise<BaseLo
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new Error("Invalid credentials");
 
-  const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!, {
+  const token = jwt.sign({ id: user.id, role: user.role, walletId: user.wallet?.id }, process.env.JWT_SECRET!, {
     expiresIn: "7d",
   });
 

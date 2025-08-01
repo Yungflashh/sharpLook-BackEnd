@@ -81,7 +81,8 @@ export const updateBookingStatus = async (
 
     if (!refundReference) throw new Error("Refund reference required");
 
-    await creditWallet(wallet.id, booking.price, "Booking Refund", refundReference);
+   await creditWallet(prisma, wallet.id, booking.price, "Booking Refund", refundReference);
+
 
     return prisma.booking.update({
       where: { id: bookingId },
@@ -157,7 +158,8 @@ const finalizeBookingPayment = async (
   const vendorWallet = await getUserWallet(booking.vendorId);
   if (!vendorWallet) throw new Error("Vendor wallet not found");
 
-  await creditWallet(vendorWallet.id, booking.price, "Booking Payment Received", reference);
+await creditWallet(prisma, vendorWallet.id, booking.price, "Booking Payment Received", reference);
+
 
   return await prisma.booking.update({
     where: { id: booking.id },
@@ -173,64 +175,35 @@ export const getBookingById = async (bookingId: string) => {
     where: { id: bookingId },
   });
 };
-export const getUserBookings = async (
-  userId: string,
-  role: "CLIENT" | "VENDOR"
-) => {
-  const condition = role === "CLIENT" ? { clientId: userId } : { vendorId: userId };
-  const includeUser =
-    role === "CLIENT"
-      ? {
-          vendor: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              vendorOnboarding: {
-                select: {
-                  businessName: true,
-                  location: true,
-                },
-              },
-            },
-          },
-        }
-      : {
-          client: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatar: true,
-            
-            },
-          },
-        };
+export const getUserBookings = async (userId: string, role: "CLIENT" | "VENDOR") => {
+  const filter = role === "CLIENT" ? { clientId: userId } : { vendorId: userId };
 
-  return await prisma.booking.findMany({
-    where: condition,
+  const bookings = await prisma.booking.findMany({
+    where: filter,
     include: {
-      ...includeUser,
-      service: {
+      dispute: true,       
+      service: true,       
+      client: {
         select: {
           id: true,
-          serviceName: true,
-          serviceImage: true,
-          description: true,
-          reviews: {
-            select: {
-              id: true,
-              rating: true,
-              comment: true,
-              clientId: true,
-              createdAt: true,
-            },
-          },
+          firstName: true,
+          lastName: true,
+        },
+      },
+      vendor: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
         },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: {
+      date: 'desc',
+    }
   });
+
+  return bookings;
 };
 
 export const homeServiceCreateBooking = async (

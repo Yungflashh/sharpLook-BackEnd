@@ -50,9 +50,9 @@ const createWallet = async (userId) => {
 exports.createWallet = createWallet;
 // Credit wallet and log CREDIT transaction
 // If no reference is provided, generate one (assumed referral)
-const creditWallet = async (walletId, amount, description = "Referral Bonus", reference) => {
+const creditWallet = async (tx, walletId, amount, description = "Referral Bonus", reference) => {
     const transactionReference = reference ?? generateReferralReference();
-    return await prisma_1.default.wallet.update({
+    return await tx.wallet.update({
         where: { id: walletId },
         data: {
             balance: { increment: amount },

@@ -3,11 +3,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveAccount = exports.getAllWithdrawalsService = exports.getUserWithdrawalsService = exports.updateWithdrawalStatusService = exports.requestWithdrawalService = exports.WithdrawalService = void 0;
+exports.resolveAccount = exports.getAllWithdrawalsService = exports.getUserWithdrawalsService = exports.updateWithdrawalStatusService = exports.requestWithdrawalService = exports.WithdrawalService = exports.generateReferralReference = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const paystack_1 = require("../utils/paystack");
 const client_1 = require("@prisma/client");
 const axios_1 = __importDefault(require("axios"));
+const wallet_service_1 = require("./wallet.service");
+const generateReferralReference = () => {
+    // Example: REF-20250801-8F4C2A7B (prefix + date + random hex)
+    const prefix = "REF";
+    const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // e.g., 20250801
+    const randomPart = Math.random().toString(16).substr(2, 8).toUpperCase();
+    return `${prefix}-${datePart}-${randomPart}`;
+};
+exports.generateReferralReference = generateReferralReference;
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 class WithdrawalService {
     static async requestWithdrawal(input) {
@@ -19,6 +28,7 @@ class WithdrawalService {
         if (!wallet || wallet.balance < amount) {
             throw new Error("Insufficient wallet balance");
         }
+        console.log("wallet dey here", wallet);
         // Fetch Vendor Commission Setting
         const vendorCommission = await prisma_1.default.vendorCommissionSetting.findUnique({
             where: { userId },
@@ -49,14 +59,15 @@ class WithdrawalService {
             throw new Error("Payout amount is too low after deducting platform fee.");
         }
         // Step 1: Create recipient
+        // Step 1: Create recipient
         const recipientCode = await (0, paystack_1.createTransferRecipient)(resolvedAccountName, bankAccountNumber, bankCode);
-        // Step 2: Lock funds (deduct from wallet)
-        await prisma_1.default.wallet.update({
-            where: { userId },
-            data: {
-                balance: { decrement: amount },
-            },
-        });
+        try {
+            await (0, wallet_service_1.debitWallet)(wallet.id, amount, "Wallet Withdrawal", (0, exports.generateReferralReference)());
+        }
+        catch (error) {
+            console.error("Failed to debit wallet:", error);
+            throw error;
+        }
         // Step 3: Initiate Transfer for payoutAmount
         const transfer = await (0, paystack_1.sendTransfer)(payoutAmount, recipientCode, reason, { userId });
         // Step 4: Store Withdrawal Record

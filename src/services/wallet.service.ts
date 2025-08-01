@@ -1,6 +1,6 @@
 import prisma from "../config/prisma";
 import { initializePayment } from "../utils/paystack";
-import { TransactionType } from "@prisma/client";
+import { Prisma, TransactionType } from "@prisma/client";
 
 // Helper to generate unique reference for referrals
 const generateReferralReference = (): string =>
@@ -52,6 +52,7 @@ export const createWallet = async (userId: string) => {
 // Credit wallet and log CREDIT transaction
 // If no reference is provided, generate one (assumed referral)
 export const creditWallet = async (
+  tx: Prisma.TransactionClient,
   walletId: string,
   amount: number,
   description = "Referral Bonus",
@@ -59,7 +60,7 @@ export const creditWallet = async (
 ) => {
   const transactionReference = reference ?? generateReferralReference();
 
-  return await prisma.wallet.update({
+  return await tx.wallet.update({
     where: { id: walletId },
     data: {
       balance: { increment: amount },
