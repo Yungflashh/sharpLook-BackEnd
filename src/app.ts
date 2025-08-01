@@ -41,13 +41,27 @@ dotenv.config()
 
 const app = express()
 
+const allowedOrigins = [
+  "https://sharp-look-test.vercel.app", // Vercel frontend
+  "http://localhost:3000",              // Local dev (if needed)
+  "https://406b7add8a65.ngrok-free.app",
+  "*"// Ngrok frontend (if needed)
+];
 
-
-// Instead of: app.use(cors())
 app.use(
   cors({
-    origin: "*",
-    credentials: true, // if you're using cookies or sessions
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // Allows cookies, authorization headers, etc.
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow common headers
   })
 );
 
