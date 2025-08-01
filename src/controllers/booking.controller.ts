@@ -177,8 +177,15 @@ export const changeBookingStatus = async (req: Request, res: Response) => {
 
 export const markBookingCompletedByClient = async (req: Request, res: Response) => {
     const {reference, bookingId} = req.body
+
+    const userId = req.user!.id
   try {
     const updatedBooking = await BookingService.markBookingCompletedByClient(bookingId, reference);
+
+     await createNotification(
+         userId,
+          `You have Sucessfully marked a Booking completed`,
+        );
     return res.status(200).json({
       success: true,
       message: "Booking marked as completed by client.",
@@ -192,8 +199,15 @@ export const markBookingCompletedByClient = async (req: Request, res: Response) 
 export const markBookingCompletedByVendor = async (req: Request, res: Response) => {
 
   const {reference,bookingId} = req.body
+
+  const userId = req.user!.id
   try {
     const updatedBooking = await BookingService.markBookingCompletedByVendor(bookingId, reference);
+
+    await createNotification(
+         userId,
+          `You have Sucessfully marked a Booking completed`,
+        );
     return res.status(200).json({
       success: true,
       message: "Booking marked as completed by vendor.",

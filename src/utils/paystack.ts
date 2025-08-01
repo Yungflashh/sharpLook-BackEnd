@@ -99,7 +99,7 @@ export const getBanks = async () => {
 export const createTransferRecipient = async (
   name: string,
   accountNumber: string,
-  bankCode: string
+  bankCode: string,
 ) => {
   const response = await axios.post(
     `${PAYSTACK_BASE}/transferrecipient`,

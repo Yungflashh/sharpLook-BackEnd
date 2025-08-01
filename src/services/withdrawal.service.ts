@@ -6,7 +6,17 @@ import {
 } from "../utils/paystack"
 import { WithdrawalStatus } from "@prisma/client";
 import axios from "axios";
+import { debitWallet } from "./wallet.service";
 
+
+export const generateReferralReference = (): string => {
+  // Example: REF-20250801-8F4C2A7B (prefix + date + random hex)
+  const prefix = "REF";
+  const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // e.g., 20250801
+  const randomPart = Math.random().toString(16).substr(2, 8).toUpperCase();
+
+  return `${prefix}-${datePart}-${randomPart}`;
+};
 
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY!;
@@ -40,6 +50,9 @@ export class WithdrawalService {
       throw new Error("Insufficient wallet balance");
     }
 
+
+    console.log("wallet dey here", wallet);
+    
     // Fetch Vendor Commission Setting
     const vendorCommission = await prisma.vendorCommissionSetting.findUnique({
       where: { userId },
@@ -77,45 +90,45 @@ export class WithdrawalService {
     }
 
     // Step 1: Create recipient
-    const recipientCode = await createTransferRecipient(
-      resolvedAccountName,
-      bankAccountNumber,
-      bankCode
-    );
+  // Step 1: Create recipient
+const recipientCode = await createTransferRecipient(
+  resolvedAccountName,
+  bankAccountNumber,
+  bankCode,
+);
+try {
+  await debitWallet(wallet.id, amount, "Wallet Withdrawal", generateReferralReference());
+} catch (error) {
+  console.error("Failed to debit wallet:", error);
+  throw error;
+}
 
-    // Step 2: Lock funds (deduct from wallet)
-    await prisma.wallet.update({
-      where: { userId },
-      data: {
-        balance: { decrement: amount },
-      },
-    });
 
-    // Step 3: Initiate Transfer for payoutAmount
-    const transfer = await sendTransfer(
-      payoutAmount,
-      recipientCode,
-      reason,
-      { userId }
-    );
+// Step 3: Initiate Transfer for payoutAmount
+const transfer = await sendTransfer(
+  payoutAmount,
+  recipientCode,
+  reason,
+  { userId }
+);
 
-    // Step 4: Store Withdrawal Record
-    const withdrawal = await prisma.withdrawalRequest.create({
-      data: {
-        userId,
-        amount: payoutAmount,
-        reason,
-        method: "paystack",
-        status: transfer.status === "success" ? WithdrawalStatus.PAID : WithdrawalStatus.PENDING,
-        metadata: {
-          originalAmount: amount,
-          platformFee,
-          transferDetails: transfer,
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
+// Step 4: Store Withdrawal Record
+const withdrawal = await prisma.withdrawalRequest.create({
+  data: {
+    userId,
+    amount: payoutAmount,
+    reason,
+    method: "paystack",
+    status: transfer.status === "success" ? WithdrawalStatus.PAID : WithdrawalStatus.PENDING,
+    metadata: {
+      originalAmount: amount,
+      platformFee,
+      transferDetails: transfer,
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+});
 
     return {
       message: transfer.status === "success" ? "Withdrawal successful" : "Withdrawal processing",

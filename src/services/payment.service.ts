@@ -52,7 +52,7 @@ export const handlePaystackWebhook = async (reference: string) => {
 
 
     // ✅ Credit wallet and mark transaction as successful
-    await creditWallet(user.wallet.id, amount, "Wallet Funding");
+await creditWallet(prisma, user.wallet.id, amount, "Wallet Funding");
 
     await prisma.transaction.update({
       where: { reference },

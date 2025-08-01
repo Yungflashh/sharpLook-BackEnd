@@ -67,7 +67,7 @@ const updateBookingStatus = async (bookingId, status, refundReference // <-- opt
             throw new Error("Client wallet not found");
         if (!refundReference)
             throw new Error("Refund reference required");
-        await (0, wallet_service_1.creditWallet)(wallet.id, booking.price, "Booking Refund", refundReference);
+        await (0, wallet_service_1.creditWallet)(prisma_1.default, wallet.id, booking.price, "Booking Refund", refundReference);
         return prisma_1.default.booking.update({
             where: { id: bookingId },
             data: {
@@ -124,7 +124,7 @@ const finalizeBookingPayment = async (booking, reference) => {
     const vendorWallet = await (0, wallet_service_1.getUserWallet)(booking.vendorId);
     if (!vendorWallet)
         throw new Error("Vendor wallet not found");
-    await (0, wallet_service_1.creditWallet)(vendorWallet.id, booking.price, "Booking Payment Received", reference);
+    await (0, wallet_service_1.creditWallet)(prisma_1.default, vendorWallet.id, booking.price, "Booking Payment Received", reference);
     return await prisma_1.default.booking.update({
         where: { id: booking.id },
         data: {
@@ -140,57 +140,32 @@ const getBookingById = async (bookingId) => {
 };
 exports.getBookingById = getBookingById;
 const getUserBookings = async (userId, role) => {
-    const condition = role === "CLIENT" ? { clientId: userId } : { vendorId: userId };
-    const includeUser = role === "CLIENT"
-        ? {
-            vendor: {
-                select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    vendorOnboarding: {
-                        select: {
-                            businessName: true,
-                            location: true,
-                        },
-                    },
-                },
-            },
-        }
-        : {
+    const filter = role === "CLIENT" ? { clientId: userId } : { vendorId: userId };
+    const bookings = await prisma_1.default.booking.findMany({
+        where: filter,
+        include: {
+            dispute: true,
+            service: true,
             client: {
                 select: {
                     id: true,
                     firstName: true,
                     lastName: true,
-                    avatar: true,
                 },
             },
-        };
-    return await prisma_1.default.booking.findMany({
-        where: condition,
-        include: {
-            ...includeUser,
-            service: {
+            vendor: {
                 select: {
                     id: true,
-                    serviceName: true,
-                    serviceImage: true,
-                    description: true,
-                    reviews: {
-                        select: {
-                            id: true,
-                            rating: true,
-                            comment: true,
-                            clientId: true,
-                            createdAt: true,
-                        },
-                    },
+                    firstName: true,
+                    lastName: true,
                 },
             },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: {
+            date: 'desc',
+        }
     });
+    return bookings;
 };
 exports.getUserBookings = getUserBookings;
 const homeServiceCreateBooking = async (clientId, vendorId, serviceId, paymentMethod, serviceName, price, totalAmount, time, date, reference, serviceType, homeDetails) => {
