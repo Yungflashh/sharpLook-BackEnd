@@ -38,7 +38,7 @@ router.put("/update-service-radius",verifyToken,requireRole(["VENDOR"]),updateSe
 router.get("/analytics/:vendorId", fetchVendorAnalytics);
 router.get("/earnings-graph", requireRole(["VENDOR"]), fetchVendorEarningsGraph);
 router.post('/mark-vendor-paid', verifyToken,  requireRole(["VENDOR"]), markVendorAsPaidController );
-router.post('/getMySub', verifyToken,  requireRole(["VENDOR"]), getVendorSubscriptionController );
+router.get('/getMySub', verifyToken,  requireRole(["VENDOR"]), getVendorSubscriptionController );
 
 
 router.put(
