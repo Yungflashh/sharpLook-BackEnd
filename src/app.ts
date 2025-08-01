@@ -45,7 +45,9 @@ const allowedOrigins = [
   "https://sharp-look-test.vercel.app", // Vercel frontend
   "http://localhost:3000",              // Local dev (if needed)
   "https://406b7add8a65.ngrok-free.app",
-  "*"// Ngrok frontend (if needed)
+  "*",// Ngrok frontend (if needed),
+    "https://406b7add8a65.ngrok-free.app",
+
 ];
 
 app.use(
