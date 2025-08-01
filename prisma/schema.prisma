@@ -389,14 +389,14 @@ model Review {
   model Dispute {
     id          String   @id @default(auto()) @map("_id") @db.ObjectId
     bookingId   String    @unique @db.ObjectId
-    raisedById  String   @db.ObjectId 
+    raisedById  String  @db.ObjectId 
     reason      String
     status      DisputeStatus @default(PENDING)
     resolution  String?
     imageUrl      String?   
     createdAt   DateTime @default(now())
 
-    raisedBy    User     @relation("UserDisputes", fields: [raisedById], references: [id])
+    raisedBy    User?    @relation("UserDisputes", fields: [raisedById], references: [id])
 
     booking  Booking  @relation(fields: [bookingId], references: [id])
   }
