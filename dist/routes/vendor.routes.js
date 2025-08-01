@@ -25,6 +25,7 @@ router.get("/getVendorAvailability", auth_middleware_1.verifyToken, (0, auth_mid
 router.put("/update-service-radius", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_2.updateServiceRadius);
 router.get("/analytics/:vendorId", vendorAnalytics_controller_1.fetchVendorAnalytics);
 router.get("/earnings-graph", (0, auth_middleware_1.requireRole)(["VENDOR"]), vendorAnalytics_controller_1.fetchVendorEarningsGraph);
-router.post('/mark-vendor-paid', auth_middleware_1.verifyToken, vendor_controller_1.markVendorAsPaidController);
+router.post('/mark-vendor-paid', auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_1.markVendorAsPaidController);
+router.post('/getMySub', auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), vendor_controller_1.getVendorSubscriptionController);
 router.put("/profile/edit", auth_middleware_1.verifyToken, (0, auth_middleware_1.requireRole)(["VENDOR"]), upload_middleware_1.uploadMultiple, vendor_controller_2.editVendorProfile);
 exports.default = router;

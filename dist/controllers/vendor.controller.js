@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markVendorAsPaidController = exports.editVendorProfile = exports.filterVendorsByService = exports.fetchAllServiceCategories = exports.getNearbyVendors = exports.updateServiceRadius = exports.fetchAvailability = exports.updateAvailability = exports.fetchPortfolioImages = exports.uploadPortfolioImages = exports.completeVendorProfile = void 0;
+exports.getVendorSubscriptionController = exports.markVendorAsPaidController = exports.editVendorProfile = exports.filterVendorsByService = exports.fetchAllServiceCategories = exports.getNearbyVendors = exports.updateServiceRadius = exports.fetchAvailability = exports.updateAvailability = exports.fetchPortfolioImages = exports.uploadPortfolioImages = exports.completeVendorProfile = void 0;
 const vendorOnboarding_service_1 = require("../services/vendorOnboarding.service");
 const vendor_services_1 = require("../services/vendor.services");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
@@ -286,3 +286,35 @@ const markVendorAsPaidController = async (req, res) => {
     }
 };
 exports.markVendorAsPaidController = markVendorAsPaidController;
+const getVendorSubscriptionController = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { vendorSubscription: true },
+        });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        if (user.role !== client_1.Role.VENDOR) {
+            return res.status(400).json({ message: 'User is not a vendor.' });
+        }
+        if (!user.vendorSubscription) {
+            return res.status(404).json({ message: 'No active subscription found.' });
+        }
+        return res.status(200).json({
+            subscription: {
+                planName: user.vendorSubscription.planName,
+                amount: user.vendorSubscription.amount,
+                isPaid: user.vendorSubscription.isPaid,
+                paidAt: user.vendorSubscription.paidAt,
+                expiresAt: user.vendorSubscription.expiresAt,
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error fetching subscription:', error);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+exports.getVendorSubscriptionController = getVendorSubscriptionController;
