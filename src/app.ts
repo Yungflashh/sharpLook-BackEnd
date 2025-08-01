@@ -46,10 +46,24 @@ const app = express()
 // Instead of: app.use(cors())
 app.use(
   cors({
-    origin: "*",
-    credentials: true, // if you're using cookies or sessions
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "http://localhost:5173",               // Local web dev
+              "capacitor://localhost",               // Capacitor mobile apps
+        "ionic://localhost",                   // Ionic mobile apps
+        null,                                  // Native mobile apps (no origin)
+      ];
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   })
 );
+
 
 app.use((req, res, next) => {
   const contentType = req.headers['content-type'] || '';
