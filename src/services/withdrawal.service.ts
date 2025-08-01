@@ -97,7 +97,7 @@ const recipientCode = await createTransferRecipient(
   bankCode,
 );
 try {
-  await debitWallet(wallet.id, amount, "Wallet Withdrawal", generateReferralReference());
+  await debitWallet(wallet.id, payoutAmount, "Wallet Withdrawal", generateReferralReference());
 } catch (error) {
   console.error("Failed to debit wallet:", error);
   throw error;

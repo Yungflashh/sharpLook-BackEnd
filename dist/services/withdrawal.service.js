@@ -62,7 +62,7 @@ class WithdrawalService {
         // Step 1: Create recipient
         const recipientCode = await (0, paystack_1.createTransferRecipient)(resolvedAccountName, bankAccountNumber, bankCode);
         try {
-            await (0, wallet_service_1.debitWallet)(wallet.id, amount, "Wallet Withdrawal", (0, exports.generateReferralReference)());
+            await (0, wallet_service_1.debitWallet)(wallet.id, payoutAmount, "Wallet Withdrawal", (0, exports.generateReferralReference)());
         }
         catch (error) {
             console.error("Failed to debit wallet:", error);

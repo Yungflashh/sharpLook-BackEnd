@@ -238,22 +238,37 @@ const markVendorAsPaidController = async (req, res) => {
         if (user.role !== client_1.Role.VENDOR) {
             return res.status(400).json({ message: 'User is not a vendor.' });
         }
-        // Update subscription
         const now = new Date();
         const nextMonth = new Date(now);
         nextMonth.setMonth(nextMonth.getMonth() + 1);
-        await prisma.vendorSubscription.update({
-            where: { userId },
-            data: {
-                isPaid: true,
-                paidAt: now,
-                expiresAt: nextMonth,
-                planName,
-                amount,
-                updatedAt: now
-            }
-        });
-        // If the user was banned, unban them
+        if (user.vendorSubscription) {
+            // ✅ Update existing subscription
+            await prisma.vendorSubscription.update({
+                where: { id: user.vendorSubscription.id },
+                data: {
+                    isPaid: true,
+                    paidAt: now,
+                    expiresAt: nextMonth,
+                    planName,
+                    amount,
+                    updatedAt: now
+                }
+            });
+        }
+        else {
+            // ✅ Create new subscription
+            await prisma.vendorSubscription.create({
+                data: {
+                    userId,
+                    isPaid: true,
+                    paidAt: now,
+                    expiresAt: nextMonth,
+                    planName,
+                    amount
+                }
+            });
+        }
+        // ✅ Unban the user if necessary
         if (user.isBanned) {
             await prisma.user.update({
                 where: { id: userId },
@@ -263,7 +278,7 @@ const markVendorAsPaidController = async (req, res) => {
                 }
             });
         }
-        return res.status(200).json({ message: 'Vendor marked as paid and unbanned if necessary.' });
+        return res.status(200).json({ message: 'Vendor Monthly Subscription paid' });
     }
     catch (error) {
         console.error('Error updating subscription:', error);
