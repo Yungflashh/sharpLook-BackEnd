@@ -48,7 +48,8 @@ app.use(
   cors({
     origin: (origin, callback) => {
       const allowedOrigins = [
-        "*",                   // Ionic mobile apps
+        "*",  
+        "https://sharp-look-test.vercel.app ",                // Ionic mobile apps
         null,                                  // Native mobile apps (no origin)
       ];
 
