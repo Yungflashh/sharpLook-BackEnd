@@ -114,6 +114,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
      else if (userCheck.role === "ADMIN" && !userCheck.powerGiven) {
+      
       return res.status(403).json({
         success: false,
         message: "Access denied. Admin privileges not granted by SuperAdmin.",
@@ -279,5 +280,27 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     return res.status(200).json({ success: true, user });
   } catch (err: any) {
     return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+
+export const saveFcmToken = async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const { fcmToken } = req.body;
+
+  if (!fcmToken) {
+    return res.status(400).json({ success: false, message: "FCM token is required" });
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { fcmToken },
+    });
+
+    return res.status(200).json({ success: true, message: "FCM token saved successfully" });
+  } catch (err: any) {
+    console.error("Failed to save FCM token:", err.message);
+    return res.status(500).json({ success: false, message: "Failed to save FCM token" });
   }
 };

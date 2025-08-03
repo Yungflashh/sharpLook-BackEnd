@@ -43,7 +43,8 @@
 
     withdrawalRequests    WithdrawalRequest[]    @relation("UserWithdrawals")
 
- 
+    fcmToken  String? 
+
 
     // ✅ Wallet relation
     walletId String? @unique

@@ -372,7 +372,7 @@ export const cancelOffer = async (offerId: string, clientId: string) => {
 export const getAllAvailableOffers = async () => {
   return prisma.serviceOffer.findMany({
     where: {
-      status: "PENDING", // or whatever your "open" status is
+      status: "PENDING", 
     },
     orderBy: {
       createdAt: "desc",
