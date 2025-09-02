@@ -759,8 +759,7 @@ const updateProductAsAdmin = async (productId, productName, price, qtyAvailable,
 };
 exports.updateProductAsAdmin = updateProductAsAdmin;
 const mongodb_1 = require("mongodb");
-const createUser = async (firstName, lastName, email, password, role, // Comes from frontend
-phone) => {
+const createUser = async (firstName, lastName, email, password, role, phone) => {
     const existingUser = await prisma_1.default.user.findUnique({ where: { email } });
     if (existingUser) {
         throw new Error("User with this email already exists.");

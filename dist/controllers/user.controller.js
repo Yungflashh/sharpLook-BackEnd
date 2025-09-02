@@ -123,7 +123,11 @@ const handleDeleteAccount = async (req, res) => {
     try {
         const userId = req.user.id;
         const result = await (0, user_services_1.deleteUserAccount)(userId);
-        return res.status(200).json(result);
+        return res.status(200).json({
+            success: true,
+            message: "Account Deleted Successfulluy",
+            result
+        });
     }
     catch (error) {
         console.error("Delete account error:", error.message);

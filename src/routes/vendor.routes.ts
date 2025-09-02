@@ -9,7 +9,9 @@ import { uploadPortfolioImages,
         updateServiceRadius,
      editVendorProfile,
     fetchAllServiceCategories,
-  filterVendorsByService } from "../controllers/vendor.controller"
+  filterVendorsByService,
+deleteVendorAccountController
+ } from "../controllers/vendor.controller"
 import { uploadMultiple } from "../middlewares/upload.middleware"
 import { setVendorPricing, fetchVendorPricing } from "../controllers/vendorPricing.controller"
 import { fetchVendorAnalytics ,fetchVendorEarningsGraph } from "../controllers/vendorAnalytics.controller";
@@ -47,7 +49,7 @@ router.put(
   editVendorProfile
 );
 
-
+router.delete("/deleteMyVendorAcct", verifyToken, requireRole(["VENDOR"]), deleteVendorAccountController )
 
 
 

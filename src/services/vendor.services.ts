@@ -163,3 +163,39 @@ export const updateVendorProfile = async (vendorId: string, data: EditableVendor
     data
   });
 };
+
+
+export const deleteVendorAccount = async (userId: string) => {
+
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      vendorOnboarding: true,
+      vendorAvailability: true,
+      vendorServices: true,
+      vendorReviews: true,
+      promotions: true,
+      wallet: true,
+      products: true,
+    },
+  });
+
+  if (!existingUser || existingUser.role !== 'VENDOR') {
+    throw new Error("Vendor not found or invalid user type.");
+  }
+
+  // Delete all related records
+  await prisma.vendorAvailability.deleteMany({ where: { vendorId: userId } });
+  await prisma.vendorService.deleteMany({ where: { userId } });
+  await prisma.review.deleteMany({ where: { vendorId: userId } });
+  await prisma.promotion.deleteMany({ where: { vendorId: userId } });
+  await prisma.product.deleteMany({ where: { vendorId: userId } });
+  await prisma.vendorOnboarding.deleteMany({ where: { userId } });
+
+  // Finally delete the user record
+  await prisma.user.delete({ where: { id: userId } });
+    await prisma.wallet.deleteMany({ where: { userId } });
+
+
+  return { success: true, message: "Vendor account deleted successfully." };
+};

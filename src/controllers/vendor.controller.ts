@@ -8,7 +8,8 @@ import {
   updateServiceRadiusAndLocation,
   findNearbyVendors,
   getAllVendorServices,
-  getVendorsByService
+  getVendorsByService,
+  deleteVendorAccount
 } from "../services/vendor.services"
 import uploadToCloudinary from "../utils/cloudinary"
 // import prisma from "../config/prisma"
@@ -375,5 +376,31 @@ export const getVendorSubscriptionController = async (req: Request, res: Respons
   } catch (error) {
     console.error('Error fetching subscription:', error);
     return res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
+
+export const deleteVendorAccountController = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+
+
+
+    let response = await deleteVendorAccount(userId);
+
+    if (response.success){
+    return res.status(200).json({
+      success: true,
+      message: "Vendor account deleted successfully.",
+    });
+  }
+
+  } catch (error: any) {
+    console.error("Error deleting vendor account:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete vendor account.",
+      error: error.message,
+    });
   }
 };

@@ -71,17 +71,6 @@ export const getAllProducts = async () => {
     },
     orderBy: { createdAt: "desc" },
     include: {
-      reviews: {
-        include: {
-          client: {
-            select:{
-              firstName: true,
-              lastName: true,
-              avatar: true
-            }
-          }
-        }
-      },
       vendor: {
         include: {
           vendorOnboarding: true,
@@ -89,7 +78,6 @@ export const getAllProducts = async () => {
           vendorServices: true,
           vendorReviews: {
             include: {
-              
               client: {
                 select: {
                   firstName: true,

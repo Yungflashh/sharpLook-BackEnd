@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as AdminController from "../controllers/admin.controller";
 import { verifyToken } from "../middlewares/auth.middleware";
-import { Role} from '@prisma/client';
+import { AdminRole, Role} from '@prisma/client';
 import { requireAdminRole } from "../middlewares/admin.middleware";
 import { uploadSingle2 } from "../middlewares/upload.middleware";
 
@@ -75,7 +75,8 @@ router.patch("/wallets/:userId/adjust", requireAdminRole(Role.FINANCE_ADMIN, Rol
 
 // // ANALYST 
 
-// Bookings, Orders
+
+// Bookings, Orders 
 router.get("/bookings", requireAdminRole(Role.ANALYST, Role.SUPERADMIN), AdminController.getAllBookings);
 router.get("/bookings/details", requireAdminRole(Role.ANALYST, Role.SUPERADMIN), AdminController.getAllBookingsDetailed);
 router.get("/orders", requireAdminRole(Role.ANALYST, Role.SUPERADMIN), AdminController.getAllOrders);

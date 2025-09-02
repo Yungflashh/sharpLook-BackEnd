@@ -88,7 +88,7 @@ router.get("/referrals", (0, admin_middleware_1.requireAdminRole)(client_1.Role.
 router.get("/payments", (0, admin_middleware_1.requireAdminRole)(client_1.Role.FINANCE_ADMIN, client_1.Role.SUPERADMIN), AdminController.getAllPayments);
 router.patch("/wallets/:userId/adjust", (0, admin_middleware_1.requireAdminRole)(client_1.Role.FINANCE_ADMIN, client_1.Role.SUPERADMIN), AdminController.adjustWalletBalance);
 // // ANALYST 
-// Bookings, Orders
+// Bookings, Orders 
 router.get("/bookings", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ANALYST, client_1.Role.SUPERADMIN), AdminController.getAllBookings);
 router.get("/bookings/details", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ANALYST, client_1.Role.SUPERADMIN), AdminController.getAllBookingsDetailed);
 router.get("/orders", (0, admin_middleware_1.requireAdminRole)(client_1.Role.ANALYST, client_1.Role.SUPERADMIN), AdminController.getAllOrders);

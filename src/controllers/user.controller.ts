@@ -10,6 +10,7 @@ import {
 } from "../services/user.services"
 
 import prisma from "../config/prisma"
+import { success } from "zod"
 
 export const getMyProfile = async (req: Request, res: Response) => {
   try {
@@ -148,7 +149,12 @@ export const handleDeleteAccount = async (req: Request, res: Response) => {
 
     const result = await deleteUserAccount(userId);
 
-    return res.status(200).json(result);
+    return res.status(200).json({
+      success: true,
+      message: "Account Deleted Successfulluy",
+      result
+    }
+    );
   } catch (error: any) {
     console.error("Delete account error:", error.message);
     return res.status(500).json({ error: error.message || "Internal Server Error" });

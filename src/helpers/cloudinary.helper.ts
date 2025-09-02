@@ -7,6 +7,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
+
+
 export const uploadToCloudinary = async (filePath: string, folder: string) => {
   return await cloudinary.uploader.upload(filePath, {
     folder,

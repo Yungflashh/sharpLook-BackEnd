@@ -888,7 +888,7 @@ export const createUser = async (
   lastName: string,
   email: string,
   password: string,
-  role: Role, // Comes from frontend
+  role: Role, 
   phone?: string
 ) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
