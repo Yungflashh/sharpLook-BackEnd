@@ -9,6 +9,8 @@ const vendor_services_1 = require("../services/vendor.services");
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 // import prisma from "../config/prisma"
 const commision_service_1 = require("../services/commision.service"); // adjust path as needed
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
 const completeVendorProfile = async (req, res) => {
     try {
         const vendorId = req.user.id;
@@ -99,6 +101,7 @@ const updateServiceRadius = async (req, res) => {
         });
     }
     catch (err) {
+        console.log(err.message);
         res.status(500).json({ success: false, message: "Failed to update service radius", error: err.message });
     }
 };
@@ -217,8 +220,6 @@ const editVendorProfile = async (req, res) => {
     }
 };
 exports.editVendorProfile = editVendorProfile;
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
 const markVendorAsPaidController = async (req, res) => {
     const userId = req.user.id;
     const { planName, amount } = req.body;

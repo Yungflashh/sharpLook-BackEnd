@@ -149,6 +149,8 @@ const deleteVendorAccount = async (userId) => {
     await prisma_1.default.vendorAvailability.deleteMany({ where: { vendorId: userId } });
     await prisma_1.default.vendorService.deleteMany({ where: { userId } });
     await prisma_1.default.review.deleteMany({ where: { vendorId: userId } });
+    await prisma_1.default.vendorOrder.deleteMany({ where: { vendorId: userId } });
+    await prisma_1.default.booking.deleteMany({ where: { vendorId: userId } });
     await prisma_1.default.promotion.deleteMany({ where: { vendorId: userId } });
     await prisma_1.default.product.deleteMany({ where: { vendorId: userId } });
     await prisma_1.default.vendorOnboarding.deleteMany({ where: { userId } });

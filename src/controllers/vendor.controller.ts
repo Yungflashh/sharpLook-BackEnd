@@ -14,7 +14,9 @@ import {
 import uploadToCloudinary from "../utils/cloudinary"
 // import prisma from "../config/prisma"
 import { maybeCreateVendorCommission } from "../services/commision.service"; // adjust path as needed
+import { PrismaClient, Role } from '@prisma/client';
 
+const prisma = new PrismaClient();
 
 
 export const completeVendorProfile = async (req: Request, res: Response) => {
@@ -123,6 +125,8 @@ export const updateServiceRadius = async (req: Request, res: Response) => {
       data: updated,
     })
   } catch (err: any) {
+    console.log(err.message);
+    
     res.status(500).json({ success: false, message: "Failed to update service radius", error: err.message })
   }
 }
@@ -169,7 +173,6 @@ export const filterVendorsByService = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Failed to filter vendors", error: err.message })
   }
 }
-
 
 
 
@@ -263,9 +266,7 @@ if (typeof availability === "string") {
   }
 };
 
-import { PrismaClient, Role } from '@prisma/client';
 
-const prisma = new PrismaClient();
 
 export const markVendorAsPaidController = async (req: Request, res: Response) => {
   const userId = req.user!.id;
